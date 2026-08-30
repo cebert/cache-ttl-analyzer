@@ -30,6 +30,7 @@ From my experience, many developers are still unaware of the cost impact their b
 | `transcripts/` | The AI sessions that built this project ([map](transcripts/README.md)) |
 | `src/` | Application source |
 | `public/samples/` | Bundled demo session logs so the tool works without your own data |
+| `.coderabbit.yaml` | [CodeRabbit](https://coderabbit.ai) AI review settings for pull requests |
 
 ## Development
 TODO
