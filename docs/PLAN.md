@@ -207,7 +207,7 @@ the tool does not imply it evaluated subagent traffic (feasibility doc §3).
 Sized so each WP is one focused session producing one PR into `main`. Every PR
 passes CI (typecheck, lint, tests, build) and CodeRabbit review.
 
-### WP-01 — Scaffold and tooling
+### WP-01 — Scaffold and tooling ✅ complete (PR #11, 2026-08-30)
 **Depends on:** nothing. **Blocks:** everything.
 Vite + React + TS app skeleton; Vitest; Oxlint + Prettier (D14 — was
 "ESLint + Prettier"); `wrangler.jsonc`
@@ -218,7 +218,7 @@ README "Development" section filled in.
 *Acceptance:* `npm run build && npm test` green; `wrangler dev` serves the
 placeholder app.
 
-### WP-02 — Engine contract (do in the same session as WP-01)
+### WP-02 — Engine contract (do in the same session as WP-01) ✅ complete (PR #11, 2026-08-30)
 **Depends on:** WP-01. **Blocks:** WP-03, WP-04, WP-05, WP-07, WP-08.
 The frozen TypeScript interfaces everything else codes against:
 `ParsedSession` (deduped request records + skip/warning counts),
@@ -392,12 +392,11 @@ the post-deploy security-header smoke check runs against previews too.
 Previews build only for branches in this repo (not forks), and preview URLs
 are public — acceptable for a static, open-source app. Document the Workers
 Builds setup in README. Branch protection on `main`. Serve the strict CSP and security headers (via the
-Workers static-assets headers config). Once the domain is in the Cloudflare
-account, attach
-**cacheanalyzer.com** as a custom domain on the Worker (wrangler
-`routes`/custom domain config).
+Workers static-assets headers config). ~~Attach **cacheanalyzer.com** as a
+custom domain on the Worker~~ — done 2026-08-30, ahead of this WP (see D8;
+`wrangler.jsonc` carries the `routes` custom-domain config).
 *Acceptance:* a PR shows the checks; a merge to `main` deploys, reachable at
-`workers.dev` (and at cacheanalyzer.com once DNS is live); a post-deploy
+`workers.dev` and at cacheanalyzer.com (already live); a post-deploy
 smoke check asserts the exact security headers on the live site
 (`Content-Security-Policy` present with `default-src 'self'` and no external
 `connect-src`) so a misconfigured headers file fails the deploy rather than
