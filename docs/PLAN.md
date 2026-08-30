@@ -374,7 +374,7 @@ records / version warnings surfaced.
 *Acceptance:* renders correctly for each WP-06 sample, including the
 no-sidechain and unknown-model cases.
 
-### WP-09 — CI/CD
+### WP-09 — CI/CD ✅ complete (PR #13, 2026-08-30)
 **Depends on:** WP-01. **Parallel with:** WP-03, WP-04, WP-06.
 GitHub Actions owns the whole pipeline (see D15, revised 2026-08-30): one
 `ci.yml` whose `check` job runs format check, lint, typecheck, test and build
@@ -400,6 +400,25 @@ config).
 *Acceptance:* a PR shows the checks and gets a preview-URL comment; a merge to
 `main` deploys, reachable at `workers.dev` and at cacheanalyzer.com (already
 live); the README's Live URL is updated.
+
+**Delivered (PR #13):** `ci.yml` with the `check`/`preview`/`deploy` jobs,
+`public/_headers`, `.nvmrc` pinning Node 26, and branch protection on `main`
+(PR required, `check` required to pass). Preview aliases are keyed
+`pr-<number>-<branch>` rather than branch alone, because normalizing a branch
+name is not injective (`feat/a` and `feat_a` collapse together, and long
+branches collide once truncated to the 44-character limit) and an alias binds
+to whichever version uploaded last.
+Verified: CI green on #13; both preview URLs served HTTP 200 from the
+Cloudflare edge with the full CSP and `X-Robots-Tag: noindex`; the app loaded
+from the preview and its module Web Worker ran to completion with zero CSP
+violations; the PR comment updated in place across three preview runs instead
+of duplicating.
+**Not yet verified at time of writing:** `wrangler deploy` with custom-domain
+*route reconciliation* has never run — previews use `versions upload`, which
+does not touch routes — so the production token scope is proven only for
+uploads. cacheanalyzer.com will not serve the security headers until the first
+merge to `main`. Both are settled by that first production deploy; if it fails
+it will be on route permissions.
 
 ### WP-10 — Launch polish
 **Depends on:** WP-08, WP-09.
