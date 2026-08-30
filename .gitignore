@@ -20,3 +20,6 @@ npm-debug.log*
 
 # Wrangler
 .wrangler
+
+# Session worktrees (other agents' workspaces)
+.claude/worktrees/
