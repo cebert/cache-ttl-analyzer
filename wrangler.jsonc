@@ -1,0 +1,13 @@
+// Cloudflare Workers static-assets deployment (no server-side code — the MVP
+// is deliberately backend-free; see docs/PLAN.md §2).
+// The strict CSP / security headers and the cacheanalyzer.com custom domain
+// are wired up in WP-09.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cache-ttl-analyzer",
+  "compatibility_date": "2026-08-30",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+  },
+}

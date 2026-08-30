@@ -1,0 +1,7 @@
+dist
+node_modules
+transcripts
+public/samples
+package-lock.json
+# Prose is hand-formatted; keep docs diffs meaningful
+*.md
