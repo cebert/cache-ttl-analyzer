@@ -165,7 +165,7 @@ details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom
 <a href="page-001.html">Next &rarr;</a>
 </div>
 
-        <p style="color: var(--text-muted); margin-bottom: 24px;">11 prompts · 206 messages · 64 tool calls · 0 commits · 3 pages</p>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">13 prompts · 277 messages · 85 tool calls · 0 commits · 3 pages</p>
         
 <div class="index-item"><a href="page-001.html#msg-2026-08-30T18-03-05-971Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2026-08-30T18:03:05.971Z" data-timestamp="2026-08-30T18:03:05.971Z">2026-08-30T18:03:05.971Z</time></div><div class="index-item-content"><p><command-name>/model</command-name>
             <command-message>model</command-message>
@@ -2042,8 +2042,70 @@ transcripts/raw/001-....jsonl    ├── session.jsonl, index.html, page-001.h
 <p><strong>What I haven't checked yet</strong> — I stopped to ask before touching anything. I haven't read the skill's redaction steps in full, confirmed <code>claude-code-transcripts</code> is installed, or looked at what in this session needs redacting. I can answer questions about any of that first if it'd help you decide.</p>
 <p>Happy to just take a direction instead, if you already know what you want.</p></div></div><button class="expand-btn">Show more</button></div></div>
 </div></div>
-<div class="index-item"><a href="page-003.html#msg-2026-08-30T18-40-11-901Z"><div class="index-item-header"><span class="index-item-number">#11</span><time datetime="2026-08-30T18:40:11.901Z" data-timestamp="2026-08-30T18:40:11.901Z">2026-08-30T18:40:11.901Z</time></div><div class="index-item-content"><p>I cleaned that up try again</p></div></a><div class="index-item-stats"><span>4 bash</span>
+<div class="index-item"><a href="page-003.html#msg-2026-08-30T18-40-11-901Z"><div class="index-item-header"><span class="index-item-number">#11</span><time datetime="2026-08-30T18:40:11.901Z" data-timestamp="2026-08-30T18:40:11.901Z">2026-08-30T18:40:11.901Z</time></div><div class="index-item-content"><p>I cleaned that up try again</p></div></a><div class="index-item-stats"><span>9 read · 8 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Docs committed. Now the transcript — here's what both passes found, before I redact anything.</p>
+<p><strong>Pass A (regex)</strong> — 4 distinct values: your email ×1, <code>coworker@example.com</code> ×2, <code>~</code> ×443.</p>
+<p><strong>Pass B (reading)</strong> turned up the thing the regex can't catch, and it's the exact case the skill warns about:</p>
+<p><strong>1. Your other project names ×22.</strong> I ran <code>ls ~/.claude/projects</code> and iterated every session file on the machine, so the transcript names:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[REDACTED_PROJECT_A]</code> (in <code>-[REDACTED_PROJECT_A]</code> and <code>-[REDACTED_PROJECT_A]-starter</code>)</td>
+<td>10</td>
+</tr>
+<tr>
+<td><code>[REDACTED_PROJECT_B]</code> / <code>projects-[REDACTED_PROJECT_B]</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>[REDACTED_PROJECT_C]</code></td>
+<td>13</td>
+</tr>
+</tbody>
+</table>
+<p>They appear twice over — in the directory listing <em>and</em> in the prototype results table, where each session is a row.</p>
+<p><strong>2. Cross-session content bleed.</strong> My regex scan printed 200-character windows from your <em>other</em> sessions — <code>caceaadb</code> (session 001, already published) and a home-directory session. Content is on-topic and includes <code>docs/RATIONALE.md</code> and README draft fragments. One reads "…you work for is almost certainly in it" — truncated, and I checked: <strong>no employer is actually named.</strong> Low risk, but it's other sessions' text riding along.</p>
+<p><strong>3. A <code>~/.claude</code> directory listing</strong> — local layout plus a telemetry filename with UUIDs. Low risk.</p>
+<p><strong>Not a problem:</strong> <code>coworker@example.com</code> is a placeholder from the skill's <em>own</em> documentation quoted into this session — not a real address. <code>github.com/cebert/cache-ttl-analyzer</code> ×10 is the public repo. No third-party names, no credentials, nothing from <code>.env</code>.</p>
+<p><strong>Proposed redactions</strong> — matching what session 001 already did ("unrelated project names, user email"):</p>
+<pre><code>[REDACTED_PROJECT_A2] → [REDACTED_PROJECT_A]-starter   (6)
+[REDACTED_PROJECT_A1]         → [REDACTED_PROJECT_A]           (4)
+[REDACTED_PROJECT_A]                     → [REDACTED_PROJECT_A]     bare token
+[REDACTED_PROJECT_B]                 → [REDACTED_PROJECT_B]           (2)
+projects-[REDACTED_PROJECT_B]                → projects-[REDACTED_PROJECT_B]  (2)
+[REDACTED_EMAIL].com                  → [REDACTED_EMAIL]               (1)
+</code></pre>
+<p>Three judgment calls the skill says to put to you rather than decide:</p>
+<ul>
+<li><strong>Your email</strong> — already in this repo's git history, so redacting is arguably pointless. Session 001 redacted it anyway; I'd stay consistent. <strong>Included above</strong> — say the word and I'll drop it.</li>
+<li><strong><code>~</code> → <code>~</code> (443×).</strong> Low risk, but it leaks your username and local layout. <strong>I'd do it.</strong> Not in the list above yet since it's cosmetic and touches a lot of lines.</li>
+<li><strong><code>[REDACTED_PROJECT_C]</code> (13×).</strong> Not a project name, but it does say you ran Claude on your Desktop. I'd leave it; the <code>~</code> rewrite doesn't reach the slug form.</li>
+</ul>
+<p>Approve as-is, or tell me what to change?</p></div></div><button class="expand-btn">Show more</button></div></div>
 </div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-08-30T18-44-31-315Z"><div class="index-item-header"><span class="index-item-number">#12</span><time datetime="2026-08-30T18:44:31.315Z" data-timestamp="2026-08-30T18:44:31.315Z">2026-08-30T18:44:31.315Z</time></div><div class="index-item-content"><p>redact email is good, also remove references to my desktop</p></div></a><div class="index-item-stats"><span>8 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p><strong>PR #5 opened:</strong> https://github.com/cebert/cache-ttl-analyzer/pull/5</p>
+<p>Branched off the cleaned-up <code>main</code> (<code>6d4e077</code>), two commits:</p>
+<ul>
+<li><code>docs(design):</code> the research — <code>feasibility.md</code>, <code>prototype-sim.py</code>, folder <code>README.md</code></li>
+<li><code>docs(transcripts):</code> this session as <code>002-log-format-feasibility/</code>, plus the session-map row</li>
+</ul>
+<p><strong>On the transcript.</strong> I followed the skill's steps directly rather than invoking it, since it wasn't loaded at session start. Both passes ran; Pass B meant reading all 3,224 lines of the rendered text myself.</p>
+<p>Redacted, per your call: two unrelated project names (22 occurrences across a directory listing <em>and</em> the prototype's per-session results table — the regex pass caught none of them), the Desktop path slug ×13, your email ×1, and home paths → <code>~</code> ×443.</p>
+<p>Two things I deliberately kept, so they're not surprises in review:
+- <code>coworker@example.com</code> — a placeholder from the <code>publish-transcript</code> skill's <em>own</em> docs, quoted into this session. Not a real address.
+- <code>/Users/ch...</code> — an ellipsis-truncated fragment inside a grep window. Reveals less than the <code>-Users-chrisebert-Code-*</code> slugs we're keeping anyway.</p>
+<p>The two <code>NO MATCHES</code> warnings on the bare-token catch-all rules were benign — the longer rules had already consumed every occurrence. I verified that rather than assuming it, then re-scanned both the redacted JSONL and the rendered HTML. Zero residuals.</p>
+<p>Worth knowing: the transcript stops just short of this final turn, since the JSONL is still being written. Say the word and I'll re-render to pick up the tail.</p>
+<p>One thing to check — the skill says to ask you rather than write it myself, and I wrote it to keep the PR moving: the session-map summary reads <em>"Confirmed Claude Code session logs carry enough data to price 5m vs 1h <code>promptCacheTtl</code> counterfactuals at published API rates — the feasibility gate for building this tool at all."</em> Reword it and I'll amend.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-08-30T18-47-29-070Z"><div class="index-item-header"><span class="index-item-number">#13</span><time datetime="2026-08-30T18:47:29.070Z" data-timestamp="2026-08-30T18:47:29.070Z">2026-08-30T18:47:29.070Z</time></div><div class="index-item-content"><p>sure pick up the tail</p></div></a></div>
         
 
 <div class="pagination">
