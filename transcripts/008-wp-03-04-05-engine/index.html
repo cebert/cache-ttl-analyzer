@@ -161,10 +161,11 @@ details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom
 <span class="disabled">&larr; Prev</span>
 <a href="page-001.html">1</a>
 <a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
 <a href="page-001.html">Next &rarr;</a>
 </div>
 
-        <p style="color: var(--text-muted); margin-bottom: 24px;">7 prompts · 217 messages · 64 tool calls · 0 commits · 2 pages</p>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">13 prompts · 408 messages · 117 tool calls · 0 commits · 3 pages</p>
         
 <div class="index-item"><a href="page-001.html#msg-2026-08-30T22-20-23-023Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2026-08-30T22:20:23.023Z" data-timestamp="2026-08-30T22:20:23.023Z">2026-08-30T22:20:23.023Z</time></div><div class="index-item-content"><p><command-name>/model</command-name>
             <command-message>model</command-message>
@@ -2822,7 +2823,7 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
 <li>Commit only under <code>transcripts/</code>; leave unrelated working-tree changes alone.</li>
 <li>Do not push unless the user asks. Publishing to a remote is their call, and it
   is the point of no return for anything that slipped through redaction.</li>
-</ul></div></a><div class="index-item-stats"><span>1 bash</span>
+</ul></div></a><div class="index-item-stats"><span>13 read · 12 bash · 1 askuserquestion · 1 sendfeedback</span>
 <div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Base directory for this skill: ~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript</p>
 <h1>Publish a session transcript</h1>
 <p>Turns one Claude Code session for this repo into one committed folder holding
@@ -3006,6 +3007,140 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
 <li>Do not push unless the user asks. Publishing to a remote is their call, and it
   is the point of no return for anything that slipped through redaction.</li>
 </ul></div></div><button class="expand-btn">Show more</button></div></div>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Everything the request asked for is done and green; the only open item is CodeRabbit, which is polling in the background and will re-invoke me when it posts.</p>
+<h2>Recap</h2>
+<p><strong>PR #15 — <code>feat(engine): parser, pricing, and simulator (WP-03, WP-04, WP-05)</code></strong> — https://github.com/cebert/cache-ttl-analyzer/pull/15. CI green on every push (lint, typecheck, 168 tests incl. the 100MB fixture, build, preview deploy). <code>contract.ts</code> untouched.</p>
+<p>Five commits:
+- <code>51da602</code> <strong>WP-03 parser</strong> — <code>parser.ts</code> + <code>jsonl-stream.ts</code>; every correctness-table rule, three verdicts, typed copying, control-char stripping, per-line byte cap; tests for the adversarial cases, a content-poison session, a Proxy audit of every field read, the real v2.1.251 corpus (79 requests), and a streamed 300MB line.
+- <code>f4a86ba</code> <strong>WP-04 pricing + cost engine</strong> — <code>pricing.json</code> verified against the live pricing page (not memory); batch 0.5×, fast 2× on Opus 5/4.8, priority at standard; hand-computed tests per modifier combination.
+- <code>98622fc</code> <strong>WP-05 simulator + real engine</strong> — per-bucket/per-thread replay, hard resets, expiry/refresh, mixed-TTL split, unknown-model suppression; worker and placeholder app now run the real engine; reconciliation at the observed TTL holds on the real corpus.
+- <code>3b3e2d0</code> docs — WP-03/04/05 marked complete in PLAN with the decisions taken; WP-08 note on saying when an upload has no subagent traffic.
+- <code>ccfb51d</code> <strong>transcript</strong> <code>008-wp-03-04-05-engine</code> — published with the redactions you approved (email, name, an unrelated project name, home paths/username).</p>
+<p><strong>Two things to be aware of:</strong>
+1. <strong>Candidate contract amendment</strong> (flagged in PLAN, not applied): the 1.1× <code>inference_geo: "us"</code> multiplier can't be priced because <code>RequestUsage</code> doesn't carry <code>inference_geo</code>. Until amended, US-only-inference sessions are understated by 10%.
+2. <strong>Simulator model addition:</strong> the feasibility model only covered shortening (1h→5m). I added the symmetric lengthening rule (a re-write after a 5m–1h gap becomes a read, bounded by what was warm) — without it 1h could never win for a 5m-configured session. Worth a look in the PR's "Decisions" section.</p>
+<p><strong>Still pending:</strong> CodeRabbit's review (its first run was superseded by later pushes; I re-requested it with <code>@coderabbitai review</code>). WP-05's golden-fixture matching stays with WP-06.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2026-08-30T22-55-54-847Z"><div class="index-item-header"><span class="index-item-number">#8</span><time datetime="2026-08-30T22:55:54.847Z" data-timestamp="2026-08-30T22:55:54.847Z">2026-08-30T22:55:54.847Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>b3rn5oa1v</task-id>
+<tool-use-id>toolu_01VKVhTpahK3ghgjsRVJpcpE</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/0e7641fb-f23b-4b94-b939-28216127ef0f/tasks/b3rn5oa1v.output</output-file>
+<status>completed</status></p>
+<summary>Background command "Poll for CodeRabbit review completion" completed (exit code 0)</summary>
+<p></task-notification></p></div></a><div class="index-item-stats"><span>1 bash</span>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2026-08-30T22-57-14-833Z"><div class="index-item-header"><span class="index-item-number">#9</span><time datetime="2026-08-30T22:57:14.833Z" data-timestamp="2026-08-30T22:57:14.833Z">2026-08-30T22:57:14.833Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>b3uumsrqf</task-id>
+<tool-use-id>toolu_01TRHZLmcqDFY3zXVEFwLrnY</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/0e7641fb-f23b-4b94-b939-28216127ef0f/tasks/b3uumsrqf.output</output-file>
+<status>completed</status></p>
+<summary>Background command "Poll for CodeRabbit review after explicit request" completed (exit code 0)</summary>
+<p></task-notification></p></div></a><div class="index-item-stats"><span>22 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Done. Both CodeRabbit threads are resolved, its check is green on the final commit, and there are no further findings.</p>
+<h2>Final state of PR #15</h2>
+<p>https://github.com/cebert/cache-ttl-analyzer/pull/15 — mergeable, CI green (lint, typecheck, 172 tests incl. the 100MB fixture, build, preview deploy), CodeRabbit review completed with both threads resolved.</p>
+<p>Commits, in order:
+- <code>51da602</code> WP-03 parser · <code>f4a86ba</code> WP-04 pricing + cost engine · <code>98622fc</code> WP-05 simulator + real engine
+- <code>3b3e2d0</code> PLAN/README: WP-03/04/05 marked complete with the decisions taken; WP-08 note on stating when an upload has no subagent traffic
+- <code>ccfb51d</code> transcript <code>008-wp-03-04-05-engine</code> (redacted as approved)
+- <code>ae5ff52</code> CodeRabbit round 1: reader cancel on early exit, 300MB test timeout, <code>*.test.tsx</code> in the test tsconfig, batch-tier simulator case, "stub" wording removed
+- <code>edafbed</code> CodeRabbit round 2: an abort while a <code>read()</code> is pending on an idle source no longer hangs <code>readJsonlLines</code> — a real gap it caught</p>
+<p><strong>CodeRabbit outcomes:</strong> 1 of 7 findings rejected (the <code>composite</code> claim on <code>tsconfig.test.json</code> — <code>tsc -b</code> is green on TS 6.0 with the same pattern the Vite template already uses; CodeRabbit withdrew it after my reply); 6 applied.</p>
+<p><strong>Why the last stretch took long:</strong> my regression tests for the abort fix used <code>ReadableStream</code> sources that re-pull in a microtask loop, which starves the vitest worker so no timeout fires and nothing prints — it looked like a hang in the code. Two root causes, both in the tests, both fixed; the abort fix itself gained a per-iteration flag check the race alone didn't cover.</p>
+<p><strong>Two things for you:</strong>
+1. The published transcript ends before the CodeRabbit round (expected per the skill). If you want that tail included, I can re-run <code>publish-transcript</code> on this session.
+2. Candidate contract amendment flagged in PLAN: <code>RequestUsage</code> lacks <code>inference_geo</code>, so the 1.1× US-only-inference multiplier can't be priced.</p>
+<p>Your pre-existing working-tree changes (<code>docs/dfdf</code>, <code>docs/design/dfdsf</code>, <code>docs/design/.gitkeep</code>) were left untouched.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-08-30T23-15-33-833Z"><div class="index-item-header"><span class="index-item-number">#11</span><time datetime="2026-08-30T23:15:33.833Z" data-timestamp="2026-08-30T23:15:33.833Z">2026-08-30T23:15:33.833Z</time></div><div class="index-item-content"><p>/code-review</p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-08-30T23-15-33-844Z"><div class="index-item-header"><span class="index-item-number">#10</span><time datetime="2026-08-30T23:15:33.844Z" data-timestamp="2026-08-30T23:15:33.844Z">2026-08-30T23:15:33.844Z</time></div><div class="index-item-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></a></div>
+<div class="index-item"><a href="page-003.html#msg-2026-08-30T23-20-31-999Z"><div class="index-item-header"><span class="index-item-number">#12</span><time datetime="2026-08-30T23:20:31.999Z" data-timestamp="2026-08-30T23:20:31.999Z">2026-08-30T23:20:31.999Z</time></div><div class="index-item-content"><p>good to merge?</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>From everything I can verify: yes — with one caveat that the <code>/code-review</code> you just launched is still running in the background, so I'll relay its findings when they land rather than guess at them.</p>
+<p>What's already established on PR #15 (<code>edafbed</code>):
+- <strong>CI green</strong> on the final commit: format, lint (0 warnings), <code>tsc -b</code>, 172 tests (including the real-corpus reconciliation and the 100MB fixture), build, preview deploy.
+- <strong>CodeRabbit</strong> completed on the final commit with no new findings; both earlier threads resolved (six applied, one withdrawn after verification).
+- <strong>Contract untouched</strong>; scope matches the plan (WP-03/04/05), and the two known gaps are recorded in PLAN rather than hidden: <code>inference_geo</code> pricing needs a contract amendment, and WP-05's golden-fixture check waits on WP-06.
+- <strong>Mergeable</strong> per GitHub, no conflicts with <code>main</code>.</p>
+<p>Two judgment calls worth a glance before you merge, both documented in the PR body: the simulator's added <em>lengthening</em> rule (re-write after a 5m–1h gap becomes a read, bounded by what was warm), and unattributed cache-write tokens priced at 5m. Neither blocks merging; both are the kind of modeling decision you may want to own.</p>
+<p>If <code>/code-review</code> surfaces anything real, I'll fix it on the branch and re-run the gates before you merge.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-08-30T23-28-11-935Z"><div class="index-item-header"><span class="index-item-number">#13</span><time datetime="2026-08-30T23:28:11.935Z" data-timestamp="2026-08-30T23:28:11.935Z">2026-08-30T23:28:11.935Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a63d208fed2c58b33</task-id>
+<output-file>/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/0e7641fb-f23b-4b94-b939-28216127ef0f/tasks/a63d208fed2c58b33.output</output-file>
+<status>completed</status></p>
+<summary>Agent "/code-review" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>The working tree is back exactly as it started: <code>feat/wp-03-parser</code> at <code>edafbed</code>, the same three uncommitted entries, and one new gitignored <code>fixtures/generated/</code> directory left by a finder running the large-fixture test (harmless, ignored). Nothing else is pending, so here is the review.</p>
+<h2>Scope note</h2>
+<p>The <code>gitStatus</code> snapshot said <code>main</code>, but the checkout is actually <code>feat/wp-03-parser</code> (edafbed), fully pushed — which is why <code>@{upstream}...HEAD</code> was empty. The review target is therefore the branch against <code>main</code> (the WP-03/04/05 engine: <code>jsonl-stream.ts</code>, <code>parser.ts</code>, <code>cost.ts</code>, <code>simulator.ts</code>, <code>engine.ts</code>, pricing config, worker wiring, tests) plus the three uncommitted working-tree files. Sixteen finder angles (eight on each scope) produced ~45 candidates; after dedup, ten went to verification and all ten survived (five CONFIRMED with reproductions, five PLAUSIBLE). The <code>sk-ant-api03-REAL-KEY</code> string in the committed transcript is the publish-transcript skill's own example rule, not a leak.</p>
+<p>Two things the caller should know that aren't findings: (1) finder agents switched the checkout between <code>main</code> and the branch mid-review; it is restored and no tracked file changed, but the user may have noticed. (2) Findings 9 and 10 are mechanically real but are decisions recorded in <code>docs/PLAN.md:279-280</code> and asserted by <code>parser.test.ts</code> — surfaced for recall, ranked last.</p>
+<pre><code class="language-json">[
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/src/engine/simulator.ts&quot;,
+    &quot;line&quot;: 222,
+    &quot;summary&quot;: &quot;The observed TTL for a gap is derived from the PREVIOUS request's own token-weighted write split (dominantTtl(requestWriteSplit(previous))) instead of the bucket's user-controlled TTL, so a request whose only or dominant write was a server-tool 5m write makes the simulator treat the user's live 1h entry as a 5m entry.&quot;,
+    &quot;failure_scenario&quot;: &quot;CONFIRMED by reproduction. 1h-dominant bucket: r1 (t=0) writes 1000@1h; r2 (t=60s) reads 1000, writes 300@5m from a web search and 0@1h; r3 (t=660s) reads 1300 warm (the log proves the 1h entry was alive). observedTtl for the r2-&amp;gt;r3 gap becomes '5m', so aliveObserved=false, the shortening branch is skipped, the 5m scenario keeps the warm read with cacheExpiries=0 and the bucket recommends '5m' ($0.0104 vs $0.0146). With r2 also writing 400@1h the same session correctly expires and recommends '1h'. The mirror case (r3 a cache miss in the log) makes the observed-TTL scenario 'restore' a read that never happened, so scenarios.oneHour.cost.totalUsd ($0.0229) no longer reproduces actualCost.totalUsd ($0.0533) and savingsUsd is fabricated, violating the PLAN section 5 reconciliation property. The existing mixed-TTL test only covers a request whose server share is smaller than its user share. Fix: take the warm prefix's observed TTL from bucketTtl (falling back to the per-request split only when the bucket has no dominant TTL).&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/src/engine/simulator.ts&quot;,
+    &quot;line&quot;: 207,
+    &quot;summary&quot;: &quot;In a 5m-dominant bucket the residual 1h write tokens are classified as the server-tool share with serverTtl='1h' and expiryClass 'server-tool-5m', so the emitted CacheWriteEvent is self-contradictory and those tokens stay priced at the 1h write rate inside the 'everything at 5m' counterfactual.&quot;,
+    &quot;failure_scenario&quot;: &quot;CONFIRMED by reproduction. `const serverWrite = userTtl === '5m' ? split.oneHourWriteTokens : ...` / `const serverTtl = userTtl === '5m' ? '1h' : '5m'` (lines 205-208), emitted at 279-287 and priced at 298-299 via `(serverTtl === '1h' ? serverWrite : 0)` regardless of scenario. 5m-dominant bucket, r1 writes 5000@5m; r2 reads 5000, writes 1000@5m + 800@1h: both scenarios emit for r2 `{kind:'cache-write', ttl:'1h', tokens:800, expiryClass:'server-tool-5m'}` and fiveMinute.cost.cacheWrite1hUsd = 0.008 instead of 0. Reached by any session where promptCacheTtl was flipped mid-session or an older-version prefix wrote 1h. contract.ts lines 207-216 state both the literal residual rule the code follows and the rationale 'server tools only add 5m writes, so nonzero 1h tokens are user-controlled' that it contradicts; simulator.test.ts 341-370 covers only the 1h-dominant bucket. Fix: treat the server share as min(split5m, residual) only and any 1h residual as user-controlled; raise the contract wording conflict with the user since contract.ts is frozen.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/src/engine/simulator.ts&quot;,
+    &quot;line&quot;: 418,
+    &quot;summary&quot;: &quot;Token sums can overflow to Infinity because parser.ts readTokenCount (line 131) accepts any finite non-negative double, so unpricedTokenShare = Infinity/Infinity = NaN and `NaN &amp;gt; UNKNOWN_MODEL_SUPPRESSION_RATIO` is false, silently disabling unknown-model verdict suppression.&quot;,
+    &quot;failure_scenario&quot;: &quot;CONFIRMED by reproduction. Three main-thread requests with input_tokens: 1e308, two on an unpriced model 'claude-mystery-9' (2/3 unpriced, far above the 0.1 ratio): output was {share: null (NaN), suppressed: false, rec: '5m', totalUsd: 5e+302}; no suppressionReason, and a '5m' recommendation is emitted via the exact-tie branch at 431-433. The contract says a share above the ratio must yield no verdict, and WP-03 acceptance explicitly lists hostile numeric inputs; parser.test.ts 597-599 tests only NaN/Infinity/-Infinity, nothing huge-but-finite. Fix: require Number.isSafeInteger (or an upper bound) in readTokenCount, and treat a non-finite share as suppressed.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/src/engine/parser.ts&quot;,
+    &quot;line&quot;: 535,
+    &quot;summary&quot;: &quot;resolveRequestStart's parentUuid walk breaks (`if (!entry) break`) at the first ancestor uuid that is not an indexed user/attachment/assistant row, so any other record type in the chain (system rows carry uuid/parentUuid) silently falls the request start back to the assistant row's completion timestamp, inflating the same-thread gap by the response latency; nothing counts the fallback.&quot;,
+    &quot;failure_scenario&quot;: &quot;CONFIRMED against a real log. Only the 'assistant', 'user', 'attachment' cases in the dispatch switch (329-347) call indexChainRow; 'system' hits `default: countSkipped`. In the user's local ~/.claude/projects logs (19 files, 2671 assistant rows) one deduped request (msg_011CdygmquVXbjYJq19nkxnF) has parentUuid pointing at a system row of subtype local_command; the nearest user row is at 23:00:06Z while the assistant rows are at 23:01:26Z, so requestStartTimestamp moves ~80s later with source 'assistant-row-fallback'. A true 4m30s gap measured as 5m40s makes the 5m scenario simulate an expiry that never happened (corpus response latency: ~4s median, 26s p90, 76s max). buildWarnings (379-402) and parseStats have no fallback counter, so the UI cannot disclose it. Frequency is low (1/2671 locally, 0/1309 in the repo corpus). Fix: index every row that has uuid/parentUuid as a non-user chain entry (metadata only, keeps F3), and count fallbacks in stats.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/src/engine/simulator.ts&quot;,
+    &quot;line&quot;: 352,
+    &quot;summary&quot;: &quot;`result.events.push(...replay.events)` spreads an entire thread's event list as call arguments; V8 throws RangeError above ~124K arguments, and the main bucket is a single thread holding every main-session event.&quot;,
+    &quot;failure_scenario&quot;: &quot;PLAUSIBLE, measured. Node here: 100K ok, 120K ok, ~124,218 throws 'RangeError: Maximum call stack size exceeded'; browser worker stacks can be smaller. replayThread emits &amp;gt;=2 events per request (warm-read + cache-write, up to 4 with expiry/hard-reset), so ~62K main-thread requests trip it. MAX_FILE_SIZE_BYTES is 500 MiB (contract.ts:82), and real corpus density is 5.6-15.5 KB per usage row, so a dense 350-500 MB session yields 93K+ requests (~185K events); the parse phase succeeds and the handler then posts {type:'error', code:'internal'}. The 100 MB perf fixture (9,983 requests, ~20K events) never approaches the cliff. Fix: `for (const e of replay.events) result.events.push(e)` or pass result.events into replayThread as the accumulator.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/src/engine/engine.ts&quot;,
+    &quot;line&quot;: 40,
+    &quot;summary&quot;: &quot;After parseSession resolves, analyzeSession() runs synchronously and the final `signal.aborted` check, the result post, and the handler's `finally { controller = null }` all complete on microtasks with no macrotask boundary, so a `cancel` message arriving during the analyze phase is dispatched only after controller is null and is a no-op; the only mid-run cancel test still binds to createStubEngine.&quot;,
+    &quot;failure_scenario&quot;: &quot;PLAUSIBLE. engine.ts:16 is the only await in analyze(); simulator.ts has no await/setTimeout/queueMicrotask; handler.ts 35-69 posts 'result' then nulls the controller; App.tsx 90-93 cancel() only posts {type:'cancel'} with no worker.terminate(). A user who clicks Cancel after the last chunk is read (UI shows 'analyzing', Cancel still enabled) gets a 'done' state with a full analysis instead of 'cancelled', and controller?.abort() at handler.ts:85 hits null. The stub had the same microtask tail but with a trivial literal in it; the real engine puts the whole CPU-bound analysis in the unobservable window, so this is a regression in magnitude. handler.test.ts 99-112 uses the stub and engine.test.ts 115-118 aborts before analyze() is called, so nothing covers a cancel landing in the analyze phase. Fix: yield (await a resolved macrotask) between parse and analyze and re-check the signal, or terminate the worker on cancel from App.tsx; add a real-engine cancel test.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/vite.config.ts&quot;,
+    &quot;line&quot;: 10,
+    &quot;summary&quot;: &quot;Commit ae5ff52 added `src/**/*.test.tsx` to tsconfig.app.json (exclude) and tsconfig.test.json (include), but vitest's explicit `include: ['src/**/*.test.ts']` replaces the default glob, so a `.test.tsx` file would typecheck, be excluded from the app build, and never execute.&quot;,
+    &quot;failure_scenario&quot;: &quot;PLAUSIBLE, latent. Vitest 4.1.11 deepMerge overwrites array config, and `npx vitest list` collects exactly the eight .test.ts files; `npm test` is `vitest run` and ci.yml runs only that. The first React component test written (no jsdom/testing-library is installed yet, and PLAN.md WP-07/08 do not yet mention component tests) turns green CI into silently skipped tests. Fix: keep one source of truth — either drop the .tsx entries from both tsconfigs until vitest's include grows, or widen vitest to `src/**/*.test.{ts,tsx}` in the same commit.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/docs/design/.gitkeep&quot;,
+    &quot;line&quot;: 1,
+    &quot;summary&quot;: &quot;Three Claude Code prompts were saved as scratch inside the repo: the WP-D design brief overwrote the tracked empty placeholder docs/design/.gitkeep (now 30 lines), and two junk-named untracked files (docs/design/dfdsf, docs/dfdf) hold the WP-03 and WP-01/02 prompts, the latter truncated mid-sentence at 'I have purchased '.&quot;,
+    &quot;failure_scenario&quot;: &quot;CONFIRMED. `git status --short` is exactly ' M docs/design/.gitkeep', '?? docs/design/dfdsf', '?? docs/dfdf'; no .gitignore rule, hook, or CI check prevents them, so `git add -A` / `git add docs` / `git commit -a` on this or the next branch silently commits prompt text into a placeholder and two misnamed files. docs/design/ already has tracked content (claude-code-session-logs/, wp-d-ux/), so the placeholder is obsolete. Both prompts already exist verbatim in published, redacted transcripts (008 and 005), and dfdf stops just short of the Cloudflare-account passage that the 005 README row lists as redacted. Fix: `git checkout -- docs/design/.gitkeep` (or `git rm` it, since the directory is populated) and delete dfdsf/dfdf; nothing in them is unique.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/src/engine/parser.ts&quot;,
+    &quot;line&quot;: 310,
+    &quot;summary&quot;: &quot;feedCappedLine() increments malformedLines as well as cappedLines, so a line dropped only for exceeding MAX_LINE_LENGTH_BYTES (valid JSON, own warning kind) also counts toward the 10% 'not-a-session-log' rejection ratio; a session under ten lines with one over-cap line is rejected outright.&quot;,
+    &quot;failure_scenario&quot;: &quot;PLAUSIBLE but deliberate: docs/PLAN.md 279-280 records 'over-cap lines count as malformed (toward the reject ratio) and get the line-length-cap-exceeded warning' as a decision taken with the user, and parser.test.ts 1104-1141 asserts the small-session rejection. Consequence stands: lines 307-312 do `nonEmptyLines++; malformedLines++; cappedLines++`, and isMalformedRatioExceeded (213-216) rejects with 'malformed-lines-exceed-threshold'. The trigger is unobserved in real logs (longest corpus line is 104,572 bytes vs the 10 MiB cap), so this is a note that the chosen policy punishes short sessions disproportionately, not a defect against the spec.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;~/Code/cache-ttl-analyzer/src/engine/parser.ts&quot;,
+    &quot;line&quot;: 462,
+    &quot;summary&quot;: &quot;ingestAssistant counts structurally incomplete assistant rows (no usage object, no model/id, unparseable timestamp) in malformedLines, the same counter as JSON-parse failures that drives the 'not-a-session-log' rejection, rather than as a skip-and-count stat with its own warning.&quot;,
+    &quot;failure_scenario&quot;: &quot;PLAUSIBLE but deliberate and test-asserted (parser.test.ts 769-794 expects malformedLines 12 / invalidUsageRowsSkipped 0 for such rows). Lines 445 and 456-463 increment malformedLines; synthetic rows are excluded first (448-451). If a validated-range Claude Code version ever emits non-synthetic assistant rows without usage at &amp;gt;10% of a file, the whole file is rejected as malformed although every line parses; no corpus file (1,309 assistant rows) has such a row today. Low-priority hardening: give these rows a dedicated stat/warning so rejection stays tied to unparseable lines.&quot;
+  }
+]
+</code></pre>
+<p>Cut by the cap (verified or reproduced by finders, lower severity): Date.parse called ~16 times per request across the simulator sort comparator and gap math (~190ms vs 56ms at 150K events); <code>new DOMException('aborted','AbortError')</code> hand-rolled at four sites with <code>jsonl-stream.ts</code>'s <code>abortError()</code> kept private; the 5m write-split policy duplicated between <code>cost.ts:101</code> and <code>simulator.ts:106</code>; <code>validatePricingConfig</code> inconsistently rejecting arrays (misleading error text only); derivable counters (<code>dedupedRequests</code>, <code>cacheExpiries</code>, <code>warmReadRequests</code>) maintained beside the arrays that define them; fixture row builders copied across the generator script, three test files, and <code>App.tsx</code>; two commit subjects over the ~72-char CLAUDE.md limit (79 and 75 chars); and PLAN.md marking WP-05 complete while its acceptance criterion and the section 7 risk register still gate on a real subagent fixture from WP-06.</result>
+<usage><subagent_tokens>126580</subagent_tokens><tool_uses>34</tool_uses><duration_ms>756432</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>4 bash</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The <code>/code-review</code> results are in: ten findings, five confirmed with reproductions. Several are real engine bugs I should fix before you merge — most importantly two simulator ones (a warm 1h entry misjudged as 5m when the previous request's only write was a server-tool write; 1h residual tokens in a 5m-dominant bucket mislabeled and priced at 1h inside the "everything at 5m" scenario), a huge-but-finite token overflow that disables verdict suppression, a <code>parentUuid</code> walk that stops at <code>system</code> rows (seen once in your real logs), an argument-spread that throws past ~124K events, and a cancel that can't land during the analyze phase. Applying all of those plus the vitest <code>.tsx</code> glob now.</p></div></div><button class="expand-btn">Show more</button></div></div>
 </div></div>
         
 
@@ -3014,6 +3149,7 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
 <span class="disabled">&larr; Prev</span>
 <a href="page-001.html">1</a>
 <a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
 <a href="page-001.html">Next &rarr;</a>
 </div>
 
@@ -3033,7 +3169,7 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
         </dialog>
         <script>
 (function() {
-    var totalPages = 2;
+    var totalPages = 3;
     var searchBox = document.getElementById('search-box');
     var searchInput = document.getElementById('search-input');
     var searchBtn = document.getElementById('search-btn');
