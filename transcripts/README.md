@@ -1,6 +1,6 @@
 # Session transcripts
 
-A goal of this project is to keep a record of the AI sessions that helped build this tool. Claude Code sessions uploaded to this repository using the [Claude Code Transcripts](https://github.com/simonw/claude-code-transcripts?tab=readme-ov-file) created by Simon Willison.
+A goal of this project is to keep a record of the AI sessions that helped build this tool. Claude Code sessions uploaded to this repository using the [Claude Code Transcripts](https://github.com/simonw/claude-code-transcripts?tab=readme-ov-file) tool created by Simon Willison.
 
 Each session lives in its own folder, named with a zero-padded counter and a
 short topic slug, holding both published forms:
