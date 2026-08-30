@@ -84,19 +84,25 @@ jobs:
       # Aliases allow only lowercase letters, digits and dashes, must start
       # with a letter, and the alias plus worker name must stay under the
       # 63-character DNS label limit ("cache-ttl-analyzer-" leaves 44).
+      #
+      # The PR number leads, which does two things: it starts the alias with a
+      # letter unconditionally, and it makes the alias unique per PR. Branch
+      # name alone is not unique after normalization — `feat/a` and `feat_a`
+      # both collapse to `feat-a`, and long branches collide once truncated —
+      # and since an alias binds to whichever version uploaded last, a
+      # collision would silently point one PR's preview at another's build.
       - name: Derive preview alias
         id: alias
         env:
           BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR: ${{ github.event.pull_request.number }}
         run: |
-          alias=$(printf '%s' "$BRANCH" \
+          slug=$(printf '%s' "$BRANCH" \
             | tr '[:upper:]' '[:lower:]' \
-            | sed -e 's/[^a-z0-9-]/-/g' -e 's/--*/-/g' -e 's/^-*//' -e 's/-*$//' \
-            | cut -c1-44 | sed -e 's/-*$//')
-          case "$alias" in
-            [a-z]*) ;;
-            *) alias="pr-${{ github.event.pull_request.number }}" ;;
-          esac
+            | sed -e 's/[^a-z0-9-]/-/g' -e 's/--*/-/g' -e 's/^-*//' -e 's/-*$//')
+          # Truncate the branch part, not the "pr-N-" prefix that carries the
+          # uniqueness, then drop any dash the cut left dangling.
+          alias=$(printf 'pr-%s-%s' "$PR" "$slug" | cut -c1-44 | sed -e 's/-*$//')
           echo "alias=$alias" >> "$GITHUB_OUTPUT"
 
       # `versions upload` publishes a preview without touching the live
