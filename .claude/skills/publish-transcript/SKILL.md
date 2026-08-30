@@ -5,20 +5,23 @@ description: Publish a Claude Code session from this project into transcripts/ a
 
 # Publish a session transcript
 
-Turns one Claude Code session for this repo into two committed artifacts:
+Turns one Claude Code session for this repo into one committed folder holding
+both published forms:
 
-| Output | Path |
-|---|---|
-| Rendered HTML (simonw/claude-code-transcripts) | `transcripts/html/<NNN-slug>/` |
-| Redacted source JSONL | `transcripts/raw/<NNN-slug>.jsonl` |
+```
+transcripts/<NNN-slug>/
+  session.jsonl    the redacted session log
+  index.html       rendered via simonw/claude-code-transcripts
+  page-001.html
+```
 
 **The HTML is rendered from the redacted JSONL, never from the original.**
 Redact once at the source and both outputs stay consistent — never redact the
 rendered HTML separately.
 
 `to_text.py` renders a session as plain text for *your* review in step 2. That
-rendering is a working file: it is never committed. Only `raw/` and `html/` go
-into the repo.
+rendering is a working file: it is never committed. Only `session.jsonl` and the
+rendered HTML go into the repo.
 
 ## Prerequisites
 
@@ -151,13 +154,17 @@ remaining hit is something you and the user consciously decided to keep.
 ## Step 6 — Render the two artifacts
 
 Name the session `NNN-short-topic`: a zero-padded counter one higher than the
-highest already in `transcripts/raw/`, plus a kebab-case topic — e.g.
-`002-cost-model`. The same name is used for both formats.
+highest folder already in `transcripts/`, plus a kebab-case topic — e.g.
+`002-cost-model`.
+
+`--json` copies the JSONL into the output directory alongside the HTML, naming
+it after the input file. Rename the redacted file to `session.jsonl` first so it
+lands with the right name, and the whole folder is produced in one command:
 
 ```bash
 SLUG=<NNN-short-topic>
-claude-code-transcripts json $W/redacted.jsonl -o transcripts/html/$SLUG
-cp $W/redacted.jsonl transcripts/raw/$SLUG.jsonl
+mv $W/redacted.jsonl $W/session.jsonl
+claude-code-transcripts json $W/session.jsonl -o transcripts/$SLUG --json
 ```
 
 Do not pass `--gist` — that uploads to a public Gist, which is a separate
@@ -166,7 +173,7 @@ publishing decision the user has to make explicitly.
 Then confirm the redaction survived rendering:
 
 ```bash
-python3 $S/scan_secrets.py transcripts/raw/$SLUG.jsonl transcripts/html/$SLUG/*.html
+python3 $S/scan_secrets.py transcripts/$SLUG/*
 ```
 
 ## Step 7 — Update the session map
@@ -175,7 +182,7 @@ Add a row to the table in `transcripts/README.md`:
 
 | Date | Session | Covers | Share link | Notes |
 |---|---|---|---|---|
-| 2026-08-30 | [001-transcript-skill](html/001-transcript-skill/) | Built the transcript publishing skill | | 3 emails redacted |
+| 2026-08-30 | [001-transcript-skill](001-transcript-skill/) | Built the transcript publishing skill | | 3 emails redacted |
 
 Keep rows in date order. Put a short, honest note about what was redacted in the
 Notes column — that is the reader's signal that gaps are deliberate. Leave the
