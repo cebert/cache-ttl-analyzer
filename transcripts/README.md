@@ -2,13 +2,18 @@
 
 A goal of this project is to keep a record of the AI sessions that helped build this tool. Claude Code sessions uploaded to this repository using the [Claude Code Transcripts](https://github.com/simonw/claude-code-transcripts?tab=readme-ov-file) created by Simon Willison.
 
-Transcripts are published in two forms, both produced from the same redacted source:
+Each session lives in its own folder, named with a zero-padded counter and a
+short topic slug, holding both published forms:
 
--  `raw/` — the session JSONL, after redaction
--  `html/` — rendered via [simonw/claude-code-transcripts](https://github.com/simonw/claude-code-transcripts)
+```
+transcripts/001-transcript-skill/
+  session.jsonl    the session log, after redaction
+  index.html       rendered via simonw/claude-code-transcripts
+  page-001.html
+```
 
-Each session gets a zero-padded counter and a short topic slug, shared by both
-formats: `raw/001-transcript-skill.jsonl` and `html/001-transcript-skill/`.
+Rendering is done with [simonw/claude-code-transcripts](https://github.com/simonw/claude-code-transcripts).
+The table below is the index — start there rather than browsing the folders.
 
 Sessions are reviewed for secrets and PII and redacted before publishing.
 Removed values are replaced with `[REDACTED_...]` placeholders, and the Notes
@@ -25,4 +30,4 @@ renders both formats, updates the table below, and commits the result.
 
 | Date | Session | Covers | Share link | Notes |
 |---|---|---|---|---|
-| 2026-08-30 | [001-transcript-skill](html/001-transcript-skill/) | Built the `publish-transcript` skill so build sessions can be published here with sensitive information and PII redacted first — a stated goal of this project; also adopted Conventional Commits | | Redacted: unrelated project names, user email, synthetic test credentials |
+| 2026-08-30 | [001-transcript-skill](001-transcript-skill/) | Built the `publish-transcript` skill so build sessions can be published here with sensitive information and PII redacted first — a stated goal of this project; also adopted Conventional Commits | | Redacted: unrelated project names, user email, synthetic test credentials |
