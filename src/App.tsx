@@ -7,20 +7,19 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AnalysisResult, EngineProgress } from './engine/contract'
 import type { AnalysisWorkerRequest, AnalysisWorkerResponse } from './engine/protocol'
-import type { PricingConfig } from './engine/pricing'
+import { PRICING } from './config/pricing'
 import { createLogger, getLogLevel } from './lib/logger'
 
 const log = createLogger('app')
 
-// Placeholder pricing for the stub run. src/config/pricing.json does not
-// exist yet — WP-04 creates it from Anthropic's published pricing pages
-// (URLs in src/engine/pricing.ts) and this inline object goes away.
-const stubPricing: PricingConfig = {
-  pricesAsOf: '2026-08-30',
-  source: 'https://platform.claude.com/docs/en/about-claude/pricing',
-  cacheMultipliers: { read: 0.1, write5m: 1.25, write1h: 2.0 },
-  models: {},
-}
+// A two-request session so the placeholder can drive the real engine
+// end-to-end until WP-07 wires file upload.
+const PLACEHOLDER_SESSION = [
+  '{"type":"user","uuid":"u0","parentUuid":null,"timestamp":"2026-08-30T12:00:00.000Z","sessionId":"placeholder"}',
+  '{"type":"assistant","uuid":"a0","parentUuid":"u0","timestamp":"2026-08-30T12:00:03.000Z","version":"2.1.251","effort":"high","message":{"id":"msg_0","model":"claude-opus-5","usage":{"input_tokens":2,"cache_creation_input_tokens":20000,"cache_read_input_tokens":0,"output_tokens":300,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":20000}}}}',
+  '{"type":"user","uuid":"u1","parentUuid":"a0","timestamp":"2026-08-30T12:12:00.000Z"}',
+  '{"type":"assistant","uuid":"a1","parentUuid":"u1","timestamp":"2026-08-30T12:12:04.000Z","version":"2.1.251","effort":"high","message":{"id":"msg_1","model":"claude-opus-5","usage":{"input_tokens":2,"cache_creation_input_tokens":1500,"cache_read_input_tokens":20000,"output_tokens":250,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":1500}}}}',
+].join('\n')
 
 type DemoState =
   | { phase: 'idle' }
@@ -35,7 +34,7 @@ export default function App() {
 
   useEffect(() => () => workerRef.current?.terminate(), [])
 
-  function runStubAnalysis() {
+  function runPlaceholderAnalysis() {
     workerRef.current?.terminate()
     const worker = new Worker(new URL('./worker/analysis.worker.ts', import.meta.url), {
       type: 'module',
@@ -76,13 +75,13 @@ export default function App() {
       setState({ phase: 'error', message: event.message || 'worker failed to start' })
     }
 
-    const file = new File(['{"type":"assistant"}\n'], 'stub-session.jsonl', {
+    const file = new File([PLACEHOLDER_SESSION], 'placeholder-session.jsonl', {
       type: 'application/jsonl',
     })
     const start: AnalysisWorkerRequest = {
       type: 'start',
       file,
-      pricing: stubPricing,
+      pricing: PRICING,
       logLevel: getLogLevel(),
     }
     worker.postMessage(start)
@@ -99,11 +98,11 @@ export default function App() {
       <p>
         Analyze a Claude Code session log to see whether a 5-minute or 1-hour prompt-cache TTL would
         have cost less — entirely in your browser. Under construction; this placeholder exercises
-        the frozen engine contract through a stub Web Worker.
+        the frozen engine contract through the real engine in a Web Worker, on placeholder data.
       </p>
       <p>
-        <button onClick={runStubAnalysis} disabled={state.phase === 'running'}>
-          Run stub analysis
+        <button onClick={runPlaceholderAnalysis} disabled={state.phase === 'running'}>
+          Run placeholder analysis
         </button>{' '}
         <button onClick={cancel} disabled={state.phase !== 'running'}>
           Cancel
@@ -122,7 +121,7 @@ export default function App() {
       {state.phase === 'done' && (
         <>
           <p>
-            Stub verdict: <strong>{state.result.buckets[0]?.recommendation}</strong> (canned data,
+            Verdict: <strong>{state.result.buckets[0]?.recommendation}</strong> (placeholder data,
             prices as of {state.result.pricesAsOf})
           </p>
           <pre>{JSON.stringify(state.result, null, 2)}</pre>

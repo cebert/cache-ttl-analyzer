@@ -3,9 +3,9 @@
 
 Upload Claude Code session logs in files (JSON or JSONL), and this tool will analyze whether you could save money by paying for a longer cache window duration.
 
-**Status:** in progress — scaffold and frozen engine contract landed (WP-01, WP-02); the analysis engine is still a stub. See [docs/PLAN.md](docs/PLAN.md).
+**Status:** in progress — scaffold, frozen engine contract, CI/CD, and the analysis engine (parser, pricing, simulator) have landed (WP-01–05, WP-09); the UI is still the placeholder until WP-07/08. See [docs/PLAN.md](docs/PLAN.md).
 
-**Live URL:** [cacheanalyzer.com](https://cacheanalyzer.com) (deployed from `main`; placeholder content while the engine is built)
+**Live URL:** [cacheanalyzer.com](https://cacheanalyzer.com) (deployed from `main`; placeholder UI while the results screens are built)
 
 ## Why
 
@@ -61,8 +61,19 @@ engine (`src/engine/` — pure TypeScript, no DOM, unit-testable in Node) and
 posts progress/results back over a typed message protocol. The frozen
 engine contract lives in `src/engine/contract.ts` (with `pricing.ts` and
 `protocol.ts`) — read its header before touching engine code; changes
-require touching [docs/PLAN.md](docs/PLAN.md). The current engine is the
-WP-02 stub returning canned data.
+require touching [docs/PLAN.md](docs/PLAN.md). The engine is the WP-03
+parser (`parser.ts`, `jsonl-stream.ts`), the WP-04 cost engine (`cost.ts`,
+rates in `src/config/pricing.json`), and the WP-05 simulator
+(`simulator.ts`), composed by `engine.ts`; the UI is still the WP-02
+placeholder until WP-07/08.
+
+### Tests
+
+`npm test` runs everything, including a ~100MB synthetic session that
+`scripts/generate-large-fixture.ts` writes into the git-ignored
+`fixtures/generated/` on first run (about a second) and reuses afterwards.
+Test files and `scripts/` type-check under `tsconfig.test.json` (Node
+types); production code under `tsconfig.app.json` never sees them.
 
 ### Debug logging
 
