@@ -1,0 +1,197 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# One run per ref: a new push supersedes an in-flight run for the same branch.
+# Never cancel main, whose runs deploy.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Deploy jobs ship this exact output rather than rebuilding, so what CI
+      # checked is what Cloudflare serves.
+      - name: Upload build output
+        uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+          if-no-files-found: error
+
+  preview:
+    name: Preview deploy
+    needs: check
+    runs-on: ubuntu-latest
+    # Forks cannot read repository secrets, and we do not want to hand a
+    # Cloudflare token to fork code. Preview only same-repo branches (WP-09).
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Download build output
+        uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist
+
+      # Aliases allow only lowercase letters, digits and dashes, must start
+      # with a letter, and the alias plus worker name must stay under the
+      # 63-character DNS label limit ("cache-ttl-analyzer-" leaves 44).
+      #
+      # The PR number leads, which does two things: it starts the alias with a
+      # letter unconditionally, and it makes the alias unique per PR. Branch
+      # name alone is not unique after normalization — `feat/a` and `feat_a`
+      # both collapse to `feat-a`, and long branches collide once truncated —
+      # and since an alias binds to whichever version uploaded last, a
+      # collision would silently point one PR's preview at another's build.
+      - name: Derive preview alias
+        id: alias
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          slug=$(printf '%s' "$BRANCH" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -e 's/[^a-z0-9-]/-/g' -e 's/--*/-/g' -e 's/^-*//' -e 's/-*$//')
+          # Truncate the branch part, not the "pr-N-" prefix that carries the
+          # uniqueness, then drop any dash the cut left dangling.
+          alias=$(printf 'pr-%s-%s' "$PR" "$slug" | cut -c1-44 | sed -e 's/-*$//')
+          echo "alias=$alias" >> "$GITHUB_OUTPUT"
+
+      # `versions upload` publishes a preview without touching the live
+      # deployment, and returns both a per-commit URL and the branch alias URL.
+      - name: Upload preview version
+        id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -o pipefail
+          npx wrangler versions upload \
+            --preview-alias "${{ steps.alias.outputs.alias }}" \
+            2>&1 | tee upload.log
+
+          # Read the URLs off wrangler's own labeled lines rather than
+          # matching a bare URL pattern: the hostname carries an account
+          # subdomain (<version>-<worker>.<subdomain>.workers.dev) that is not
+          # ours to hardcode. Strip CR and any ANSI colour first.
+          # A parse miss must not fail a preview that Cloudflare accepted, so
+          # both greps are allowed to come back empty.
+          clean=$(sed -e 's/\r$//' -e 's/\x1b\[[0-9;]*m//g' upload.log)
+          version_url=$(sed -n 's/^Version Preview URL: *//p' <<<"$clean" | tail -n1)
+          alias_url=$(sed -n 's/^Version Preview Alias URL: *//p' <<<"$clean" | tail -n1)
+
+          echo "version_url=$version_url" >> "$GITHUB_OUTPUT"
+          echo "alias_url=$alias_url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URLs on the PR
+        uses: actions/github-script@v8
+        env:
+          VERSION_URL: ${{ steps.upload.outputs.version_url }}
+          ALIAS_URL: ${{ steps.upload.outputs.alias_url }}
+        with:
+          script: |
+            const { VERSION_URL, ALIAS_URL } = process.env
+            const unknown = '_not reported by wrangler_'
+            const marker = '<!-- cache-ttl-analyzer-preview -->'
+            const body = [
+              marker,
+              '### Cloudflare preview',
+              '',
+              '| | URL |',
+              '| --- | --- |',
+              `| Commit preview | ${VERSION_URL || unknown} |`,
+              `| Branch alias | ${ALIAS_URL || unknown} |`,
+              '',
+              `Built from ${context.sha.slice(0, 7)}. The branch alias always points at this branch's latest version.`,
+            ].join('\n')
+
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            })
+            const existing = comments.find((c) => c.body?.includes(marker))
+
+            if (existing) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: existing.id, body })
+            } else {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body })
+            }
+
+  deploy:
+    name: Production deploy
+    needs: check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://cacheanalyzer.com
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Download build output
+        uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist
+
+      - name: Deploy to Cloudflare Workers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
