@@ -1,0 +1,27 @@
+# Security headers for the static assets Cloudflare serves (docs/PLAN.md §2).
+# Vite copies this file from public/ into dist/, where Workers parses it; it is
+# never served as an asset itself.
+#
+# The CSP is the load-bearing one: "your session log never leaves your browser"
+# is enforced by the platform, not just promised in the copy. `connect-src
+# 'self'` means the page cannot open a request to any other origin, which a
+# user can verify in devtools.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+
+# Vite fingerprints everything under /assets/, so it can be cached hard.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Preview and workers.dev URLs are public (WP-09). Keep them out of search
+# results so cacheanalyzer.com is the only indexed copy.
+https://:version.:subdomain.workers.dev/*
+  X-Robots-Tag: noindex
