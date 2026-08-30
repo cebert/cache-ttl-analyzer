@@ -63,6 +63,11 @@ Two cross-cutting requirements, cheap now and expensive to retrofit:
 - Claude Code **web JSON export** input. Unverified that it carries `usage`
   (feasibility doc §10). JSONL only for MVP.
 - Durable persistence, accounts, authentication.
+- In-app billing-mode questionnaire (feasibility §3 suggests asking the user;
+  MVP states the API-rates framing as a label instead — see D12).
+- Hybrid-TTL guidance (1h stable prefix + 5m tail, feasibility §10) — the
+  logs can't support a computed number, only qualitative advice; revisit
+  post-MVP.
 
 ---
 
@@ -91,7 +96,10 @@ Two cross-cutting requirements, cheap now and expensive to retrofit:
 - **Pricing config** (`src/config/pricing.json`): per-model base rates, cache
   multipliers (read 0.1×, 5m write 1.25×, 1h write 2.0×), `service_tier` and
   `speed` modifiers, and a top-level `pricesAsOf` date shown in the UI.
-  Unknown model IDs are reported to the user, never guessed.
+  Unknown model IDs are reported to the user, never guessed; the WP-02
+  contract defines the degradation policy (unpriced requests excluded and
+  disclosed with their share; verdict suppressed when that share crosses a
+  threshold).
 - **UI** consumes a frozen engine contract (WP-02) so UI and engine work can
   proceed in parallel.
 
@@ -129,7 +137,7 @@ users that nothing is exfiltrated. Rules:
 |---|---|
 | Dedup rows on `message.id` (one row per content block, each carries full usage; up to 13× overstatement otherwise) | §6.1 |
 | Exclude `message.model == "<synthetic>"` rows | §6.2 |
-| Partition by `isSidechain` before computing gaps — sidechains are a separate cache namespace | §6.4 |
+| Partition sidechains **per subagent thread**, not as one boolean bucket: parallel subagents interleave their `isSidechain: true` rows but each has its own cache namespace. Thread identification (likely `parentUuid`/`uuid` chains) is verified against a real multi-subagent log before the WP-02 freeze | §6.4 + review |
 | Hard cache reset on any change of `model`, `effort`, or `version`, independent of elapsed time | §6.6 |
 | Price per request (models/tiers/speed can vary mid-session); honor `service_tier` and `speed` | §6.5 |
 | Gap timing: use the preceding `user` row's timestamp as request start | §7 |
@@ -171,6 +179,8 @@ the tool does not imply it evaluated subagent traffic (feasibility doc §3).
   otherwise no claim about defaults.
 - Session shape summary: request count, span, largest gap, share of gaps in
   the 5m–1h band (the only band where the choice matters).
+- A pointer to Claude Code's built-in live cache stats (`/usage`, v2.1.251+)
+  for monitoring cache behavior going forward.
 
 ---
 
@@ -193,10 +203,25 @@ The frozen TypeScript interfaces everything else codes against:
 `ParsedSession` (deduped request records + skip/warning counts),
 `AnalysisResult` (per-bucket actual/counterfactual costs, recommendation,
 insight events), the Web Worker message protocol (start / progress / cancel /
-result / error), and the `pricing.json` schema. Documented inline; changes
-after freeze require touching this plan.
+result / error), and the `pricing.json` schema.
+
+**Before freezing, inspect real session logs** to resolve the known unknowns
+that would otherwise force amendments: the `ai-title` payload shape, the
+user-row → assistant-row request-start pairing, and sidechain thread
+identification (`parentUuid`/`uuid` chains) against a real multi-subagent
+session. The contract must also pin down two semantics the analysis depends
+on: the **unknown-model degradation policy** (excluded-and-disclosed;
+verdict suppressed above a threshold) and **mixed-TTL write handling** in
+counterfactuals (server tools insert their own 5m writes regardless of the
+user's setting — decide whether the 1h scenario reprices them or holds them
+at 5m, and document why).
+
+Documented inline; changes after freeze require touching this plan. The
+insight-event taxonomy is the one section expected to be amended (WP-08 and
+WP-D consume it and will discover needs).
 *Acceptance:* types compile; a stub engine returning canned data satisfies
-them end-to-end through a stub worker.
+them end-to-end through a stub worker; the pre-freeze log inspection findings
+are recorded in the contract's comments.
 
 ### WP-03 — Parser
 **Depends on:** WP-02. **Parallel with:** WP-04, WP-06, WP-09.
@@ -204,15 +229,16 @@ Streaming JSONL parser implementing the correctness rules table (dedup,
 synthetic exclusion, skip-and-count, version warnings, minimal field surface,
 content-poison test) and the validation/security rules (three verdicts,
 numeric hygiene, typed-record copying, line-length cap).
-Investigate **Zod** for the per-record schema validation (v4.5's compilation
-feature claims large speedups) — but this parser validates millions of lines
-in a hot path, so adopt it only if a benchmark against hand-rolled guards on
-the 100MB fixture shows no meaningful regression; either way the validation
-rules above are the requirement, the library is an implementation choice.
+Validation uses hand-rolled guards: with an eight-field surface they are less
+code than a schema library. (Zod v4.5 was considered and rejected for this
+hot path — a session log is thousands of lines, not enough to need it, and
+the dependency buys nothing here. Fine elsewhere in the app if a real need
+appears.)
 *Acceptance:* unit tests for every rule, plus adversarial tests: malformed
 lines, prototype-pollution keys, hostile strings in metadata fields, negative
 / NaN token counts, a single multi-hundred-MB line; parses a 100MB synthetic
-file without loading it into one string.
+file without loading it into one string (that fixture is generated by a
+script at test time and git-ignored, never committed).
 
 ### WP-04 — Pricing config and cost engine
 **Depends on:** WP-02. **Parallel with:** WP-03, WP-06, WP-09.
@@ -233,7 +259,8 @@ fixtures from WP-06 matching to the cent.
 **Depends on:** WP-02 (shapes only). **Parallel with:** WP-03, WP-04.
 Two kinds of fixtures:
 1. **Crafted synthetic JSONL** exercising each trap: content-block
-   duplication, synthetic rows, sidechains, mid-session model switch, effort
+   duplication, synthetic rows, sidechains (including parallel subagents
+   with interleaved rows), mid-session model switch, effort
    change, version change, gaps in the 5m–1h band, mixed
    `ephemeral_5m`/`ephemeral_1h` writes, unknown record types, unknown model —
    plus adversarial fixtures: a non-session JSONL, malformed lines, hostile
@@ -244,11 +271,21 @@ Two kinds of fixtures:
    `public/samples/` and as end-to-end verification that the tool's verdicts
    match intuition.
 
-Extend `prototype-sim.py` to emit expected-output JSON per fixture; commit
-those as golden files with a test harness that runs the TS engine against
-them.
-*Acceptance:* golden files committed; harness wired into `npm test`; samples
-are content-scrubbed (they'll be public).
+**Bring `prototype-sim.py` to full parity with the §2 correctness-rules
+table first** — as written it implements almost none of it (no sidechain
+partition, no hard resets on model/effort/version, no `service_tier`/`speed`
+modifiers, gap timing from the wrong timestamp, unknown models silently
+priced as Opus, stale price table) — verified by its own hand-computed
+tests. Only then have it emit expected-output JSON per fixture; commit those
+as golden files with a test harness that runs the TS engine against them.
+This makes the Python sim an independently written second implementation,
+not a trusted oracle: disagreements are settled by hand computation (see §5).
+*Acceptance:* golden files committed; harness wired into `npm test`; includes
+a **captured real subagent session (with parallel subagents)** and a
+**captured 5m-configured session** (every corpus session ran at 1h — the
+expiry-heavy path must be exercised by real data too); real captures are
+content-scrubbed by a script (adapt the redaction scripts from this repo's
+`publish-transcript` skill) since they ship publicly.
 
 ### WP-D — UX design (Claude Design session)
 **Depends on:** nothing (MVP definition in this plan is the brief).
@@ -262,7 +299,10 @@ conditional subagent section, cache-event timeline, educational explainers,
 session-history strip). It should also cover the empty/error states: unknown
 model, skipped records, version warning, malformed file. Include the data
 policy page, and design copy areas with text expansion in mind (translated
-strings run ~30% longer than English).
+strings run ~30% longer than English). **Constraint from the strict CSP:**
+no external assets — fonts are self-hosted or system stacks, no external
+webfonts, CDN images, or third-party embeds; a design that depends on them
+would force weakening the privacy-proving CSP.
 Exports (screens, and the canvas link) are committed to `docs/design/` so
 WP-07 and WP-08 sessions can implement against them without guessing.
 *Acceptance:* every screen and state listed above has a design in
@@ -311,9 +351,10 @@ URL is updated.
 ### WP-10 — Launch polish
 **Depends on:** WP-08, WP-09.
 README rewrite for end users; verify samples load on the deployed site;
-cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity
-check with the 100MB fixture; final wording pass on privacy and
-approximation disclosures.
+cross-browser pass (Chrome plus at least one of Safari/Firefox — the real
+compatibility risk is `File.stream()` in workers; Edge is Chromium); perf
+sanity check with the generated 100MB fixture; final wording pass on privacy
+and approximation disclosures.
 
 ### Dependency graph
 
@@ -346,10 +387,15 @@ parallel → ④ WP-08 → ⑤ WP-10.
 
 - **Unit tests** (Vitest) on parser rules and pricing math, with
   hand-computed expected values.
-- **Golden-fixture cross-validation:** `prototype-sim.py` is the reference
-  implementation; the TS engine must reproduce its outputs to the cent on
-  every fixture. Independent hand-computed tests exist so a shared logic bug
-  can't hide in both implementations.
+- **Golden-fixture cross-validation:** the spec-parity Python simulator
+  (WP-06) is an independently written second implementation; the TS engine
+  must reproduce its outputs to the cent on every fixture. Neither
+  implementation is the oracle — hand-computed tests are the tiebreaker, so
+  a shared logic bug can't hide in both.
+- **Actual-vs-simulated reconciliation:** the actual cost is computed exactly
+  from observed usage; running the simulator at the *observed* TTL must
+  reproduce it (within the stated approximation) on every fixture — a free
+  sanity check on the whole simulator.
 - **Content-poison test:** proves `message.content` never influences or leaks
   into output.
 - **Format-drift canary:** fixtures are tagged with the Claude Code `version`
@@ -368,11 +414,12 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D4 | Always partition sidechains in the simulation; headline the main bucket; show a subagent section only when the session contains sidechain turns | Partitioning is required for correctness regardless (§6.4); conditional display gives two-bucket value without confusing the majority whose sessions have no subagents. (Claude's vote, accepted) |
 | D5 | Rates live in a committed `pricing.json` with a `pricesAsOf` date; unknown models reported to the user | Simple, auditable, no runtime fetch. API-driven rates possible later. (User) |
 | D6 | Fixtures are synthetic + Claude-generated scenario sessions; no personal sessions bundled | Avoids publishing usage patterns; scenarios can be engineered to teach specific lessons and to verify verdicts. (User) |
-| D7 | `prototype-sim.py` is the reference implementation, generating golden fixtures the TS engine must match; plus independent hand-computed tests | Cross-validation between two implementations, with hand-computed values as the tiebreaker. (Claude's vote) |
+| D7 | The Python simulator — brought to full spec parity in WP-06 — is an **independently written second implementation** generating golden fixtures the TS engine must match; hand-computed tests are the tiebreaker | Re-scoped after independent review: the original prototype implements almost none of the correctness rules and was never a valid oracle. Cross-validation still catches divergent bugs. (Claude's vote, revised) |
 | D8 | Domain is **cacheanalyzer.com** (user purchasing, 2026-08-30). Deploys target `workers.dev` until the custom domain is wired up in WP-09 | Name was available; buying via Cloudflare Registrar keeps DNS in the same account as the Worker. (User) |
 | D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |
 | D10 | Localization-ready architecture from day one; English-only catalog for MVP | Externalized strings + `Intl` formatting are cheap now and a painful retrofit; future languages become translation tasks. (User, 2026-08-30) |
 | D11 | Dedicated data policy page in the MVP | Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30) |
+| D12 | No in-app billing-mode questionnaire; the API-rates framing is a stated label | Deliberate simplification of feasibility §3's "ask the user, don't guess"; revisit if users report confusion. (Post-review, 2026-08-30) |
 
 ## 7. Risks
 
