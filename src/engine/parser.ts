@@ -111,6 +111,19 @@ function readString(obj: JsonObject, key: string): string | undefined {
   return text.length > 0 ? text : undefined
 }
 
+/**
+ * An identity key (`uuid`, `parentUuid`, `message.id`, `agentId`): returned
+ * verbatim, never normalized — a value that sanitization would alter or
+ * clamp is rejected instead, so two distinct hostile ids can never collide
+ * into one dedup key, chain link, or thread.
+ */
+function readIdentifier(obj: JsonObject, key: string): string | undefined {
+  const value = obj[key]
+  if (typeof value !== 'string' || value.length === 0) return undefined
+  if (value.length > MAX_METADATA_STRING_LENGTH || HAS_CONTROL_CHAR.test(value)) return undefined
+  return value
+}
+
 /** A parseable timestamp string, returned verbatim, or undefined. */
 function readTimestamp(obj: JsonObject): string | undefined {
   const value = obj['timestamp']
@@ -425,9 +438,9 @@ export class SessionParser {
 
   /** Record uuid/parentUuid/timestamp — metadata only — for the walks. */
   private indexChainRow(row: JsonObject, isUser: boolean): string | undefined {
-    const uuid = readString(row, 'uuid')
+    const uuid = readIdentifier(row, 'uuid')
     if (uuid === undefined) return undefined
-    const parent = readString(row, 'parentUuid') ?? null
+    const parent = readIdentifier(row, 'parentUuid') ?? null
     // First writer wins: a duplicated uuid must not rewrite the chain.
     if (!this.chain.has(uuid)) {
       this.chain.set(uuid, {
@@ -455,7 +468,7 @@ export class SessionParser {
       this.stats.syntheticRowsExcluded++
       return
     }
-    const messageId = readString(message, 'id')
+    const messageId = readIdentifier(message, 'id')
     const timestamp = readTimestamp(row)
     const rawUsage = message['usage']
     if (
@@ -487,7 +500,7 @@ export class SessionParser {
       return
     }
 
-    const agentId = readString(row, 'agentId')
+    const agentId = readIdentifier(row, 'agentId')
     let threadId: string
     let isSidechain: boolean
     if (agentId !== undefined) {
@@ -501,7 +514,7 @@ export class SessionParser {
       isSidechain = false
     }
 
-    const start = this.resolveRequestStart(readString(row, 'parentUuid'))
+    const start = this.resolveRequestStart(readIdentifier(row, 'parentUuid'))
     const record: RequestRecord = {
       messageId,
       model,

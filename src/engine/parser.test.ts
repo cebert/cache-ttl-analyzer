@@ -924,10 +924,49 @@ describe('hostile metadata strings', () => {
       model: 'claude-x',
       effort: 'high',
       version: '2.1.251',
-      threadId: 'agent1',
+      // Identity keys are rejected, not normalized: the hostile agentId is
+      // dropped and the row stays on the main thread.
+      threadId: MAIN_THREAD_ID,
     })
     expect(parsed.metadata.versions).toEqual(['2.1.251'])
     expect(parsed.warnings).toEqual([])
+  })
+
+  it('never normalizes identity keys into collisions', () => {
+    const long = 'x'.repeat(MAX_METADATA_STRING_LENGTH + 1)
+    const rows = [
+      // Two user rows whose uuids differ only by a control character.
+      userRow('u0', null, at(0)),
+      userRow('u0\u0000', null, at(50)),
+      assistantRow({ uuid: 'a0', parentUuid: 'u0\u0000', ts: at(51), id: 'm0' }),
+      // Two assistant rows whose ids differ only past the clamp length.
+      assistantRow({ uuid: 'a1', parentUuid: 'u0', ts: at(3), id: `${long}a` }),
+      assistantRow({ uuid: 'a2', parentUuid: 'u0', ts: at(4), id: `${long}b` }),
+      // Two subagent rows whose agentIds differ only by a control character.
+      assistantRow({ uuid: 'a3', parentUuid: null, ts: at(5), id: 'm3', extra: { agentId: 'ag' } }),
+      assistantRow({
+        uuid: 'a4',
+        parentUuid: null,
+        ts: at(6),
+        id: 'm4',
+        extra: { agentId: 'ag\u001b', isSidechain: true },
+      }),
+    ]
+    const parsed = parse(rows)
+    // The hostile parent link is rejected, so m0 falls back rather than
+    // resolving to the wrong user row.
+    expect(parsed.requests.find((r) => r.messageId === 'm0')).toMatchObject({
+      requestStartSource: 'assistant-row-fallback',
+    })
+    // Overlong ids are not requests at all (malformed), not one merged request.
+    expect(parsed.requests.map((r) => r.messageId)).toEqual(['m0', 'm3', 'm4'])
+    expect(parsed.stats.malformedLines).toBe(2)
+    // The hostile agentId is dropped; the row is a legacy sidechain, not thread "ag".
+    expect(parsed.requests.map((r) => r.threadId)).toEqual([
+      MAIN_THREAD_ID,
+      'ag',
+      `${LEGACY_SIDECHAIN_THREAD_PREFIX}1`,
+    ])
   })
 
   it('treats a string that is only control characters as absent', () => {
