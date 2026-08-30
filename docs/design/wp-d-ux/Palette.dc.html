@@ -18,7 +18,7 @@
     .swb { height: 44px; border-radius: 6px; border: 1px solid rgba(23,32,51,0.08); }
     .swn { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 10.5px; color: #172033; }
     .swr { font-size: 10.5px; color: #94A3B8; line-height: 1.35; }
-    .sheet { background: #FFFFFF; border: 1px solid #D9E2EC; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .sheet { background: #FFFFFF; border: 1px solid #D9E2EC; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
     .sec { padding: 20px 24px; }
     .rule { height: 1px; background: #E8EEF4; }
   </style>
@@ -114,13 +114,13 @@
           </div>
         </div>
       </div>
-      <div style="font-size: 11.5px; line-height: 1.5; color: #64748B;">One white sheet per region, divided by <span class="mono" style="font-size: 11px;">#E8EEF4</span> rules — not a grid of floating cards. Radius 12 on sheets, 6 on controls, 4 on badges. Elevation is reserved for dialogs, so a shadow always means "this is modal".</div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: #64748B;">One white sheet per region, divided by <span class="mono" style="font-size: 11px;">#E8EEF4</span> rules — not a grid of floating cards. Radius 10 on sheets, 6 on controls, 4 on badges. Elevation is reserved for dialogs, so a shadow always means "this is modal".</div>
     </div>
 
     <div class="rule"></div>
 
     <div class="sec" style="display: flex; flex-direction: column; gap: 13px;">
-      <span class="eyebrow">Tailwind mapping — six of these are stock, four neutrals need extending</span>
+      <span class="eyebrow">Tailwind mapping — seven accents are stock, six neutrals and tints need extending</span>
       <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 32px;">
         <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #2563EB; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#2563EB</span><span class="mono" style="font-size: 11.5px; color: #059669;">blue-600</span><span class="swr">stock</span></div>
         <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #6366F1; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#6366F1</span><span class="mono" style="font-size: 11.5px; color: #059669;">indigo-500</span><span class="swr">stock</span></div>
@@ -134,8 +134,9 @@
         <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #E8EEF4; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#E8EEF4</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">line-soft</span><span class="swr">extend — inner rules</span></div>
         <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #172033; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#172033</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">ink</span><span class="swr">extend — navy, warmer than slate-900</span></div>
         <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #3D4B60; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#3D4B60</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">ink-2</span><span class="swr">extend — body copy</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #F4F7FE; border: 1px solid #E8EEF4; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#F4F7FE</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">verdict</span><span class="swr">extend — the one tinted band</span></div>
       </div>
-      <div style="font-size: 11.5px; line-height: 1.5; color: #64748B;">Four <span class="mono" style="font-size: 11px;">theme.extend.colors</span> entries and the rest is stock Tailwind, so the whole system is expressible in utility classes. The tinted 100-level swatches above are the same hues at ~96% lightness; define them alongside rather than reaching for <span class="mono" style="font-size: 11px;">blue-50</span>, which is warmer than this ground.</div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: #64748B;">Six <span class="mono" style="font-size: 11px;">theme.extend.colors</span> entries and the rest is stock Tailwind, so the whole system is expressible in utility classes. The tinted 100-level swatches above are the same hues at ~96% lightness; define them alongside rather than reaching for <span class="mono" style="font-size: 11px;">blue-50</span>, which is warmer than this ground.</div>
     </div>
   </div>
 

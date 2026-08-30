@@ -67,9 +67,11 @@ Neutral by default; each accent owns exactly one meaning.
 | amber | `#D97706` | `amber-600` | validation warnings |
 | red | `#DC2626` | `red-600` | failed requests, rejected files |
 
-Six are stock Tailwind; only the neutrals need `theme.extend.colors`, because
-this ground and ink are cooler and bluer than Tailwind's slate. Tints used:
-`#EFF4FE` blue, `#EEEFFE` indigo, `#FDF4E7` amber, `#FCEBEB` red.
+The seven accents are stock Tailwind; the six neutrals and tints marked *extend*
+need `theme.extend.colors`, because this ground and ink are cooler and bluer than
+Tailwind's slate. Accent tints used: `#EFF4FE` blue, `#EEEFFE` indigo, `#FDF4E7`
+amber, `#FCEBEB` red — define these alongside rather than reaching for `blue-50`,
+which is warmer than this ground.
 
 No gradients, glow, animation or neon. Radius 10 on sheets, 6 on controls, 4 on
 badges.
@@ -106,7 +108,12 @@ translation task:
 - No fixed-width label columns that can clip.
 - Buttons, badges and chips size to their content.
 - The verdict is allowed to wrap to two lines (`text-wrap: balance`).
-- No text inside a bar.
+- No text inside a proportionally-sized bar, since its width is data-driven and
+  a translated label cannot be guaranteed to fit. The one place a label sits
+  inside a bar is the desktop cache-lifetime segment strip, where segments are
+  wide enough and the text is clipped with `overflow: hidden`; below ~700px that
+  strip drops its inline labels and moves them to a legend beneath
+  (see `MobileResults.dc.html`).
 - All numbers, currency, dates and durations through `Intl`, keyed to locale.
 
 The German copy is a layout stress test, not shippable translation.

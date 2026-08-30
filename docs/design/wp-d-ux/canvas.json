@@ -8,7 +8,7 @@
     { "file": "Main.dc.html", "title": "Results", "page": "page-1", "x": 1320, "y": 0, "w": 1200, "h": 1380 },
     { "file": "Analyzing.dc.html", "title": "Analyzing", "page": "page-1", "x": 0, "y": 1160, "w": 1200, "h": 720 },
     { "file": "MobileUpload.dc.html", "title": "Landing — mobile", "page": "page-1", "x": 1320, "y": 1500, "w": 390, "h": 1040 },
-    { "file": "MobileResults.dc.html", "title": "Results — mobile", "page": "page-1", "x": 1790, "y": 1500, "w": 390, "h": 1620 },
+    { "file": "MobileResults.dc.html", "title": "Results — mobile", "page": "page-1", "x": 1790, "y": 1500, "w": 390, "h": 1690 },
     { "file": "Palette.dc.html", "title": "Design tokens", "page": "page-2", "x": 0, "y": 0, "w": 1000, "h": 1580 },
     { "file": "Expansion.dc.html", "title": "Text-expansion check — de-DE", "page": "page-2", "x": 1120, "y": 0, "w": 1200, "h": 800 }
   ],
@@ -19,7 +19,7 @@
       "x": 0,
       "y": -250,
       "w": 660,
-      "text": "WP-D · cacheanalyzer\nPersistent left nav. Add a session from the landing page; it appears in the sidebar and stays there for the tab's lifetime.\n\nSample session: 50 requests over 80 min, model opus-5 → sonnet-5 at 09:47, effort high → medium at 10:05, two failed requests. 1h wins by $2.13."
+      "text": "WP-D · cacheanalyzer\nPersistent left nav. Add a session from the landing page; it appears in the sidebar and stays there for the tab's lifetime.\n\nSample session: 50 requests over 80 min, model opus-5 → sonnet-5 at 09:47, effort high → medium at 10:05, two failed requests. 1h wins by $2.14."
     },
     {
       "id": "nav-note",
@@ -43,7 +43,7 @@
       "x": 0,
       "y": -250,
       "w": 470,
-      "text": "Calm developer blue\nEach hue has one job: blue #2563EB for interaction and the recommendation, indigo for cache expiries, green for money saved, amber for validation warnings, red for failed requests. No gradients, no glow, no purple wash.\n\nIBM Plex Sans and Mono, self-hosted. The last section maps every token to Tailwind: six are stock, four neutrals need theme.extend."
+      "text": "Calm developer blue\nEach hue has one job: blue #2563EB for interaction and the recommendation, indigo for cache expiries, green for money saved, amber for validation warnings, red for failed requests. No gradients, no glow, no purple wash.\n\nIBM Plex Sans and Mono, self-hosted. The last section maps every token to Tailwind: seven accents are stock, six neutrals and tints need theme.extend."
     },
     {
       "id": "l10n-note",
