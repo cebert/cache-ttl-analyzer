@@ -119,11 +119,15 @@ Actions repository secrets:
 
 | Secret | Value |
 |---|---|
-| `CLOUDFLARE_API_TOKEN` | API token with **Workers Scripts: Edit** on this account |
+| `CLOUDFLARE_API_TOKEN` | API token from Cloudflare's **Edit Cloudflare Workers** template, scoped to this account and the `cacheanalyzer.com` zone |
 | `CLOUDFLARE_ACCOUNT_ID` | The Cloudflare account ID that owns the Worker |
 
-The token is account-scoped, grants nothing beyond publishing this Worker, and
-is revocable from the Cloudflare dashboard. This reverses the original plan of
+The **Edit Cloudflare Workers** template is used rather than a narrower
+`Workers Scripts: Edit` token because `wrangler.jsonc` declares
+`cacheanalyzer.com` as a custom-domain route, and reconciling that route on
+deploy needs zone-level `Workers Routes: Edit` as well. Scope the token to this
+one account and that one zone; it is revocable from the Cloudflare dashboard,
+and rotating it means replacing the repository secret, nothing more. This reverses the original plan of
 using Cloudflare Workers Builds to avoid storing any credential in GitHub —
 see decision D15 in [the plan](docs/PLAN.md) for the trade-off.
 
