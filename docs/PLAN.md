@@ -80,8 +80,9 @@ Two cross-cutting requirements, cheap now and expensive to retrofit:
 - **Analysis engine** (`src/engine/`): pure TypeScript, zero DOM/React
   dependencies, so it runs in a Web Worker and is unit-testable in Node.
   - **Parser** reads only the fields it needs (`type`, `timestamp`,
-    `message.id`, `message.model`, `message.usage`, `isSidechain`, `effort`,
-    `version`, plus `uuid`/`parentUuid` for sidechain threading and
+    `message.id`, `message.model`, `message.usage`, `isSidechain`, `agentId`,
+    `effort`, `version`, plus `uuid`/`parentUuid`/`timestamp` of `user` and
+    `attachment` rows for threading and request-start pairing, and
     `sessionId`/`cwd`/`gitBranch` for the identification card) and **never
     reads `message.content`** — enforced by a test that
     feeds a session whose content blocks are poison values and asserts they
@@ -151,10 +152,10 @@ users that nothing is exfiltrated. Rules:
 |---|---|
 | Dedup rows on `message.id` (one row per content block, each carries full usage; up to 13× overstatement otherwise) | §6.1 |
 | Exclude `message.model == "<synthetic>"` rows | §6.2 |
-| Partition sidechains **per subagent thread**, not as one boolean bucket: parallel subagents interleave their `isSidechain: true` rows but each has its own cache namespace. Thread identification (likely `parentUuid`/`uuid` chains) is verified against a real multi-subagent log before the WP-02 freeze | §6.4 + review |
+| Partition sidechains **per subagent thread**, not as one boolean bucket: each subagent has its own cache namespace. **Amended by the WP-02 inspection (2026-08-30, contract F2):** on v2.1.251 subagent transcripts are *separate files* (`<project>/<session-id>/subagents/agent-<agentId>.jsonl`, rows carrying `agentId` and `isSidechain: true`, `parentUuid` chains self-contained) — not interleaved rows in the main file, which is a legacy-version case. Thread key = `agentId` when present, else `parentUuid`-chain roots. Consequence: a modern main-session upload contains **no** subagent traffic; the subagent bucket appears when the uploaded file is itself a subagent transcript or a legacy interleaved log | §6.4 + review + WP-02 inspection |
 | Hard cache reset on any change of `model`, `effort`, or `version`, independent of elapsed time | §6.6 |
 | Price per request (models/tiers/speed can vary mid-session); honor `service_tier` and `speed` | §6.5 |
-| Gap timing: use the preceding `user` row's timestamp **from the same cache thread** as request start (interleaved subagent rows make "preceding" thread-relative); fall back to the assistant row's own timestamp when the thread has none | §7 + review |
+| Gap timing: request start = the nearest `user`-row ancestor's timestamp found by walking `parentUuid` (**refined by the WP-02 inspection, contract F3:** the immediate parent is usually an `attachment` row, so the walk must index `uuid`/`parentUuid`/`timestamp` of `user` *and* `attachment` rows — metadata only, never content); fall back to the assistant row's own timestamp when no ancestor resolves | §7 + review + WP-02 inspection |
 | Expiry model is all-or-nothing per gap; this is conservative toward 5m — disclose it in the UI | §7 |
 | Effective TTL comes from `usage.cache_creation` (`ephemeral_5m` / `ephemeral_1h` split). Counterfactuals reprice **only the user-controllable share**; server-tool 5m writes stay at 5m in both scenarios and are tracked as their own expiry class. The reconciliation check (§5) replays each request with its **observed per-request split**, not a single session-wide TTL | §2 + review |
 | Unrecognized record types are skipped and counted, surfaced as "N records skipped" | §4 |
@@ -177,7 +178,10 @@ API rates* with a one-line rationale (subscription users have no per-token
 bill; API-rate framing is what an API/Bedrock/credits user pays and what
 everyone should understand — see decision log).
 
-**Conditionally:** if the session contains sidechain turns, a second section
+**Conditionally:** if the uploaded file contains sidechain turns — a legacy
+log with interleaved `isSidechain` rows, or a modern per-subagent transcript
+from `<session-id>/subagents/` uploaded directly (WP-02 inspection, contract
+F2) — a second section
 for the **subagent bucket** (`subagentPromptCacheTtl`), with its own
 recommendation. When no sidechains exist, this section does not appear, and
 the tool does not imply it evaluated subagent traffic (feasibility doc §3).
@@ -205,11 +209,12 @@ passes CI (typecheck, lint, tests, build) and CodeRabbit review.
 
 ### WP-01 — Scaffold and tooling
 **Depends on:** nothing. **Blocks:** everything.
-Vite + React + TS app skeleton; Vitest; ESLint + Prettier; `wrangler.jsonc`
+Vite + React + TS app skeleton; Vitest; Oxlint + Prettier (D14 — was
+"ESLint + Prettier"); `wrangler.jsonc`
 for Workers static assets; npm scripts (`dev`, `build`, `test`, `lint`,
-`typecheck`, `deploy`); the logging abstraction (pick `loglevel`/`tslog` or
-write the ~50-line wrapper) with the debug-flag mechanism; README
-"Development" section filled in.
+`typecheck`, `deploy`); the logging abstraction (an in-house ~100-line
+wrapper was chosen, `src/lib/logger.ts`) with the debug-flag mechanism;
+README "Development" section filled in.
 *Acceptance:* `npm run build && npm test` green; `wrangler dev` serves the
 placeholder app.
 
@@ -236,6 +241,17 @@ finalizes and documents this so the simulator is deterministic).
 Documented inline; changes after freeze require touching this plan. The
 insight-event taxonomy is the one section expected to be amended (WP-08 and
 WP-D consume it and will discover needs).
+
+**Inspection outcome (2026-08-30):** findings F1–F7 are recorded at the top
+of `src/engine/contract.ts` (corpus: `transcripts/004-build-plan/`, v2.1.251,
+plus its on-disk subagent transcript). Two assumptions in this plan were
+contradicted and amended in place: subagent sidechains are separate files on
+modern versions (see the §2 correctness-rules table), and the request-start
+`user` row is reached via a `parentUuid` walk through `attachment` rows, not
+by file adjacency. Also confirmed: `ai-title` payload is
+`{ type, aiTitle, sessionId }`, rewritten repeatedly (take the last);
+new unrecognized record types already exist (skip-and-count is load-bearing
+on day one); several `usage` subfields are optional.
 *Acceptance:* types compile; a stub engine returning canned data satisfies
 them end-to-end through a stub worker; the pre-freeze log inspection findings
 are recorded in the contract's comments.
@@ -297,6 +313,11 @@ tests. Only then have it emit expected-output JSON per fixture; commit those
 as golden files with a test harness that runs the TS engine against them.
 This makes the Python sim an independently written second implementation,
 not a trusted oracle: disagreements are settled by hand computation (see §5).
+Note (WP-02 inspection): on modern Claude Code versions a "captured subagent
+session" is a set of files — the main `<session-id>.jsonl` plus
+`<session-id>/subagents/agent-<agentId>.jsonl` per subagent (parallel
+subagents = multiple files); the interleaved-row fixture exercises the
+legacy path and stays synthetic.
 *Acceptance:* golden files committed; harness wired into `npm test`; includes
 a **captured real subagent session (with parallel subagents)** and a
 **captured 5m-configured session** (every corpus session ran at 1h — the
@@ -331,7 +352,8 @@ WP-07 and WP-08 sessions can implement against them without guessing.
 Upload (drag-drop + picker), Web Worker wiring with progress bar and cancel,
 in-memory history of this browser session's analyses, "find your logs"
 instructions (macOS: `~/.claude/projects/<project-slug>/<session-id>.jsonl`;
-Windows: `%USERPROFILE%\.claude\projects\...`; both moved by
+Windows: `%USERPROFILE%\.claude\projects\...`; subagent transcripts beside
+the session file in `<session-id>/subagents/`; both roots moved by
 `CLAUDE_CONFIG_DIR` when set; note the 30-day default cleanup), privacy statement with repo
 link, data policy page, sample-session loader. File-size cap and the three
 validation verdicts (valid / warnings / not a session log) as distinct UI
@@ -355,8 +377,11 @@ no-sidechain and unknown-model cases.
 ### WP-09 — CI/CD
 **Depends on:** WP-01. **Parallel with:** WP-03, WP-04, WP-06.
 GitHub Actions: PR workflow (typecheck, lint, test, build) required on
-`main`; deploy workflow on push to `main` via `wrangler deploy` using a
-Cloudflare API token secret. Document secret setup in README. Branch
+`main`. Deploys on push to `main` via **Cloudflare Workers Builds** (the
+repo connected in the Cloudflare dashboard; no Cloudflare credential stored
+in GitHub — see D15: Cloudflare does not support OIDC/trusted publishing for
+`wrangler` deploys, and Workers Builds is the closest no-stored-secret
+equivalent). Document the Workers Builds setup in README. Branch
 protection on `main`. Serve the strict CSP and security headers (via the
 Workers static-assets headers config). Once the domain is in the Cloudflare
 account, attach
@@ -438,12 +463,14 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D5 | Rates live in a committed `pricing.json` with a `pricesAsOf` date; unknown models reported to the user | Simple, auditable, no runtime fetch. API-driven rates possible later. (User) |
 | D6 | Fixtures are synthetic + Claude-generated scenario sessions; no personal sessions bundled | Avoids publishing usage patterns; scenarios can be engineered to teach specific lessons and to verify verdicts. (User) |
 | D7 | The Python simulator — brought to full spec parity in WP-06 — is an **independently written second implementation** generating golden fixtures the TS engine must match; hand-computed tests are the tiebreaker | Re-scoped after independent review: the original prototype implements almost none of the correctness rules and was never a valid oracle. Cross-validation still catches divergent bugs. (Claude's vote, revised) |
-| D8 | Domain is **cacheanalyzer.com** (user purchasing, 2026-08-30). Deploys target `workers.dev` until the custom domain is wired up in WP-09 | Name was available; buying via Cloudflare Registrar keeps DNS in the same account as the Worker. (User) |
+| D8 | Domain is **cacheanalyzer.com** (purchased 2026-08-30, in the user's Cloudflare account). Deploys target `workers.dev` until the custom domain is wired up in WP-09 | Name was available; buying via Cloudflare Registrar keeps DNS in the same account as the Worker. (User) |
 | D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |
 | D10 | Localization-ready architecture from day one; English-only catalog for MVP | Externalized strings + `Intl` formatting are cheap now and a painful retrofit; future languages become translation tasks. (User, 2026-08-30) |
 | D11 | Dedicated data policy page in the MVP | Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30) |
 | D12 | No in-app billing-mode questionnaire; the API-rates framing is a stated label | Deliberate simplification of feasibility §3's "ask the user, don't guess"; revisit if users report confusion. (Post-review, 2026-08-30) |
 | D13 | All logging through a leveled abstraction with a user-accessible debug flag; console-only, no remote collection | Troubleshooting a client-only app depends on users' consoles; remote logging would contradict the privacy stance. (User, 2026-08-30) |
+| D14 | Oxlint (+ Prettier for formatting) instead of ESLint | Better fit for a Vite + React + TS app: it is Vite's current template default, fast, and needs no plugin stack for the rules we use. (User, 2026-08-30) |
+| D15 | Deploys via Cloudflare Workers Builds, not a GitHub-stored API token | The user wanted OIDC/trusted publishing; Cloudflare doesn't support it for `wrangler` deploys ([open feature request](https://github.com/cloudflare/workers-sdk/discussions/11434)). Workers Builds keeps all Cloudflare credentials out of GitHub — the closest available equivalent. Revisit if Cloudflare ships OIDC. (User, 2026-08-30) |
 
 ## 7. Risks
 
