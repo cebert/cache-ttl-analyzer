@@ -376,31 +376,30 @@ no-sidechain and unknown-model cases.
 
 ### WP-09 — CI/CD
 **Depends on:** WP-01. **Parallel with:** WP-03, WP-04, WP-06.
-GitHub Actions: PR workflow (typecheck, lint, test, build) required on
-`main`. Deploys on push to `main` via **Cloudflare Workers Builds** (the
-repo connected in the Cloudflare dashboard; no Cloudflare credential stored
-in GitHub — see D15: Cloudflare does not support OIDC/trusted publishing for
-`wrangler` deploys, and Workers Builds is the closest no-stored-secret
-equivalent). **PR preview deployments** via the same Workers Builds
-connection: every PR branch gets a preview build, and Cloudflare's GitHub
-integration posts a comment on the PR with the build status and two links —
-a per-commit preview URL and a stable branch-alias URL that always points
-at the branch's latest version — so platform behavior (CSP headers,
-`File.stream()` in the worker, SPA routing) is verified in the real Workers
-runtime before merge;
-the post-deploy security-header smoke check runs against previews too.
-Previews build only for branches in this repo (not forks), and preview URLs
-are public — acceptable for a static, open-source app. Document the Workers
-Builds setup in README. Branch protection on `main`. Serve the strict CSP and security headers (via the
-Workers static-assets headers config). ~~Attach **cacheanalyzer.com** as a
-custom domain on the Worker~~ — done 2026-08-30, ahead of this WP (see D8;
-`wrangler.jsonc` carries the `routes` custom-domain config).
-*Acceptance:* a PR shows the checks; a merge to `main` deploys, reachable at
-`workers.dev` and at cacheanalyzer.com (already live); a post-deploy
-smoke check asserts the exact security headers on the live site
-(`Content-Security-Policy` present with `default-src 'self'` and no external
-`connect-src`) so a misconfigured headers file fails the deploy rather than
-silently voiding the privacy proof; the README's Live URL is updated.
+GitHub Actions owns the whole pipeline (see D15, revised 2026-08-30): one
+`ci.yml` whose `check` job runs format check, lint, typecheck, test and build
+on every PR and on `main`, and which uploads `dist/` as an artifact so the
+deploy jobs ship the exact bytes CI checked rather than rebuilding.
+Deploys on push to `main` run `wrangler deploy` against a scoped Cloudflare
+API token held in GitHub Actions secrets.
+**PR preview deployments** run `wrangler versions upload --preview-alias
+<branch>`, which publishes a version without touching the live deployment and
+yields two links — a per-commit preview URL and a stable branch-alias URL that
+always points at the branch's latest version. A workflow step posts (and
+updates in place) a single PR comment carrying both, so platform behavior
+(CSP headers, `File.stream()` in the worker, SPA routing) is verified in the
+real Workers runtime before merge.
+Previews build only for branches in this repo — fork PRs cannot read the
+secrets and must not be handed the token — and preview URLs are public, which
+is acceptable for a static, open-source app. Document the token setup in
+README. Branch protection on `main`. Serve the strict CSP and security headers
+(via the Workers static-assets `_headers` config). ~~Attach
+**cacheanalyzer.com** as a custom domain on the Worker~~ — done 2026-08-30,
+ahead of this WP (see D8; `wrangler.jsonc` carries the `routes` custom-domain
+config).
+*Acceptance:* a PR shows the checks and gets a preview-URL comment; a merge to
+`main` deploys, reachable at `workers.dev` and at cacheanalyzer.com (already
+live); the README's Live URL is updated.
 
 ### WP-10 — Launch polish
 **Depends on:** WP-08, WP-09.
@@ -478,7 +477,8 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D12 | No in-app billing-mode questionnaire; the API-rates framing is a stated label | Deliberate simplification of feasibility §3's "ask the user, don't guess"; revisit if users report confusion. (Post-review, 2026-08-30) |
 | D13 | All logging through a leveled abstraction with a user-accessible debug flag; console-only, no remote collection | Troubleshooting a client-only app depends on users' consoles; remote logging would contradict the privacy stance. (User, 2026-08-30) |
 | D14 | Oxlint (+ Prettier for formatting) instead of ESLint | Better fit for a Vite + React + TS app: it is Vite's current template default, fast, and needs no plugin stack for the rules we use. (User, 2026-08-30) |
-| D15 | Deploys via Cloudflare Workers Builds, not a GitHub-stored API token | The user wanted OIDC/trusted publishing; Cloudflare doesn't support it for `wrangler` deploys ([open feature request](https://github.com/cloudflare/workers-sdk/discussions/11434)). Workers Builds keeps all Cloudflare credentials out of GitHub — the closest available equivalent. Revisit if Cloudflare ships OIDC. (User, 2026-08-30) |
+| D15 | ~~Deploys via Cloudflare Workers Builds, not a GitHub-stored API token~~ **Revised 2026-08-30 (WP-09):** deploys and PR previews run from GitHub Actions via `wrangler`, authenticated by a scoped Cloudflare API token in GitHub Actions secrets | Originally chosen because the user wanted OIDC/trusted publishing and Cloudflare doesn't support it for `wrangler` deploys ([open feature request](https://github.com/cloudflare/workers-sdk/discussions/11434)), making Workers Builds the closest no-stored-secret equivalent. Revised when WP-09 was built: keeping every gate in one GitHub Actions run makes ordering explicit (deploy the artifact CI checked, never a rebuild) and keeps CI config reviewable in-repo rather than split across a dashboard. The cost is a stored credential — mitigated by scoping the token to Workers Scripts:Edit on this account only, and it is revocable from the dashboard. Still revisit if Cloudflare ships OIDC. (User, 2026-08-30) |
+| D16 | No post-deploy smoke check asserting security headers against the live site | WP-09 originally required one so a misconfigured `_headers` file would fail the deploy. Judged disproportionate for a project this size: `_headers` is a static file reviewed in the PR diff, and the CSP was verified end-to-end against the real Workers runtime (`wrangler dev`, module worker spawned, zero violations) when it was written. Revisit if the header config starts changing often. (User, 2026-08-30) |
 
 ## 7. Risks
 

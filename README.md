@@ -5,7 +5,7 @@ Upload Claude Code session logs in files (JSON or JSONL), and this tool will ana
 
 **Status:** in progress — scaffold and frozen engine contract landed (WP-01, WP-02); the analysis engine is still a stub. See [docs/PLAN.md](docs/PLAN.md).
 
-**Live URL:** [cacheanalyzer.com](https://cacheanalyzer.com) (placeholder while the engine is built)
+**Live URL:** [cacheanalyzer.com](https://cacheanalyzer.com) (deployed from `main`; placeholder content while the engine is built)
 
 ## Why
 
@@ -51,7 +51,7 @@ npm run dev        # Vite dev server with HMR
 | `npm run typecheck` | `tsc -b` only |
 | `npm run preview` | Serve the production build via Vite |
 | `npx wrangler dev` | Serve the production build the way Cloudflare Workers will (build first) |
-| `npm run deploy` | Build and deploy to Cloudflare Workers (manual; CI deploys land in WP-09) |
+| `npm run deploy` | Build and deploy to Cloudflare Workers (manual escape hatch; CI deploys `main` automatically) |
 
 ### Architecture in one paragraph
 
@@ -87,19 +87,53 @@ Every change lands through a PR into `main` ([docs/PLAN.md](docs/PLAN.md) §4):
    are verified against the code before being applied — each one gets an
    explicit agree/disagree with reasons on the PR, and inaccurate findings
    are rejected rather than blindly applied.
-2. **CI checks** (WP-09, upcoming): GitHub Actions runs typecheck, lint,
-   tests, and build as required checks on `main`. GitHub Actions never
-   deploys and holds no Cloudflare credentials.
+2. **CI checks:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs
+   format check, lint, typecheck, tests, and build on every PR and on `main`,
+   as required checks. The job uploads `dist/` as an artifact and the deploy
+   jobs ship that artifact, so what CI checked is exactly what Cloudflare
+   serves — a deploy never rebuilds from source.
 3. **Deployment:** the app deploys to Cloudflare Workers as static assets
    (`wrangler.jsonc`), with production on
    [cacheanalyzer.com](https://cacheanalyzer.com) (a custom domain on the
    Worker; Cloudflare manages DNS/TLS) plus a `workers.dev` URL for
-   development. Deploys are currently manual (`npm run deploy`, using your
-   local `wrangler login`). WP-09 switches this to **Cloudflare Workers
-   Builds**: the repo is connected in the Cloudflare dashboard, a merge to
-   `main` triggers a production deploy, and every PR branch gets its own
-   preview URL surfaced as a PR check — so platform behavior (CSP headers,
-   worker streaming) is testable before merge. No Cloudflare API token is
-   stored in GitHub in any of this; Cloudflare does not support OIDC deploys,
-   and Workers Builds is the closest no-stored-secret equivalent (decision
-   D15 in the plan).
+   development. A merge to `main` runs `wrangler deploy`; `npm run deploy`
+   stays available as a manual escape hatch using your local
+   `wrangler login`.
+4. **PR previews:** every PR from a branch in this repo gets
+   `wrangler versions upload --preview-alias <branch>`, which publishes a
+   version *without* touching the live deployment. A bot comment on the PR
+   carries two links: a per-commit preview URL, and a branch-alias URL
+   (`<branch>-cache-ttl-analyzer.workers.dev`) that always points at the
+   branch's latest version. This is how platform behavior — CSP headers,
+   `File.stream()` in the worker, SPA routing — gets verified in the real
+   Workers runtime before merge. Fork PRs are skipped: they cannot read the
+   repository secrets, and the Cloudflare token is deliberately not exposed
+   to fork code. Preview URLs are public, which is acceptable for a static,
+   open-source app; they carry `X-Robots-Tag: noindex` so only
+   cacheanalyzer.com is indexed.
+
+### Cloudflare credentials
+
+Deploys authenticate with a scoped Cloudflare API token stored as GitHub
+Actions repository secrets:
+
+| Secret | Value |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | API token with **Workers Scripts: Edit** on this account |
+| `CLOUDFLARE_ACCOUNT_ID` | The Cloudflare account ID that owns the Worker |
+
+The token is account-scoped, grants nothing beyond publishing this Worker, and
+is revocable from the Cloudflare dashboard. This reverses the original plan of
+using Cloudflare Workers Builds to avoid storing any credential in GitHub —
+see decision D15 in [the plan](docs/PLAN.md) for the trade-off.
+
+### Security headers
+
+[`public/_headers`](public/_headers) is copied into `dist/` by Vite and parsed
+by Cloudflare Workers, which applies it to every static-asset response. The
+load-bearing entry is the Content-Security-Policy: `default-src 'self'` with
+`connect-src 'self'` means the page cannot open a request to any other origin,
+so "your session log never leaves your browser" is enforced by the platform
+rather than merely promised — and you can confirm it yourself in devtools.
+Verify locally with `npm run build && npx wrangler dev`, then
+`curl -sI http://localhost:8788/`.
