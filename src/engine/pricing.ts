@@ -1,8 +1,16 @@
 /**
- * WP-02 — schema for `src/config/pricing.json` (frozen; WP-04 populates the
- * file from the published pricing page). Rates are USD per million tokens
- * at published Anthropic API rates (D2). Unknown model ids are never
- * guessed — see the degradation policy in `contract.ts`.
+ * WP-02 — schema for `src/config/pricing.json`. That file does NOT exist
+ * yet: WP-04 creates it, sourcing every number from Anthropic's published
+ * pages and recording the exact provenance in the config itself (`source`,
+ * `pricesAsOf`):
+ *
+ * - Base model rates: https://platform.claude.com/docs/en/about-claude/pricing
+ * - Cache read/write multipliers:
+ *   https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pricing
+ *
+ * Rates are USD per million tokens at published Anthropic API rates (D2).
+ * Unknown model ids are never guessed — see the degradation policy in
+ * `contract.ts`.
  */
 
 export interface CacheMultipliers {
@@ -37,7 +45,10 @@ export interface ModelPricing {
 export interface PricingConfig {
   /** ISO date shown beside every dollar figure in the UI (decision D5). */
   pricesAsOf: string
-  /** URL of the published pricing page the numbers were taken from. */
+  /**
+   * Direct URL of the published Anthropic pricing page the numbers were
+   * taken from (see the header) — required, so every rate is auditable.
+   */
   source: string
   cacheMultipliers: CacheMultipliers
   /** Keyed by raw `message.model` ids, e.g. "claude-opus-5". */

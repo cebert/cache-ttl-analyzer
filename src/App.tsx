@@ -12,8 +12,9 @@ import { createLogger, getLogLevel } from './lib/logger'
 
 const log = createLogger('app')
 
-// Placeholder pricing for the stub run; WP-04 replaces this with the real
-// src/config/pricing.json.
+// Placeholder pricing for the stub run. src/config/pricing.json does not
+// exist yet — WP-04 creates it from Anthropic's published pricing pages
+// (URLs in src/engine/pricing.ts) and this inline object goes away.
 const stubPricing: PricingConfig = {
   pricesAsOf: '2026-08-30',
   source: 'https://platform.claude.com/docs/en/about-claude/pricing',
