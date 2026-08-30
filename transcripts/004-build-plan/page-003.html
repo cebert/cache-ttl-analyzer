@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 3</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 3/4</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-002.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<span class="current">3</span>
+<a href="page-004.html">4</a>
+<a href="page-004.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-08-30T20-00-47-444Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T20-00-47-444Z" class="timestamp-link"><time datetime="2026-08-30T20:00:47.444Z" data-timestamp="2026-08-30T20:00:47.444Z">2026-08-30T20:00:47.444Z</time></a></div><div class="message-content">
+<div class="user-content"><p>please have an indpendent agent review this plan and review if it is sensible and if it sees any gaps or concerns</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-00-50-315Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-00-50-315Z" class="timestamp-link"><time datetime="2026-08-30T20:00:50.315Z" data-timestamp="2026-08-30T20:00:50.315Z">2026-08-30T20:00:50.315Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-00-51-092Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-00-51-092Z" class="timestamp-link"><time datetime="2026-08-30T20:00:51.092Z" data-timestamp="2026-08-30T20:00:51.092Z">2026-08-30T20:00:51.092Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll launch a fresh agent with no context from our conversation, pointing it at the plan and the feasibility research, and ask for a critical review.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-01-02-769Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-01-02-769Z" class="timestamp-link"><time datetime="2026-08-30T20:01:02.769Z" data-timestamp="2026-08-30T20:01:02.769Z">2026-08-30T20:01:02.769Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01MAmijA3hXGxkSopGoHKw7s"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Independent build-plan review</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;prompt&#34;: &#34;You are an independent reviewer. Review the build plan at ~/Code/cache-ttl-analyzer/docs/PLAN.md with a critical eye.\n\nContext: this repo is a hobby project (single maintainer) that will be a static React+TypeScript+Vite web app deployed to Cloudflare Workers. Users upload a Claude Code session log (JSONL) and the app computes — entirely client-side in a Web Worker — what the session cost at published Anthropic API rates and what it would have cost under the other prompt-cache TTL (5m vs 1h), plus cache-behavior insights. The plan will be executed by multiple parallel Claude sessions, each work package being one PR. The plan is grounded in a research document at ~/Code/cache-ttl-analyzer/docs/design/claude-code-session-logs/feasibility.md (with a validated Python prototype at docs/design/claude-code-session-logs/prototype-sim.py).\n\nRead both documents fully (and skim the prototype and repo layout if useful). Then assess:\n\n1. Is the plan sensible overall — scope, architecture, sequencing — for a hobby project of this kind?\n2. Gaps: anything the MVP definition, work packages, or acceptance criteria miss that will bite during implementation or after launch? (e.g., missing WPs, unstated dependencies, untestable acceptance criteria, wave ordering problems)\n3. Consistency: does the plan faithfully reflect the feasibility research, or does it drop/contradict any of its findings and traps?\n4. Risks/concerns: technical risks not in the risk table, correctness risks in the analysis approach, anything about the parallel multi-session execution model that could cause integration pain (especially around the WP-02 frozen contract).\n5. Overreach: anything in the plan that is over-engineered for the stated goals and could be cut or simplified.\n\nBe concrete and specific — cite plan sections/WP numbers. Do not rewrite the plan. Return a structured report: overall verdict (1-2 sentences), then findings ordered by importance, each with: what, where in the plan, why it matters, and a suggested fix (one line). Flag clearly which findings you consider must-fix before implementation starts vs nice-to-have. Keep it under ~1200 words.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-01-04-127Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-01-04-127Z" class="timestamp-link"><time datetime="2026-08-30T20:01:04.127Z" data-timestamp="2026-08-30T20:01:04.127Z">2026-08-30T20:01:04.127Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully. (This tool result is internal metadata — never quote or paste any part of it, including the agentId below, into a user-facing reply.)
+agentId: a137a13bcaec09000 (internal ID - do not mention to user. Use SendMessage with to: &#x27;a137a13bcaec09000&#x27;, summary: &#x27;&lt;5-10 word recap&gt;&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes. You know nothing about its results until that notification arrives — do not report, assume, or predict them; continue other work or respond to the user in the meantime.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using.
+output_file: /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/tasks/a137a13bcaec09000.output
+Do NOT Read or tail this file via the shell tool — it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you&#x27;ll get a completion notification.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-01-06-656Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-01-06-656Z" class="timestamp-link"><time datetime="2026-08-30T20:01:06.656Z" data-timestamp="2026-08-30T20:01:06.656Z">2026-08-30T20:01:06.656Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The review agent is running — it's reading the plan, the feasibility research, and the prototype from scratch, with none of our conversation's assumptions. I'll report its findings as soon as it finishes.</p></div></div></div>
+<div class="message user" id="msg-2026-08-30T20-03-14-431Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T20-03-14-431Z" class="timestamp-link"><time datetime="2026-08-30T20:03:14.431Z" data-timestamp="2026-08-30T20:03:14.431Z">2026-08-30T20:03:14.431Z</time></a></div><div class="message-content">
+<div class="user-content"><p>oh you know we might want to make the client capable of supporting localization in case we want to support other languages than English in the future, that's hard to add later, add that as a requirement we also want a clear page about data policy</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-03-26-365Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-03-26-365Z" class="timestamp-link"><time datetime="2026-08-30T20:03:26.365Z" data-timestamp="2026-08-30T20:03:26.365Z">2026-08-30T20:03:26.365Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-03-27-776Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-03-27-776Z" class="timestamp-link"><time datetime="2026-08-30T20:03:27.776Z" data-timestamp="2026-08-30T20:03:27.776Z">2026-08-30T20:03:27.776Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good timing to catch the i18n one — retrofitting string externalization across a built UI is miserable. I'll add both requirements: i18n <em>readiness</em> for MVP (all strings in locale files, <code>Intl</code>-based formatting, English as the only shipped locale) and a dedicated data-policy page.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-03-35-551Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-03-35-551Z" class="timestamp-link"><time datetime="2026-08-30T20:03:35.551Z" data-timestamp="2026-08-30T20:03:35.551Z">2026-08-30T20:03:35.551Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_019qhubWcL4dJFhZ5i9Up5r3">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Plus: clear instructions for finding session logs on macOS and Windows, a
+prominent privacy statement (&#34;analysis is local; this is open source — verify
+it yourself&#34; with a link to the repo), and a &#34;prices as of&#34; date on every
+dollar figure.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Plus: clear instructions for finding session logs on macOS and Windows, a
+prominent privacy statement (&#34;analysis is local; this is open source — verify
+it yourself&#34; with a link to the repo), a dedicated **data policy page** (see
+§3a), and a &#34;prices as of&#34; date on every dollar figure.
+
+Two cross-cutting requirements, cheap now and expensive to retrofit:
+
+- **Localization-ready from day one.** MVP ships English only, but no
+  user-facing string is hard-coded in a component: all copy lives in locale
+  resource files (react-i18next or equivalent — chosen in WP-07), and all
+  number, currency, date, and duration formatting goes through the `Intl`
+  APIs keyed to the active locale. Adding a second language later must be a
+  translation task, not a refactor.
+- **Data policy page**: a first-class page, linked from the footer and the
+  upload screen, stating in plain language: analysis runs entirely in the
+  browser; the file is never uploaded, stored, or sent anywhere; the strict
+  CSP enforces this at the platform level (with a one-line &#34;check devtools&#34;
+  pointer); no analytics or tracking in the MVP; the project is open source
+  (repo link); and any future optional API-powered analysis will be opt-in
+  with an explicit, itemized disclosure of what would be sent.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-03-35-585Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-03-35-585Z" class="timestamp-link"><time datetime="2026-08-30T20:03:35.585Z" data-timestamp="2026-08-30T20:03:35.585Z">2026-08-30T20:03:35.585Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-03-37-696Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-03-37-696Z" class="timestamp-link"><time datetime="2026-08-30T20:03:37.696Z" data-timestamp="2026-08-30T20:03:37.696Z">2026-08-30T20:03:37.696Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_0151yoi1tLZaqUAPbTBH3vys">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">model, skipped records, version warning, malformed file.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">model, skipped records, version warning, malformed file. Include the data
+policy page, and design copy areas with text expansion in mind (translated
+strings run ~30% longer than English).</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-03-37-729Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-03-37-729Z" class="timestamp-link"><time datetime="2026-08-30T20:03:37.729Z" data-timestamp="2026-08-30T20:03:37.729Z">2026-08-30T20:03:37.729Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-03-40-566Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-03-40-566Z" class="timestamp-link"><time datetime="2026-08-30T20:03:40.566Z" data-timestamp="2026-08-30T20:03:40.566Z">2026-08-30T20:03:40.566Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_0129zAu5Y8RVqvBQS5JcqnNP">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">link, sample-session loader. File-size cap and the three validation verdicts
+(valid / warnings / not a session log) as distinct UI states.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">link, data policy page, sample-session loader. File-size cap and the three
+validation verdicts (valid / warnings / not a session log) as distinct UI
+states. Sets up the i18n foundation: locale resource files, the translation
+hook pattern, and `Intl`-based formatters — every string in WP-07 and WP-08
+goes through it (English-only catalog for MVP).</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-03-40-609Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-03-40-609Z" class="timestamp-link"><time datetime="2026-08-30T20:03:40.609Z" data-timestamp="2026-08-30T20:03:40.609Z">2026-08-30T20:03:40.609Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-03-43-859Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-03-43-859Z" class="timestamp-link"><time datetime="2026-08-30T20:03:43.859Z" data-timestamp="2026-08-30T20:03:43.859Z">2026-08-30T20:03:43.859Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_015xXbmUh2AZ79dHHpnJWXLj">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">| D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">| D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |
+| D10 | Localization-ready architecture from day one; English-only catalog for MVP | Externalized strings + `Intl` formatting are cheap now and a painful retrofit; future languages become translation tasks. (User, 2026-08-30) |
+| D11 | Dedicated data policy page in the MVP | Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30) |</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-03-43-894Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-03-43-894Z" class="timestamp-link"><time datetime="2026-08-30T20:03:43.894Z" data-timestamp="2026-08-30T20:03:43.894Z">2026-08-30T20:03:43.894Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-03-59-414Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-03-59-414Z" class="timestamp-link"><time datetime="2026-08-30T20:03:59.414Z" data-timestamp="2026-08-30T20:03:59.414Z">2026-08-30T20:03:59.414Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-04-00-775Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-04-00-775Z" class="timestamp-link"><time datetime="2026-08-30T20:04:00.775Z" data-timestamp="2026-08-30T20:04:00.775Z">2026-08-30T20:04:00.775Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01MDhJyA91u5mPkxj1WUuPQ4">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit i18n and data-policy plan update</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add docs/PLAN.md &amp;&amp; git commit -m &#34;docs(plan): require localization-ready architecture and a data policy page
+
+Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-04-02-245Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-04-02-245Z" class="timestamp-link"><time datetime="2026-08-30T20:04:02.245Z" data-timestamp="2026-08-30T20:04:02.245Z">2026-08-30T20:04:02.245Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><div class="commit-card"><a href="https://github.com/cebert/cache-ttl-analyzer/commit/049ef67"><span class="commit-card-hash">049ef67</span> docs(plan): require localization-ready architecture and a data policy page</a></div><pre>1 file changed, 28 insertions(+), 5 deletions(-)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-04-14-152Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-04-14-152Z" class="timestamp-link"><time datetime="2026-08-30T20:04:14.152Z" data-timestamp="2026-08-30T20:04:14.152Z">2026-08-30T20:04:14.152Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-04-22-609Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-04-22-609Z" class="timestamp-link"><time datetime="2026-08-30T20:04:22.609Z" data-timestamp="2026-08-30T20:04:22.609Z">2026-08-30T20:04:22.609Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Your i18n and data-policy requirements are committed (<code>049ef67</code>). And the independent review just came back — it's a good one, with several findings I'd act on before any implementation session starts.</p>
+<p><strong>Reviewer's verdict:</strong> the plan is well-grounded, appropriately scoped, and faithful to the research — <em>but</em> the testing keystone is internally contradictory as written, and two contract-level ambiguities would cause the parallel sessions to diverge. All fixes are plan-text edits, not new work packages.</p>
+<p><strong>The must-fix findings (I agree with all five):</strong></p>
+<ol>
+<li>
+<p><strong><code>prototype-sim.py</code> isn't actually a valid reference implementation.</strong> It caught me flat-footed: the prototype ignores <code>isSidechain</code> (reads it, then doesn't partition), uses the wrong timestamp for gaps, has no model/effort/version reset, ignores <code>service_tier</code>/<code>speed</code>, and silently prices unknown models as Opus — violating several of the plan's own mandatory rules. So "golden fixtures matching to the cent" currently points at a nonconforming baseline. Fix: WP-06 must first bring the Python sim to full rules-table parity, and D7 gets reframed as "independently written second implementation" rather than "validated reference."</p>
+</li>
+<li>
+<p><strong>Boolean sidechain partitioning is wrong for <em>parallel</em> subagents.</strong> Two concurrent subagents interleave their <code>isSidechain: true</code> rows; treating them as one thread computes gaps across unrelated caches — wrong verdicts on exactly the agent-heavy sessions where the subagent bucket matters. Fixing it likely needs <code>parentUuid</code>/<code>uuid</code> threading, which expands the parser's frozen field surface — so it must be settled <em>before</em> WP-02 freezes.</p>
+</li>
+<li>
+<p><strong>Unknown-model semantics are undefined in the contract.</strong> What does <code>AnalysisResult</code> hold when 3% — or 60% — of requests are unpriceable? Needs a degradation policy (e.g., suppress the verdict above a threshold, otherwise exclude-and-disclose) defined in WP-02, or three parallel sessions will invent three answers.</p>
+</li>
+<li>
+<p><strong>Mixed-TTL write handling is unspecified.</strong> Server tools insert their own 5m writes regardless of the user's setting — should the 1h counterfactual reprice those at 2.0×? Also a free sanity check we missed: the <em>actual</em> cost can be computed exactly from observed usage, and reconciling it against the simulation-at-observed-TTL validates the simulator.</p>
+</li>
+<li>
+<p><strong>WP-02 freezes the contract before its known unknowns are resolved</strong> (<code>ai-title</code> shape, user-row pairing, sidechain threading, the insight-event taxonomy). Fix: the WP-01/02 session spends 30 minutes inspecting a real log before freezing, and the insight-event types are marked as the one explicitly amendable contract section.</p>
+</li>
+</ol>
+<p><strong>Should-fix:</strong> the real-subagent-session and 5m-configured-session captures live in the risk table but not WP-06's acceptance criteria (parallel sessions work to acceptance criteria, not risk tables), and content-scrubbing real sessions has no assigned tooling. Also <strong>WP-D isn't told about the CSP constraint</strong> — <code>default-src 'self'</code> forbids Google Fonts, so the design brief needs "self-hosted fonts, no external assets" or we'd weaken the privacy proof later.</p>
+<p><strong>Overreach it would cut:</strong> the Zod benchmark gate (it correctly called out my "millions of lines" as 2–3 orders of magnitude off — session logs are thousands of lines, so hand-rolled guards on 8 fields are less code than the benchmark harness); it also wants the 100MB fixture generated-and-gitignored rather than committed, a decision-log row for the billing-mode simplification, and notes the 4-browser + Lighthouse pass in WP-10 is trimmable.</p>
+<p>My recommendation: fold in all of 1–7 and the cheap 8–10 tweaks (for Zod, I'd keep one sentence noting it was considered and rejected for the hot path, since you wanted it remembered). Want me to apply these to the plan? I'll republish the artifact in the same pass — it's currently one step behind (missing the i18n/data-policy additions) since I held it pending your call on the review.</p></div></div></div>
+<div class="message user" id="msg-2026-08-30T20-04-36-862Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T20-04-36-862Z" class="timestamp-link"><time datetime="2026-08-30T20:04:36.862Z" data-timestamp="2026-08-30T20:04:36.862Z">2026-08-30T20:04:36.862Z</time></a></div><div class="message-content">
+<div class="user-content"><p>yes sounds good</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-32-225Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-32-225Z" class="timestamp-link"><time datetime="2026-08-30T20:05:32.225Z" data-timestamp="2026-08-30T20:05:32.225Z">2026-08-30T20:05:32.225Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-35-044Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-35-044Z" class="timestamp-link"><time datetime="2026-08-30T20:05:35.044Z" data-timestamp="2026-08-30T20:05:35.044Z">2026-08-30T20:05:35.044Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01QeJc9dCxYVxxg3cz1ZCGjF">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">| Partition by `isSidechain` before computing gaps — sidechains are a separate cache namespace | §6.4 |</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">| Partition sidechains **per subagent thread**, not as one boolean bucket: parallel subagents interleave their `isSidechain: true` rows but each has its own cache namespace. Thread identification (likely `parentUuid`/`uuid` chains) is verified against a real multi-subagent log before the WP-02 freeze | §6.4 + review |</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-05-35-086Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-05-35-086Z" class="timestamp-link"><time datetime="2026-08-30T20:05:35.086Z" data-timestamp="2026-08-30T20:05:35.086Z">2026-08-30T20:05:35.086Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-37-863Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-37-863Z" class="timestamp-link"><time datetime="2026-08-30T20:05:37.863Z" data-timestamp="2026-08-30T20:05:37.863Z">2026-08-30T20:05:37.863Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_0164Giv1ibu4FwynNX4Mqnez">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  date shown in the UI. Unknown model IDs are reported to the user, never
+  guessed.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  date shown in the UI. Unknown model IDs are reported to the user, never
+  guessed; the WP-02 contract defines the degradation policy (unpriced
+  requests excluded and disclosed with their share; verdict suppressed when
+  that share crosses a threshold).</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-05-37-884Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-05-37-884Z" class="timestamp-link"><time datetime="2026-08-30T20:05:37.884Z" data-timestamp="2026-08-30T20:05:37.884Z">2026-08-30T20:05:37.884Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>&lt;tool_use_error&gt;String to replace not found in file.
+String:   date shown in the UI. Unknown model IDs are reported to the user, never
+  guessed.&lt;/tool_use_error&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-39-869Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-39-869Z" class="timestamp-link"><time datetime="2026-08-30T20:05:39.869Z" data-timestamp="2026-08-30T20:05:39.869Z">2026-08-30T20:05:39.869Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_016mE7nsH6PtXataaKb8ctrw">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">- Durable persistence, accounts, authentication.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">- Durable persistence, accounts, authentication.
+- In-app billing-mode questionnaire (feasibility §3 suggests asking the user;
+  MVP states the API-rates framing as a label instead — see D12).
+- Hybrid-TTL guidance (1h stable prefix + 5m tail, feasibility §10) — the
+  logs can&#39;t support a computed number, only qualitative advice; revisit
+  post-MVP.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-05-39-906Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-05-39-906Z" class="timestamp-link"><time datetime="2026-08-30T20:05:39.906Z" data-timestamp="2026-08-30T20:05:39.906Z">2026-08-30T20:05:39.906Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-42-391Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-42-391Z" class="timestamp-link"><time datetime="2026-08-30T20:05:42.391Z" data-timestamp="2026-08-30T20:05:42.391Z">2026-08-30T20:05:42.391Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CGgJjLuRjQ6MsJqwnrgMXW">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find exact unknown-model wording</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;never guessed&#34; ~/Code/cache-ttl-analyzer/docs/PLAN.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-05-42-430Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-05-42-430Z" class="timestamp-link"><time datetime="2026-08-30T20:05:42.430Z" data-timestamp="2026-08-30T20:05:42.430Z">2026-08-30T20:05:42.430Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>99:  Unknown model IDs are reported to the user, never guessed.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-45-966Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-45-966Z" class="timestamp-link"><time datetime="2026-08-30T20:05:45.966Z" data-timestamp="2026-08-30T20:05:45.966Z">2026-08-30T20:05:45.966Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_019L79TyXN8VCuGXsngirt9k">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  Unknown model IDs are reported to the user, never guessed.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  Unknown model IDs are reported to the user, never guessed; the WP-02
+  contract defines the degradation policy (unpriced requests excluded and
+  disclosed with their share; verdict suppressed when that share crosses a
+  threshold).</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-05-46-004Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-05-46-004Z" class="timestamp-link"><time datetime="2026-08-30T20:05:46.004Z" data-timestamp="2026-08-30T20:05:46.004Z">2026-08-30T20:05:46.004Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-47-847Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-47-847Z" class="timestamp-link"><time datetime="2026-08-30T20:05:47.847Z" data-timestamp="2026-08-30T20:05:47.847Z">2026-08-30T20:05:47.847Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_015xZ67iEfm4e1DMRbRVinnH">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">- Session shape summary: request count, span, largest gap, share of gaps in
+  the 5m–1h band (the only band where the choice matters).</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">- Session shape summary: request count, span, largest gap, share of gaps in
+  the 5m–1h band (the only band where the choice matters).
+- A pointer to Claude Code&#39;s built-in live cache stats (`/usage`, v2.1.251+)
+  for monitoring cache behavior going forward.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-05-47-888Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-05-47-888Z" class="timestamp-link"><time datetime="2026-08-30T20:05:47.888Z" data-timestamp="2026-08-30T20:05:47.888Z">2026-08-30T20:05:47.888Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-50-169Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-50-169Z" class="timestamp-link"><time datetime="2026-08-30T20:05:50.169Z" data-timestamp="2026-08-30T20:05:50.169Z">2026-08-30T20:05:50.169Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now the WP-02 rewrite, WP-03 Zod replacement, WP-06 reference-implementation rework, WP-D CSP note, WP-10 trim, testing section, and decision log:</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-05-59-040Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-05-59-040Z" class="timestamp-link"><time datetime="2026-08-30T20:05:59.040Z" data-timestamp="2026-08-30T20:05:59.040Z">2026-08-30T20:05:59.040Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01QbYYYNtVrXWe8DGyRk2mXt">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">The frozen TypeScript interfaces everything else codes against:
+`ParsedSession` (deduped request records + skip/warning counts),
+`AnalysisResult` (per-bucket actual/counterfactual costs, recommendation,
+insight events), the Web Worker message protocol (start / progress / cancel /
+result / error), and the `pricing.json` schema. Documented inline; changes
+after freeze require touching this plan.
+*Acceptance:* types compile; a stub engine returning canned data satisfies
+them end-to-end through a stub worker.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">The frozen TypeScript interfaces everything else codes against:
+`ParsedSession` (deduped request records + skip/warning counts),
+`AnalysisResult` (per-bucket actual/counterfactual costs, recommendation,
+insight events), the Web Worker message protocol (start / progress / cancel /
+result / error), and the `pricing.json` schema.
+
+**Before freezing, inspect real session logs** to resolve the known unknowns
+that would otherwise force amendments: the `ai-title` payload shape, the
+user-row → assistant-row request-start pairing, and sidechain thread
+identification (`parentUuid`/`uuid` chains) against a real multi-subagent
+session. The contract must also pin down two semantics the analysis depends
+on: the **unknown-model degradation policy** (excluded-and-disclosed;
+verdict suppressed above a threshold) and **mixed-TTL write handling** in
+counterfactuals (server tools insert their own 5m writes regardless of the
+user&#39;s setting — decide whether the 1h scenario reprices them or holds them
+at 5m, and document why).
+
+Documented inline; changes after freeze require touching this plan. The
+insight-event taxonomy is the one section expected to be amended (WP-08 and
+WP-D consume it and will discover needs).
+*Acceptance:* types compile; a stub engine returning canned data satisfies
+them end-to-end through a stub worker; the pre-freeze log inspection findings
+are recorded in the contract&#39;s comments.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-05-59-077Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-05-59-077Z" class="timestamp-link"><time datetime="2026-08-30T20:05:59.077Z" data-timestamp="2026-08-30T20:05:59.077Z">2026-08-30T20:05:59.077Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-02-567Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-02-567Z" class="timestamp-link"><time datetime="2026-08-30T20:06:02.567Z" data-timestamp="2026-08-30T20:06:02.567Z">2026-08-30T20:06:02.567Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01CNjGovgYdUxLW677vwH6uv">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Investigate **Zod** for the per-record schema validation (v4.5&#39;s compilation
+feature claims large speedups) — but this parser validates millions of lines
+in a hot path, so adopt it only if a benchmark against hand-rolled guards on
+the 100MB fixture shows no meaningful regression; either way the validation
+rules above are the requirement, the library is an implementation choice.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Validation uses hand-rolled guards: with an eight-field surface they are less
+code than a schema library. (Zod v4.5 was considered and rejected for this
+hot path — a session log is thousands of lines, not enough to need it, and
+the dependency buys nothing here. Fine elsewhere in the app if a real need
+appears.)</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-02-613Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-02-613Z" class="timestamp-link"><time datetime="2026-08-30T20:06:02.613Z" data-timestamp="2026-08-30T20:06:02.613Z">2026-08-30T20:06:02.613Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-04-448Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-04-448Z" class="timestamp-link"><time datetime="2026-08-30T20:06:04.448Z" data-timestamp="2026-08-30T20:06:04.448Z">2026-08-30T20:06:04.448Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01W4VV3XMgt3CBW5tKbYWuVf">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">/ NaN token counts, a single multi-hundred-MB line; parses a 100MB synthetic
+file without loading it into one string.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">/ NaN token counts, a single multi-hundred-MB line; parses a 100MB synthetic
+file without loading it into one string (that fixture is generated by a
+script at test time and git-ignored, never committed).</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-04-498Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-04-498Z" class="timestamp-link"><time datetime="2026-08-30T20:06:04.498Z" data-timestamp="2026-08-30T20:06:04.498Z">2026-08-30T20:06:04.498Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-09-168Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-09-168Z" class="timestamp-link"><time datetime="2026-08-30T20:06:09.168Z" data-timestamp="2026-08-30T20:06:09.168Z">2026-08-30T20:06:09.168Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01BX7uZeR2ta17DJrniGCr33">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">   duplication, synthetic rows, sidechains, mid-session model switch, effort</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">   duplication, synthetic rows, sidechains (including parallel subagents
+   with interleaved rows), mid-session model switch, effort</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-09-205Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-09-205Z" class="timestamp-link"><time datetime="2026-08-30T20:06:09.205Z" data-timestamp="2026-08-30T20:06:09.205Z">2026-08-30T20:06:09.205Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-15-599Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-15-599Z" class="timestamp-link"><time datetime="2026-08-30T20:06:15.599Z" data-timestamp="2026-08-30T20:06:15.599Z">2026-08-30T20:06:15.599Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01WBhu1ccYYCf276iZ1NZd2S">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Extend `prototype-sim.py` to emit expected-output JSON per fixture; commit
+those as golden files with a test harness that runs the TS engine against
+them.
+*Acceptance:* golden files committed; harness wired into `npm test`; samples
+are content-scrubbed (they&#39;ll be public).</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">**Bring `prototype-sim.py` to full parity with the §2 correctness-rules
+table first** — as written it implements almost none of it (no sidechain
+partition, no hard resets on model/effort/version, no `service_tier`/`speed`
+modifiers, gap timing from the wrong timestamp, unknown models silently
+priced as Opus, stale price table) — verified by its own hand-computed
+tests. Only then have it emit expected-output JSON per fixture; commit those
+as golden files with a test harness that runs the TS engine against them.
+This makes the Python sim an independently written second implementation,
+not a trusted oracle: disagreements are settled by hand computation (see §5).
+*Acceptance:* golden files committed; harness wired into `npm test`; includes
+a **captured real subagent session (with parallel subagents)** and a
+**captured 5m-configured session** (every corpus session ran at 1h — the
+expiry-heavy path must be exercised by real data too); real captures are
+content-scrubbed by a script (adapt the redaction scripts from this repo&#39;s
+`publish-transcript` skill) since they ship publicly.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-15-631Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-15-631Z" class="timestamp-link"><time datetime="2026-08-30T20:06:15.631Z" data-timestamp="2026-08-30T20:06:15.631Z">2026-08-30T20:06:15.631Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-18-575Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-18-575Z" class="timestamp-link"><time datetime="2026-08-30T20:06:18.575Z" data-timestamp="2026-08-30T20:06:18.575Z">2026-08-30T20:06:18.575Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_019gEozfxL6yhnsF47sKJ6zd">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">model, skipped records, version warning, malformed file. Include the data
+policy page, and design copy areas with text expansion in mind (translated
+strings run ~30% longer than English).</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">model, skipped records, version warning, malformed file. Include the data
+policy page, and design copy areas with text expansion in mind (translated
+strings run ~30% longer than English). **Constraint from the strict CSP:**
+no external assets — fonts are self-hosted or system stacks, no external
+webfonts, CDN images, or third-party embeds; a design that depends on them
+would force weakening the privacy-proving CSP.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-18-618Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-18-618Z" class="timestamp-link"><time datetime="2026-08-30T20:06:18.618Z" data-timestamp="2026-08-30T20:06:18.618Z">2026-08-30T20:06:18.618Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-23-011Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-23-011Z" class="timestamp-link"><time datetime="2026-08-30T20:06:23.011Z" data-timestamp="2026-08-30T20:06:23.011Z">2026-08-30T20:06:23.011Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01EGiXemYytpkziYNwuuuSh2">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">README rewrite for end users; verify samples load on the deployed site;
+cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity
+check with the 100MB fixture; final wording pass on privacy and approximation
+disclosures.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">README rewrite for end users; verify samples load on the deployed site;
+cross-browser pass (Chrome plus at least one of Safari/Firefox — the real
+compatibility risk is `File.stream()` in workers; Edge is Chromium); perf
+sanity check with the generated 100MB fixture; final wording pass on privacy
+and approximation disclosures.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-23-031Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-23-031Z" class="timestamp-link"><time datetime="2026-08-30T20:06:23.031Z" data-timestamp="2026-08-30T20:06:23.031Z">2026-08-30T20:06:23.031Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>&lt;tool_use_error&gt;String to replace not found in file.
+String: README rewrite for end users; verify samples load on the deployed site;
+cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity
+check with the 100MB fixture; final wording pass on privacy and approximation
+disclosures.&lt;/tool_use_error&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-27-238Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-27-238Z" class="timestamp-link"><time datetime="2026-08-30T20:06:27.238Z" data-timestamp="2026-08-30T20:06:27.238Z">2026-08-30T20:06:27.238Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01LRfbaEQMzcfcoVhW82sair">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">- **Golden-fixture cross-validation:** `prototype-sim.py` is the reference
+  implementation; the TS engine must reproduce its outputs to the cent on
+  every fixture. Independent hand-computed tests exist so a shared logic bug
+  can&#39;t hide in both implementations.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">- **Golden-fixture cross-validation:** the spec-parity Python simulator
+  (WP-06) is an independently written second implementation; the TS engine
+  must reproduce its outputs to the cent on every fixture. Neither
+  implementation is the oracle — hand-computed tests are the tiebreaker, so
+  a shared logic bug can&#39;t hide in both.
+- **Actual-vs-simulated reconciliation:** the actual cost is computed exactly
+  from observed usage; running the simulator at the *observed* TTL must
+  reproduce it (within the stated approximation) on every fixture — a free
+  sanity check on the whole simulator.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-27-266Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-27-266Z" class="timestamp-link"><time datetime="2026-08-30T20:06:27.266Z" data-timestamp="2026-08-30T20:06:27.266Z">2026-08-30T20:06:27.266Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-30-766Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-30-766Z" class="timestamp-link"><time datetime="2026-08-30T20:06:30.766Z" data-timestamp="2026-08-30T20:06:30.766Z">2026-08-30T20:06:30.766Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Lr7Eh9Ujfu33W1EJsGk2ov">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">| D7 | `prototype-sim.py` is the reference implementation, generating golden fixtures the TS engine must match; plus independent hand-computed tests | Cross-validation between two implementations, with hand-computed values as the tiebreaker. (Claude&#39;s vote) |</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">| D7 | The Python simulator — brought to full spec parity in WP-06 — is an **independently written second implementation** generating golden fixtures the TS engine must match; hand-computed tests are the tiebreaker | Re-scoped after independent review: the original prototype implements almost none of the correctness rules and was never a valid oracle. Cross-validation still catches divergent bugs. (Claude&#39;s vote, revised) |</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-30-802Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-30-802Z" class="timestamp-link"><time datetime="2026-08-30T20:06:30.802Z" data-timestamp="2026-08-30T20:06:30.802Z">2026-08-30T20:06:30.802Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-33-141Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-33-141Z" class="timestamp-link"><time datetime="2026-08-30T20:06:33.141Z" data-timestamp="2026-08-30T20:06:33.141Z">2026-08-30T20:06:33.141Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01WhaEh5RSLHUXA9NNFwgQrj">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">| D11 | Dedicated data policy page in the MVP | Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30) |</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">| D11 | Dedicated data policy page in the MVP | Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30) |
+| D12 | No in-app billing-mode questionnaire; the API-rates framing is a stated label | Deliberate simplification of feasibility §3&#39;s &#34;ask the user, don&#39;t guess&#34;; revisit if users report confusion. (Post-review, 2026-08-30) |</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-33-188Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-33-188Z" class="timestamp-link"><time datetime="2026-08-30T20:06:33.188Z" data-timestamp="2026-08-30T20:06:33.188Z">2026-08-30T20:06:33.188Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-35-600Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-35-600Z" class="timestamp-link"><time datetime="2026-08-30T20:06:35.600Z" data-timestamp="2026-08-30T20:06:35.600Z">2026-08-30T20:06:35.600Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01T4qVu15pJos5EKv1iJEz7B">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check exact WP-10 wording</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n -A4 &#34;WP-10 — Launch polish&#34; ~/Code/cache-ttl-analyzer/docs/PLAN.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-35-655Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-35-655Z" class="timestamp-link"><time datetime="2026-08-30T20:06:35.655Z" data-timestamp="2026-08-30T20:06:35.655Z">2026-08-30T20:06:35.655Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>351:### WP-10 — Launch polish
+352-**Depends on:** WP-08, WP-09.
+353-README rewrite for end users; verify samples load on the deployed site;
+354-cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity
+355-check with the 100MB fixture; final wording pass on privacy and</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-38-192Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-38-192Z" class="timestamp-link"><time datetime="2026-08-30T20:06:38.192Z" data-timestamp="2026-08-30T20:06:38.192Z">2026-08-30T20:06:38.192Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CJ3iYPtMnVjtuPzhjs75ok">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show WP-10 lines with hidden characters</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n 353,357p ~/Code/cache-ttl-analyzer/docs/PLAN.md | cat -A | head -6</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-38-243Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-38-243Z" class="timestamp-link"><time datetime="2026-08-30T20:06:38.243Z" data-timestamp="2026-08-30T20:06:38.243Z">2026-08-30T20:06:38.243Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>cat: illegal option -- A
+usage: cat [-belnstuv] [file ...]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-40-328Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-40-328Z" class="timestamp-link"><time datetime="2026-08-30T20:06:40.328Z" data-timestamp="2026-08-30T20:06:40.328Z">2026-08-30T20:06:40.328Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01NPW6AKVDCBtFNjA9ENKuXZ"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;~/Code/cache-ttl-analyzer/docs/PLAN.md&#34;,
+  &#34;offset&#34;: 353,
+  &#34;limit&#34;: 5
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-40-355Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-40-355Z" class="timestamp-link"><time datetime="2026-08-30T20:06:40.355Z" data-timestamp="2026-08-30T20:06:40.355Z">2026-08-30T20:06:40.355Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>353	README rewrite for end users; verify samples load on the deployed site;
+354	cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity
+355	check with the 100MB fixture; final wording pass on privacy and
+356	approximation disclosures.
+357	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-43-175Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-43-175Z" class="timestamp-link"><time datetime="2026-08-30T20:06:43.175Z" data-timestamp="2026-08-30T20:06:43.175Z">2026-08-30T20:06:43.175Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-45-061Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-45-061Z" class="timestamp-link"><time datetime="2026-08-30T20:06:45.061Z" data-timestamp="2026-08-30T20:06:45.061Z">2026-08-30T20:06:45.061Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_019duAdTGgXUTTrXzR1GGXYf">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity
+check with the 100MB fixture; final wording pass on privacy and
+approximation disclosures.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">cross-browser pass (Chrome plus at least one of Safari/Firefox — the real
+compatibility risk is `File.stream()` in workers; Edge is Chromium); perf
+sanity check with the generated 100MB fixture; final wording pass on privacy
+and approximation disclosures.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-45-097Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-45-097Z" class="timestamp-link"><time datetime="2026-08-30T20:06:45.097Z" data-timestamp="2026-08-30T20:06:45.097Z">2026-08-30T20:06:45.097Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-47-773Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-47-773Z" class="timestamp-link"><time datetime="2026-08-30T20:06:47.773Z" data-timestamp="2026-08-30T20:06:47.773Z">2026-08-30T20:06:47.773Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JVqXLHwdj7fAtKaeG2rhZc">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit review-driven plan revisions</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add docs/PLAN.md &amp;&amp; git commit -m &#34;docs(plan): incorporate independent review findings
+
+Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-06-49-527Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-06-49-527Z" class="timestamp-link"><time datetime="2026-08-30T20:06:49.527Z" data-timestamp="2026-08-30T20:06:49.527Z">2026-08-30T20:06:49.527Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><div class="commit-card"><a href="https://github.com/cebert/cache-ttl-analyzer/commit/27f3560"><span class="commit-card-hash">27f3560</span> docs(plan): incorporate independent review findings</a></div><pre>1 file changed, 73 insertions(+), 26 deletions(-)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-56-665Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-56-665Z" class="timestamp-link"><time datetime="2026-08-30T20:06:56.665Z" data-timestamp="2026-08-30T20:06:56.665Z">2026-08-30T20:06:56.665Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-06-56-668Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-06-56-668Z" class="timestamp-link"><time datetime="2026-08-30T20:06:56.668Z" data-timestamp="2026-08-30T20:06:56.668Z">2026-08-30T20:06:56.668Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now syncing all of it — the i18n/data-policy additions plus the review fixes — into the artifact.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-04-433Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-04-433Z" class="timestamp-link"><time datetime="2026-08-30T20:07:04.433Z" data-timestamp="2026-08-30T20:07:04.433Z">2026-08-30T20:07:04.433Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_013wsdAkbyA2MuGdwXos7KFs">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    &lt;p&gt;Plus: clear instructions for finding session logs on macOS and Windows, a prominent privacy statement (“analysis is local; this is open source — verify it yourself” with a link to the repo), and a “prices as of” date on every dollar figure.&lt;/p&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    &lt;p&gt;Plus: clear instructions for finding session logs on macOS and Windows, a prominent privacy statement (“analysis is local; this is open source — verify it yourself” with a link to the repo), a dedicated &lt;strong&gt;data policy page&lt;/strong&gt;, and a “prices as of” date on every dollar figure.&lt;/p&gt;
+    &lt;p&gt;Two cross-cutting requirements, cheap now and expensive to retrofit:&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;Localization-ready from day one.&lt;/strong&gt; MVP ships English only, but no user-facing string is hard-coded in a component: all copy lives in locale resource files (react-i18next or equivalent — chosen in WP-07), and all number, currency, date, and duration formatting goes through the &lt;code&gt;Intl&lt;/code&gt; APIs keyed to the active locale. Adding a second language later must be a translation task, not a refactor.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Data policy page:&lt;/strong&gt; a first-class page, linked from the footer and the upload screen, stating in plain language: analysis runs entirely in the browser; the file is never uploaded, stored, or sent anywhere; the strict CSP enforces this at the platform level (with a one-line “check devtools” pointer); no analytics or tracking in the MVP; the project is open source (repo link); and any future optional API-powered analysis will be opt-in with an explicit, itemized disclosure of what would be sent.&lt;/li&gt;
+    &lt;/ul&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-04-456Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-04-456Z" class="timestamp-link"><time datetime="2026-08-30T20:07:04.456Z" data-timestamp="2026-08-30T20:07:04.456Z">2026-08-30T20:07:04.456Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-06-556Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-06-556Z" class="timestamp-link"><time datetime="2026-08-30T20:07:06.556Z" data-timestamp="2026-08-30T20:07:06.556Z">2026-08-30T20:07:06.556Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_0135AAWW9MeCggPDY4NCcpmv">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      &lt;li&gt;Durable persistence, accounts, authentication.&lt;/li&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      &lt;li&gt;Durable persistence, accounts, authentication.&lt;/li&gt;
+      &lt;li&gt;In-app billing-mode questionnaire (feasibility §3 suggests asking the user; MVP states the API-rates framing as a label instead — see D12).&lt;/li&gt;
+      &lt;li&gt;Hybrid-TTL guidance (1h stable prefix + 5m tail, feasibility §10) — the logs can&#39;t support a computed number, only qualitative advice; revisit post-MVP.&lt;/li&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-06-588Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-06-588Z" class="timestamp-link"><time datetime="2026-08-30T20:07:06.588Z" data-timestamp="2026-08-30T20:07:06.588Z">2026-08-30T20:07:06.588Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-09-377Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-09-377Z" class="timestamp-link"><time datetime="2026-08-30T20:07:09.377Z" data-timestamp="2026-08-30T20:07:09.377Z">2026-08-30T20:07:09.377Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Rh8zLmsDG76YhE2J11ypyd">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Unknown model IDs are reported to the user, never guessed.&lt;/li&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Unknown model IDs are reported to the user, never guessed; the WP-02 contract defines the degradation policy (unpriced requests excluded and disclosed with their share; verdict suppressed when that share crosses a threshold).&lt;/li&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-09-397Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-09-397Z" class="timestamp-link"><time datetime="2026-08-30T20:07:09.397Z" data-timestamp="2026-08-30T20:07:09.397Z">2026-08-30T20:07:09.397Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-12-207Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-12-207Z" class="timestamp-link"><time datetime="2026-08-30T20:07:12.207Z" data-timestamp="2026-08-30T20:07:12.207Z">2026-08-30T20:07:12.207Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01TqNj4aQf9acb5PZSFkBXk6">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;Partition by &lt;code&gt;isSidechain&lt;/code&gt; before computing gaps — sidechains are a separate cache namespace&lt;/td&gt;&lt;td&gt;§6.4&lt;/td&gt;&lt;/tr&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;Partition sidechains &lt;strong&gt;per subagent thread&lt;/strong&gt;, not as one boolean bucket: parallel subagents interleave their &lt;code&gt;isSidechain: true&lt;/code&gt; rows but each has its own cache namespace. Thread identification (likely &lt;code&gt;parentUuid&lt;/code&gt;/&lt;code&gt;uuid&lt;/code&gt; chains) is verified against a real multi-subagent log before the WP-02 freeze&lt;/td&gt;&lt;td&gt;§6.4 + review&lt;/td&gt;&lt;/tr&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-12-237Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-12-237Z" class="timestamp-link"><time datetime="2026-08-30T20:07:12.237Z" data-timestamp="2026-08-30T20:07:12.237Z">2026-08-30T20:07:12.237Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-14-511Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-14-511Z" class="timestamp-link"><time datetime="2026-08-30T20:07:14.511Z" data-timestamp="2026-08-30T20:07:14.511Z">2026-08-30T20:07:14.511Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01LwUsqccq2t7ZpU6jhfefAS">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      &lt;li&gt;Session shape summary: request count, span, largest gap, share of gaps in the 5m–1h band (the only band where the choice matters).&lt;/li&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      &lt;li&gt;Session shape summary: request count, span, largest gap, share of gaps in the 5m–1h band (the only band where the choice matters).&lt;/li&gt;
+      &lt;li&gt;A pointer to Claude Code&#39;s built-in live cache stats (&lt;code&gt;/usage&lt;/code&gt;, v2.1.251+) for monitoring cache behavior going forward.&lt;/li&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-14-543Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-14-543Z" class="timestamp-link"><time datetime="2026-08-30T20:07:14.543Z" data-timestamp="2026-08-30T20:07:14.543Z">2026-08-30T20:07:14.543Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-24-163Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-24-163Z" class="timestamp-link"><time datetime="2026-08-30T20:07:24.163Z" data-timestamp="2026-08-30T20:07:24.163Z">2026-08-30T20:07:24.163Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_019VhHwZeKLq8VexDFBL3UkY">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">        &lt;p&gt;The frozen TypeScript interfaces everything else codes against: &lt;code&gt;ParsedSession&lt;/code&gt; (deduped request records + skip/warning counts), &lt;code&gt;AnalysisResult&lt;/code&gt; (per-bucket actual/counterfactual costs, recommendation, insight events), the Web Worker message protocol (start / progress / cancel / result / error), and the &lt;code&gt;pricing.json&lt;/code&gt; schema. Documented inline; changes after freeze require touching this plan.&lt;/p&gt;
+        &lt;p class=&#34;accept&#34;&gt;&lt;strong&gt;Acceptance:&lt;/strong&gt; types compile; a stub engine returning canned data satisfies them end-to-end through a stub worker.&lt;/p&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">        &lt;p&gt;The frozen TypeScript interfaces everything else codes against: &lt;code&gt;ParsedSession&lt;/code&gt; (deduped request records + skip/warning counts), &lt;code&gt;AnalysisResult&lt;/code&gt; (per-bucket actual/counterfactual costs, recommendation, insight events), the Web Worker message protocol (start / progress / cancel / result / error), and the &lt;code&gt;pricing.json&lt;/code&gt; schema.&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;Before freezing, inspect real session logs&lt;/strong&gt; to resolve the known unknowns that would otherwise force amendments: the &lt;code&gt;ai-title&lt;/code&gt; payload shape, the user-row → assistant-row request-start pairing, and sidechain thread identification (&lt;code&gt;parentUuid&lt;/code&gt;/&lt;code&gt;uuid&lt;/code&gt; chains) against a real multi-subagent session. The contract must also pin down two semantics the analysis depends on: the &lt;strong&gt;unknown-model degradation policy&lt;/strong&gt; (excluded-and-disclosed; verdict suppressed above a threshold) and &lt;strong&gt;mixed-TTL write handling&lt;/strong&gt; in counterfactuals (server tools insert their own 5m writes regardless of the user&#39;s setting — decide whether the 1h scenario reprices them or holds them at 5m, and document why).&lt;/p&gt;
+        &lt;p&gt;Documented inline; changes after freeze require touching this plan. The insight-event taxonomy is the one section expected to be amended (WP-08 and WP-D consume it and will discover needs).&lt;/p&gt;
+        &lt;p class=&#34;accept&#34;&gt;&lt;strong&gt;Acceptance:&lt;/strong&gt; types compile; a stub engine returning canned data satisfies them end-to-end through a stub worker; the pre-freeze log inspection findings are recorded in the contract&#39;s comments.&lt;/p&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-24-196Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-24-196Z" class="timestamp-link"><time datetime="2026-08-30T20:07:24.196Z" data-timestamp="2026-08-30T20:07:24.196Z">2026-08-30T20:07:24.196Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-27-647Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-27-647Z" class="timestamp-link"><time datetime="2026-08-30T20:07:27.647Z" data-timestamp="2026-08-30T20:07:27.647Z">2026-08-30T20:07:27.647Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01RpYTKpU15b7yyV3FzV6uMN">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Investigate &lt;strong&gt;Zod&lt;/strong&gt; for per-record schema validation (v4.5&#39;s compilation feature claims large speedups) — but this parser validates millions of lines in a hot path, so adopt it only if a benchmark against hand-rolled guards on the 100MB fixture shows no meaningful regression; the validation rules are the requirement, the library is an implementation choice.&lt;/p&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Validation uses hand-rolled guards: with an eight-field surface they are less code than a schema library. (Zod v4.5 was considered and rejected for this hot path — a session log is thousands of lines, not enough to need it, and the dependency buys nothing here. Fine elsewhere in the app if a real need appears.)&lt;/p&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-27-675Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-27-675Z" class="timestamp-link"><time datetime="2026-08-30T20:07:27.675Z" data-timestamp="2026-08-30T20:07:27.675Z">2026-08-30T20:07:27.675Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-30-554Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-30-554Z" class="timestamp-link"><time datetime="2026-08-30T20:07:30.554Z" data-timestamp="2026-08-30T20:07:30.554Z">2026-08-30T20:07:30.554Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01ACkPhXuLjxDaQgBZrYb3FU">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">a single multi-hundred-MB line; parses a 100MB synthetic file without loading it into one string.&lt;/p&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">a single multi-hundred-MB line; parses a 100MB synthetic file without loading it into one string (that fixture is generated by a script at test time and git-ignored, never committed).&lt;/p&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-30-588Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-30-588Z" class="timestamp-link"><time datetime="2026-08-30T20:07:30.588Z" data-timestamp="2026-08-30T20:07:30.588Z">2026-08-30T20:07:30.588Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-32-607Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-32-607Z" class="timestamp-link"><time datetime="2026-08-30T20:07:32.607Z" data-timestamp="2026-08-30T20:07:32.607Z">2026-08-30T20:07:32.607Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01MifAaohEtzMMyKQGBVtpjk">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">&lt;strong&gt;Crafted synthetic JSONL&lt;/strong&gt; exercising each trap: content-block duplication, synthetic rows, sidechains, mid-session model switch,</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">&lt;strong&gt;Crafted synthetic JSONL&lt;/strong&gt; exercising each trap: content-block duplication, synthetic rows, sidechains (including parallel subagents with interleaved rows), mid-session model switch,</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-32-639Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-32-639Z" class="timestamp-link"><time datetime="2026-08-30T20:07:32.639Z" data-timestamp="2026-08-30T20:07:32.639Z">2026-08-30T20:07:32.639Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-38-167Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-38-167Z" class="timestamp-link"><time datetime="2026-08-30T20:07:38.167Z" data-timestamp="2026-08-30T20:07:38.167Z">2026-08-30T20:07:38.167Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01EmAHHvCT8ESamsVd3ZNe6d">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">        &lt;p&gt;Extend &lt;code&gt;prototype-sim.py&lt;/code&gt; to emit expected-output JSON per fixture; commit those as golden files with a test harness that runs the TS engine against them.&lt;/p&gt;
+        &lt;p class=&#34;accept&#34;&gt;&lt;strong&gt;Acceptance:&lt;/strong&gt; golden files committed; harness wired into &lt;code&gt;npm test&lt;/code&gt;; samples are content-scrubbed (they&#39;ll be public).&lt;/p&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">        &lt;p&gt;&lt;strong&gt;Bring &lt;code&gt;prototype-sim.py&lt;/code&gt; to full parity with the correctness-rules table first&lt;/strong&gt; — as written it implements almost none of it (no sidechain partition, no hard resets on model/effort/version, no &lt;code&gt;service_tier&lt;/code&gt;/&lt;code&gt;speed&lt;/code&gt; modifiers, gap timing from the wrong timestamp, unknown models silently priced as Opus, stale price table) — verified by its own hand-computed tests. Only then have it emit expected-output JSON per fixture; commit those as golden files with a test harness that runs the TS engine against them. This makes the Python sim an independently written second implementation, not a trusted oracle: disagreements are settled by hand computation (Section 5).&lt;/p&gt;
+        &lt;p class=&#34;accept&#34;&gt;&lt;strong&gt;Acceptance:&lt;/strong&gt; golden files committed; harness wired into &lt;code&gt;npm test&lt;/code&gt;; includes a &lt;strong&gt;captured real subagent session (with parallel subagents)&lt;/strong&gt; and a &lt;strong&gt;captured 5m-configured session&lt;/strong&gt; (every corpus session ran at 1h — the expiry-heavy path must be exercised by real data too); real captures are content-scrubbed by a script (adapt the redaction scripts from this repo&#39;s &lt;code&gt;publish-transcript&lt;/code&gt; skill) since they ship publicly.&lt;/p&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-38-199Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-38-199Z" class="timestamp-link"><time datetime="2026-08-30T20:07:38.199Z" data-timestamp="2026-08-30T20:07:38.199Z">2026-08-30T20:07:38.199Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-43-233Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-43-233Z" class="timestamp-link"><time datetime="2026-08-30T20:07:43.233Z" data-timestamp="2026-08-30T20:07:43.233Z">2026-08-30T20:07:43.233Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_013Dr6igojtw865kWWXTAJ2y">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">It also covers the empty/error states: unknown model, skipped records, version warning, malformed file. Exports</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">It also covers the empty/error states: unknown model, skipped records, version warning, malformed file. Include the data policy page, and design copy areas with text expansion in mind (translated strings run ~30% longer than English). &lt;strong&gt;Constraint from the strict CSP:&lt;/strong&gt; no external assets — fonts are self-hosted or system stacks, no external webfonts, CDN images, or third-party embeds; a design that depends on them would force weakening the privacy-proving CSP. Exports</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-43-270Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-43-270Z" class="timestamp-link"><time datetime="2026-08-30T20:07:43.270Z" data-timestamp="2026-08-30T20:07:43.270Z">2026-08-30T20:07:43.270Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-46-057Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-46-057Z" class="timestamp-link"><time datetime="2026-08-30T20:07:46.057Z" data-timestamp="2026-08-30T20:07:46.057Z">2026-08-30T20:07:46.057Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01BEuEQqj1p8VG7TcRswjp9G">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">privacy statement with repo link, sample-session loader. File-size cap and the three validation verdicts (valid / warnings / not a session log) as distinct UI states.&lt;/p&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">privacy statement with repo link, data policy page, sample-session loader. File-size cap and the three validation verdicts (valid / warnings / not a session log) as distinct UI states. Sets up the i18n foundation: locale resource files, the translation hook pattern, and &lt;code&gt;Intl&lt;/code&gt;-based formatters — every string in WP-07 and WP-08 goes through it (English-only catalog for MVP).&lt;/p&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-46-092Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-46-092Z" class="timestamp-link"><time datetime="2026-08-30T20:07:46.092Z" data-timestamp="2026-08-30T20:07:46.092Z">2026-08-30T20:07:46.092Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-49-620Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-49-620Z" class="timestamp-link"><time datetime="2026-08-30T20:07:49.620Z" data-timestamp="2026-08-30T20:07:49.620Z">2026-08-30T20:07:49.620Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01QMXbzjCneAUupwEWxwD7RX">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">        &lt;p&gt;README rewrite for end users; verify samples load on the deployed site; cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity check with the 100MB fixture; final wording pass on privacy and approximation disclosures.&lt;/p&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">        &lt;p&gt;README rewrite for end users; verify samples load on the deployed site; cross-browser pass (Chrome plus at least one of Safari/Firefox — the real compatibility risk is &lt;code&gt;File.stream()&lt;/code&gt; in workers; Edge is Chromium); perf sanity check with the generated 100MB fixture; final wording pass on privacy and approximation disclosures.&lt;/p&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-49-656Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-49-656Z" class="timestamp-link"><time datetime="2026-08-30T20:07:49.656Z" data-timestamp="2026-08-30T20:07:49.656Z">2026-08-30T20:07:49.656Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-53-121Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-53-121Z" class="timestamp-link"><time datetime="2026-08-30T20:07:53.121Z" data-timestamp="2026-08-30T20:07:53.121Z">2026-08-30T20:07:53.121Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01CYvmCH8UJCM23C9sd44RgG">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      &lt;li&gt;&lt;strong&gt;Golden-fixture cross-validation:&lt;/strong&gt; &lt;code&gt;prototype-sim.py&lt;/code&gt; is the reference implementation; the TS engine must reproduce its outputs to the cent on every fixture. Independent hand-computed tests exist so a shared logic bug can&#39;t hide in both implementations.&lt;/li&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      &lt;li&gt;&lt;strong&gt;Golden-fixture cross-validation:&lt;/strong&gt; the spec-parity Python simulator (WP-06) is an independently written second implementation; the TS engine must reproduce its outputs to the cent on every fixture. Neither implementation is the oracle — hand-computed tests are the tiebreaker, so a shared logic bug can&#39;t hide in both.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Actual-vs-simulated reconciliation:&lt;/strong&gt; the actual cost is computed exactly from observed usage; running the simulator at the &lt;em&gt;observed&lt;/em&gt; TTL must reproduce it (within the stated approximation) on every fixture — a free sanity check on the whole simulator.&lt;/li&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-53-146Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-53-146Z" class="timestamp-link"><time datetime="2026-08-30T20:07:53.146Z" data-timestamp="2026-08-30T20:07:53.146Z">2026-08-30T20:07:53.146Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-07-56-647Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-07-56-647Z" class="timestamp-link"><time datetime="2026-08-30T20:07:56.647Z" data-timestamp="2026-08-30T20:07:56.647Z">2026-08-30T20:07:56.647Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01F6aedWbbPdohV2m8DY74b1">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;D7&lt;/td&gt;&lt;td&gt;&lt;code&gt;prototype-sim.py&lt;/code&gt; is the reference implementation, generating golden fixtures the TS engine must match; plus independent hand-computed tests&lt;/td&gt;&lt;td&gt;Cross-validation between two implementations, with hand-computed values as the tiebreaker. (Claude&#39;s vote)&lt;/td&gt;&lt;/tr&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;D7&lt;/td&gt;&lt;td&gt;The Python simulator — brought to full spec parity in WP-06 — is an &lt;strong&gt;independently written second implementation&lt;/strong&gt; generating golden fixtures the TS engine must match; hand-computed tests are the tiebreaker&lt;/td&gt;&lt;td&gt;Re-scoped after independent review: the original prototype implements almost none of the correctness rules and was never a valid oracle. Cross-validation still catches divergent bugs. (Claude&#39;s vote, revised)&lt;/td&gt;&lt;/tr&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-07-56-681Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-07-56-681Z" class="timestamp-link"><time datetime="2026-08-30T20:07:56.681Z" data-timestamp="2026-08-30T20:07:56.681Z">2026-08-30T20:07:56.681Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-01-430Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-01-430Z" class="timestamp-link"><time datetime="2026-08-30T20:08:01.430Z" data-timestamp="2026-08-30T20:08:01.430Z">2026-08-30T20:08:01.430Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Wdjw8syDaAC7bgxso8HyQM">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;D9&lt;/td&gt;&lt;td&gt;JSONL input only for MVP&lt;/td&gt;&lt;td&gt;Web-export JSON unverified for &lt;code&gt;usage&lt;/code&gt; data (feasibility §10).&lt;/td&gt;&lt;/tr&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;D9&lt;/td&gt;&lt;td&gt;JSONL input only for MVP&lt;/td&gt;&lt;td&gt;Web-export JSON unverified for &lt;code&gt;usage&lt;/code&gt; data (feasibility §10).&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;D10&lt;/td&gt;&lt;td&gt;Localization-ready architecture from day one; English-only catalog for MVP&lt;/td&gt;&lt;td&gt;Externalized strings + &lt;code&gt;Intl&lt;/code&gt; formatting are cheap now and a painful retrofit; future languages become translation tasks. (User, 2026-08-30)&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;D11&lt;/td&gt;&lt;td&gt;Dedicated data policy page in the MVP&lt;/td&gt;&lt;td&gt;Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30)&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;D12&lt;/td&gt;&lt;td&gt;No in-app billing-mode questionnaire; the API-rates framing is a stated label&lt;/td&gt;&lt;td&gt;Deliberate simplification of feasibility §3&#39;s &#34;ask the user, don&#39;t guess&#34;; revisit if users report confusion. (Post-review, 2026-08-30)&lt;/td&gt;&lt;/tr&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-01-466Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-01-466Z" class="timestamp-link"><time datetime="2026-08-30T20:08:01.466Z" data-timestamp="2026-08-30T20:08:01.466Z">2026-08-30T20:08:01.466Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-10-702Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-10-702Z" class="timestamp-link"><time datetime="2026-08-30T20:08:10.702Z" data-timestamp="2026-08-30T20:08:10.702Z">2026-08-30T20:08:10.702Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-10-706Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-10-706Z" class="timestamp-link"><time datetime="2026-08-30T20:08:10.706Z" data-timestamp="2026-08-30T20:08:10.706Z">2026-08-30T20:08:10.706Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Adding the logging requirement too, then I'll republish everything at once.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-14-770Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-14-770Z" class="timestamp-link"><time datetime="2026-08-30T20:08:14.770Z" data-timestamp="2026-08-30T20:08:14.770Z">2026-08-30T20:08:14.770Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01T8jSYvr41W58Z23gHaWL7A">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">- **UI** consumes a frozen engine contract (WP-02) so UI and engine work can
+  proceed in parallel.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">- **UI** consumes a frozen engine contract (WP-02) so UI and engine work can
+  proceed in parallel.
+- **Logging** goes through a small leveled abstraction (`loglevel`, `tslog`,
+  or a thin wrapper — chosen in WP-01), used everywhere including the worker
+  (worker log events forwarded to the main thread). Quiet by default in
+  production; a debug flag (query param or `localStorage` toggle, documented
+  on the data policy page) elevates verbosity so users can self-serve
+  troubleshooting output. **Console-only, never shipped anywhere** — remote
+  log collection would contradict the CSP/privacy stance. Anything the user
+  needs to act on (skipped records, warnings) still surfaces in the UI, not
+  just the log.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-14-791Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-14-791Z" class="timestamp-link"><time datetime="2026-08-30T20:08:14.791Z" data-timestamp="2026-08-30T20:08:14.791Z">2026-08-30T20:08:14.791Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-16-917Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-16-917Z" class="timestamp-link"><time datetime="2026-08-30T20:08:16.917Z" data-timestamp="2026-08-30T20:08:16.917Z">2026-08-30T20:08:16.917Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01B6RN55BucuPLdCY1hWfBLc">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">for Workers static assets; npm scripts (`dev`, `build`, `test`, `lint`,
+`typecheck`, `deploy`); README &#34;Development&#34; section filled in.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">for Workers static assets; npm scripts (`dev`, `build`, `test`, `lint`,
+`typecheck`, `deploy`); the logging abstraction (pick `loglevel`/`tslog` or
+write the ~50-line wrapper) with the debug-flag mechanism; README
+&#34;Development&#34; section filled in.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-16-941Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-16-941Z" class="timestamp-link"><time datetime="2026-08-30T20:08:16.941Z" data-timestamp="2026-08-30T20:08:16.941Z">2026-08-30T20:08:16.941Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-20-143Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-20-143Z" class="timestamp-link"><time datetime="2026-08-30T20:08:20.143Z" data-timestamp="2026-08-30T20:08:20.143Z">2026-08-30T20:08:20.143Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Eb5DH8UAWnLYAzzBwphztZ">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">| D12 | No in-app billing-mode questionnaire; the API-rates framing is a stated label | Deliberate simplification of feasibility §3&#39;s &#34;ask the user, don&#39;t guess&#34;; revisit if users report confusion. (Post-review, 2026-08-30) |</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">| D12 | No in-app billing-mode questionnaire; the API-rates framing is a stated label | Deliberate simplification of feasibility §3&#39;s &#34;ask the user, don&#39;t guess&#34;; revisit if users report confusion. (Post-review, 2026-08-30) |
+| D13 | All logging through a leveled abstraction with a user-accessible debug flag; console-only, no remote collection | Troubleshooting a client-only app depends on users&#39; consoles; remote logging would contradict the privacy stance. (User, 2026-08-30) |</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-20-187Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-20-187Z" class="timestamp-link"><time datetime="2026-08-30T20:08:20.187Z" data-timestamp="2026-08-30T20:08:20.187Z">2026-08-30T20:08:20.187Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-23-190Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-23-190Z" class="timestamp-link"><time datetime="2026-08-30T20:08:23.190Z" data-timestamp="2026-08-30T20:08:23.190Z">2026-08-30T20:08:23.190Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_017DsPJqRtT45HtyQQL65Aty">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit logging requirement</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add docs/PLAN.md &amp;&amp; git commit -m &#34;docs(plan): require a leveled logging abstraction with debug flag
+
+Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-25-058Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-25-058Z" class="timestamp-link"><time datetime="2026-08-30T20:08:25.058Z" data-timestamp="2026-08-30T20:08:25.058Z">2026-08-30T20:08:25.058Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><div class="commit-card"><a href="https://github.com/cebert/cache-ttl-analyzer/commit/e9fa702"><span class="commit-card-hash">e9fa702</span> docs(plan): require a leveled logging abstraction with debug flag</a></div><pre>1 file changed, 13 insertions(+), 1 deletion(-)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-30-882Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-30-882Z" class="timestamp-link"><time datetime="2026-08-30T20:08:30.882Z" data-timestamp="2026-08-30T20:08:30.882Z">2026-08-30T20:08:30.882Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01McM2ronRC3xLLSDuG2MB2s">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      &lt;li&gt;&lt;strong&gt;UI&lt;/strong&gt; consumes a frozen engine contract (WP-02) so UI and engine work proceed in parallel.&lt;/li&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      &lt;li&gt;&lt;strong&gt;UI&lt;/strong&gt; consumes a frozen engine contract (WP-02) so UI and engine work proceed in parallel.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Logging&lt;/strong&gt; goes through a small leveled abstraction (&lt;code&gt;loglevel&lt;/code&gt;, &lt;code&gt;tslog&lt;/code&gt;, or a thin wrapper — chosen in WP-01), used everywhere including the worker (worker log events forwarded to the main thread). Quiet by default in production; a debug flag (query param or &lt;code&gt;localStorage&lt;/code&gt; toggle, documented on the data policy page) elevates verbosity so users can self-serve troubleshooting output. &lt;strong&gt;Console-only, never shipped anywhere&lt;/strong&gt; — remote log collection would contradict the CSP/privacy stance. Anything the user needs to act on (skipped records, warnings) still surfaces in the UI, not just the log.&lt;/li&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-30-912Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-30-912Z" class="timestamp-link"><time datetime="2026-08-30T20:08:30.912Z" data-timestamp="2026-08-30T20:08:30.912Z">2026-08-30T20:08:30.912Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-33-736Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-33-736Z" class="timestamp-link"><time datetime="2026-08-30T20:08:33.736Z" data-timestamp="2026-08-30T20:08:33.736Z">2026-08-30T20:08:33.736Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01MfghASsS1iaoHp4uoqSGNS">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">npm scripts (&lt;code&gt;dev&lt;/code&gt;, &lt;code&gt;build&lt;/code&gt;, &lt;code&gt;test&lt;/code&gt;, &lt;code&gt;lint&lt;/code&gt;, &lt;code&gt;typecheck&lt;/code&gt;, &lt;code&gt;deploy&lt;/code&gt;); README “Development” section filled in.&lt;/p&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">npm scripts (&lt;code&gt;dev&lt;/code&gt;, &lt;code&gt;build&lt;/code&gt;, &lt;code&gt;test&lt;/code&gt;, &lt;code&gt;lint&lt;/code&gt;, &lt;code&gt;typecheck&lt;/code&gt;, &lt;code&gt;deploy&lt;/code&gt;); the logging abstraction (pick &lt;code&gt;loglevel&lt;/code&gt;/&lt;code&gt;tslog&lt;/code&gt; or write the ~50-line wrapper) with the debug-flag mechanism; README “Development” section filled in.&lt;/p&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-33-768Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-33-768Z" class="timestamp-link"><time datetime="2026-08-30T20:08:33.768Z" data-timestamp="2026-08-30T20:08:33.768Z">2026-08-30T20:08:33.768Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-36-867Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-36-867Z" class="timestamp-link"><time datetime="2026-08-30T20:08:36.867Z" data-timestamp="2026-08-30T20:08:36.867Z">2026-08-30T20:08:36.867Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_0159Z8tRfmK9GqeUBkY7a16h">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
+<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;D12&lt;/td&gt;&lt;td&gt;No in-app billing-mode questionnaire; the API-rates framing is a stated label&lt;/td&gt;&lt;td&gt;Deliberate simplification of feasibility §3&#39;s &#34;ask the user, don&#39;t guess&#34;; revisit if users report confusion. (Post-review, 2026-08-30)&lt;/td&gt;&lt;/tr&gt;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;D12&lt;/td&gt;&lt;td&gt;No in-app billing-mode questionnaire; the API-rates framing is a stated label&lt;/td&gt;&lt;td&gt;Deliberate simplification of feasibility §3&#39;s &#34;ask the user, don&#39;t guess&#34;; revisit if users report confusion. (Post-review, 2026-08-30)&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;D13&lt;/td&gt;&lt;td&gt;All logging through a leveled abstraction with a user-accessible debug flag; console-only, no remote collection&lt;/td&gt;&lt;td&gt;Troubleshooting a client-only app depends on users&#39; consoles; remote logging would contradict the privacy stance. (User, 2026-08-30)&lt;/td&gt;&lt;/tr&gt;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-36-902Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-36-902Z" class="timestamp-link"><time datetime="2026-08-30T20:08:36.902Z" data-timestamp="2026-08-30T20:08:36.902Z">2026-08-30T20:08:36.902Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-41-934Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-41-934Z" class="timestamp-link"><time datetime="2026-08-30T20:08:41.934Z" data-timestamp="2026-08-30T20:08:41.934Z">2026-08-30T20:08:41.934Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01YE1RaC3tbTsivsd1ahLFCX"><div class="tool-header"><span class="tool-icon">⚙</span> Artifact</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html&#34;,
+  &#34;label&#34;: &#34;review-fixes&#34;,
+  &#34;note&#34;: &#34;Incorporated the independent review (spec-parity Python sim replaces \&#34;reference implementation\&#34;, per-thread sidechain partitioning, unknown-model degradation policy, mixed-TTL semantics and pre-freeze log inspection in WP-02, subagent/5m captures in WP-06 acceptance, CSP constraint in WP-D, Zod rejected, generated 100MB fixture, D12) plus the i18n-readiness, data policy page, and logging-abstraction requirements (D10, D11, D13).&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-08-42-941Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-08-42-941Z" class="timestamp-link"><time datetime="2026-08-30T20:08:42.941Z" data-timestamp="2026-08-30T20:08:42.941Z">2026-08-30T20:08:42.941Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Published /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html at https://claude.ai/code/artifact/d4208c8b-1236-4dfe-843c-53e47617ecd0
+
+Live subscription: already connected from earlier in this session — this session is notified when this artifact is republished elsewhere; a comment on it sent to Claude also reaches this session while this artifact&#x27;s status row says auto-replies armed, and plain comments never notify — read them with action &quot;comments&quot; when asked.
+
+To update: republish the same file path in this conversation (keeps this URL), or pass the URL as `url` from any other conversation — publishing without `url` from a conversation that didn&#x27;t publish this artifact creates a separate artifact rather than updating this one. Artifacts are private unless shared from the page&#x27;s share menu. To get back to it later: in the Claude Code terminal, /artifacts lists the artifacts you own or were shared (o opens, c copies the link) and ctrl+] (by default) reopens the most recent artifact from this session; on the web, the gallery at claude.ai/code/artifacts lists them.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-55-125Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-55-125Z" class="timestamp-link"><time datetime="2026-08-30T20:08:55.125Z" data-timestamp="2026-08-30T20:08:55.125Z">2026-08-30T20:08:55.125Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-08-55-151Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-08-55-151Z" class="timestamp-link"><time datetime="2026-08-30T20:08:55.151Z" data-timestamp="2026-08-30T20:08:55.151Z">2026-08-30T20:08:55.151Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All applied and the artifact is back in sync at the same URL. Three commits landed on <code>docs/build-plan</code>:</p>
+<ul>
+<li><code>049ef67</code> — i18n-readiness and the data policy page (D10, D11)</li>
+<li><code>27f3560</code> — all the review findings: the Python sim re-scoped from "trusted reference" to spec-parity second implementation with hand-computed tests as the tiebreaker (D7 revised); per-subagent-thread sidechain partitioning with thread identification verified against a real log before the WP-02 freeze; the unknown-model degradation policy and mixed-TTL write semantics assigned to the WP-02 contract, along with the pre-freeze real-log inspection; the subagent and 5m-configured session captures moved into WP-06's acceptance criteria with the <code>publish-transcript</code> redaction scripts named for scrubbing; the actual-vs-simulated reconciliation check added to testing; the CSP no-external-assets constraint added to WP-D's brief; Zod dropped with the reasoning recorded; the 100MB fixture marked generated-and-gitignored; WP-10 trimmed; and the dropped feasibility nuances captured (D12, two new non-goals, and a <code>/usage</code> pointer in the insights)</li>
+<li><code>e9fa702</code> — the logging requirement (D13): a leveled abstraction (<code>loglevel</code>/<code>tslog</code> or a thin wrapper, picked in WP-01) used in both the app and the worker, quiet in production with a user-accessible debug flag documented on the data policy page</li>
+</ul>
+<p>One design call baked into the logging decision worth confirming sits right with you: it's <strong>console-only, never shipped anywhere</strong> — remote log collection would contradict the CSP privacy proof, so troubleshooting relies on users elevating the debug flag and sharing console output. That's the honest trade for a zero-backend app.</p>
+<p>The plan has now absorbed your requirements, my two delegated calls, and an independent review. Unless you have more changes, it's in good shape to push and PR — and wave ① (WP-01+02, one session) is ready to start whenever you are.</p></div></div></div>
+<div class="message user" id="msg-2026-08-30T20-09-41-767Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T20-09-41-767Z" class="timestamp-link"><time datetime="2026-08-30T20:09:41.767Z" data-timestamp="2026-08-30T20:09:41.767Z">2026-08-30T20:09:41.767Z</time></a></div><div class="message-content">
+<div class="user-content"><p>I am good with this plan, please open a PR for this and let's let coderabbit review this PR. Before we merge this I want you to use the publish-transcript log to add this session log as part of the PR (but wait until we know the PR passes)</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-09-45-549Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-09-45-549Z" class="timestamp-link"><time datetime="2026-08-30T20:09:45.549Z" data-timestamp="2026-08-30T20:09:45.549Z">2026-08-30T20:09:45.549Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-09-46-144Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-09-46-144Z" class="timestamp-link"><time datetime="2026-08-30T20:09:46.144Z" data-timestamp="2026-08-30T20:09:46.144Z">2026-08-30T20:09:46.144Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_0118YyE5x5wmg3RmHFMh7Zex">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Push docs/build-plan branch to origin</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git push -u origin docs/build-plan</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-09-49-231Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-09-49-231Z" class="timestamp-link"><time datetime="2026-08-30T20:09:49.231Z" data-timestamp="2026-08-30T20:09:49.231Z">2026-08-30T20:09:49.231Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>remote: 
+remote: Create a pull request for &#x27;docs/build-plan&#x27; on GitHub by visiting:        
+remote:      https://github.com/cebert/cache-ttl-analyzer/pull/new/docs/build-plan        
+remote: 
+To https://github.com/cebert/cache-ttl-analyzer.git
+ * [new branch]      docs/build-plan -&gt; docs/build-plan
+branch &#x27;docs/build-plan&#x27; set up to track &#x27;origin/docs/build-plan&#x27;.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-09-58-709Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-09-58-709Z" class="timestamp-link"><time datetime="2026-08-30T20:09:58.709Z" data-timestamp="2026-08-30T20:09:58.709Z">2026-08-30T20:09:58.709Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012NKB1oQ54Vvzg2T6XAr3Nb">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Open PR for the build plan</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh pr create --base main --head docs/build-plan --title &#34;docs(plan): MVP build plan and work breakdown&#34; --body &#34;$(cat &lt;&lt;&#39;EOF&#39;
+## Summary
+
+Replaces the `docs/PLAN.md` stub with the full MVP build plan for cache-ttl-analyzer:
+
+- **MVP definition and non-goals** — fully static Cloudflare deployment (no backend), single JSONL session upload analyzed entirely client-side in a Web Worker, at published Anthropic API rates, with i18n-ready architecture, a data policy page, and a leveled logging abstraction.
+- **Architecture** — engine/UI separation behind a frozen contract (WP-02), input validation and secure file handling (three validation verdicts, untrusted-string rendering, resource caps, strict CSP as a verifiable privacy proof), and a mandatory engine-correctness rules table distilled from `docs/design/claude-code-session-logs/feasibility.md`.
+- **11 work packages** (WP-01…WP-10 + WP-D for the Claude Design session), each sized for one Claude session producing one PR, with a mermaid dependency graph and suggested parallel waves.
+- **Testing strategy** — hand-computed unit tests, golden-fixture cross-validation against a spec-parity Python simulator, a content-poison test, actual-vs-simulated reconciliation, and a format-drift canary.
+- **Decision log (D1–D13) and risk table**, including revisions from an independent agent review of the plan (per-thread sidechain partitioning, unknown-model degradation policy, mixed-TTL counterfactual semantics, fixture-capture acceptance criteria, CSP constraint on the design brief).
+
+The session log for the planning session will be added to this PR via the `publish-transcript` skill once review passes.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-10-01-778Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-10-01-778Z" class="timestamp-link"><time datetime="2026-08-30T20:10:01.778Z" data-timestamp="2026-08-30T20:10:01.778Z">2026-08-30T20:10:01.778Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>https://github.com/cebert/cache-ttl-analyzer/pull/9</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-08-291Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-08-291Z" class="timestamp-link"><time datetime="2026-08-30T20:10:08.291Z" data-timestamp="2026-08-30T20:10:08.291Z">2026-08-30T20:10:08.291Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-08-296Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-08-296Z" class="timestamp-link"><time datetime="2026-08-30T20:10:08.296Z" data-timestamp="2026-08-30T20:10:08.296Z">2026-08-30T20:10:08.296Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>PR is open: <strong>https://github.com/cebert/cache-ttl-analyzer/pull/9</strong>. Now I'll watch for CodeRabbit's review in the background.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-11-253Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-11-253Z" class="timestamp-link"><time datetime="2026-08-30T20:10:11.253Z" data-timestamp="2026-08-30T20:10:11.253Z">2026-08-30T20:10:11.253Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012NUuktAdEHtDTap1cN52ZC">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Poll PR #9 until CodeRabbit responds (up to 20 min)</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">for i in $(seq 1 40); do
+  reviews=$(gh pr view 9 --repo cebert/cache-ttl-analyzer --json reviews,comments --jq &#39;[.reviews[].author.login, .comments[].author.login] | map(select(test(&#34;coderabbit&#34;; &#34;i&#34;))) | length&#39; 2&gt;/dev/null || echo 0)
+  if [ &#34;${reviews:-0}&#34; -gt 0 ]; then echo &#34;CodeRabbit has responded on PR #9&#34;; break; fi
+  sleep 30
+done
+gh pr view 9 --repo cebert/cache-ttl-analyzer --json reviews,comments --jq &#39;{reviews: [.reviews[] | {author: .author.login, state: .state}], comment_authors: [.comments[].author.login]}&#39;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-10-12-831Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-10-12-831Z" class="timestamp-link"><time datetime="2026-08-30T20:10:12.831Z" data-timestamp="2026-08-30T20:10:12.831Z">2026-08-30T20:10:12.831Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Command running in background with ID: b251f5jvn. Output is being written to: /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/tasks/b251f5jvn.output. You will be notified when it completes. To check interim output, use Read on that file path.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-16-235Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-16-235Z" class="timestamp-link"><time datetime="2026-08-30T20:10:16.235Z" data-timestamp="2026-08-30T20:10:16.235Z">2026-08-30T20:10:16.235Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>PR #9 is open and I'm polling for CodeRabbit's review in the background (checks every 30 seconds, up to 20 minutes). Once CodeRabbit finishes and there's nothing blocking, I'll run the <code>publish-transcript</code> skill to add this session's log to the PR branch — per its convention, it'll review and redact secrets/PII before anything is committed, then push it onto the same PR. I'll report back when the review lands.</p></div></div></div>
+<div class="message user" id="msg-2026-08-30T20-10-44-224Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T20-10-44-224Z" class="timestamp-link"><time datetime="2026-08-30T20:10:44.224Z" data-timestamp="2026-08-30T20:10:44.224Z">2026-08-30T20:10:44.224Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>b251f5jvn</task-id>
+<tool-use-id>toolu_012NUuktAdEHtDTap1cN52ZC</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/tasks/b251f5jvn.output</output-file>
+<status>completed</status></p>
+<summary>Background command "Poll PR #9 until CodeRabbit responds (up to 20 min)" completed (exit code 0)</summary>
+<p></task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-47-135Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-47-135Z" class="timestamp-link"><time datetime="2026-08-30T20:10:47.135Z" data-timestamp="2026-08-30T20:10:47.135Z">2026-08-30T20:10:47.135Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01TsFRLLKHG1FqKy9waz98FC"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/tasks/b251f5jvn.output&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-10-47-166Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-10-47-166Z" class="timestamp-link"><time datetime="2026-08-30T20:10:47.166Z" data-timestamp="2026-08-30T20:10:47.166Z">2026-08-30T20:10:47.166Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	CodeRabbit has responded on PR #9
+2	{&quot;comment_authors&quot;:[&quot;coderabbitai&quot;],&quot;reviews&quot;:[]}
+3	
+4	[exited with code 0]
+5	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-50-197Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-50-197Z" class="timestamp-link"><time datetime="2026-08-30T20:10:50.197Z" data-timestamp="2026-08-30T20:10:50.197Z">2026-08-30T20:10:50.197Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-51-248Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-51-248Z" class="timestamp-link"><time datetime="2026-08-30T20:10:51.248Z" data-timestamp="2026-08-30T20:10:51.248Z">2026-08-30T20:10:51.248Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_015d6LbqohJQY1U4rTmXNQJG">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read CodeRabbit&#39;s comment on PR #9</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh pr view 9 --repo cebert/cache-ttl-analyzer --json comments --jq &#39;.comments[] | select(.author.login==&#34;coderabbitai&#34;) | .body&#39; | head -120</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-10-53-282Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-10-53-282Z" class="timestamp-link"><time datetime="2026-08-30T20:10:53.282Z" data-timestamp="2026-08-30T20:10:53.282Z">2026-08-30T20:10:53.282Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>&lt;!-- This is an auto-generated comment: summarize by coderabbit.ai --&gt;
+&lt;!-- review_stack_entry_start --&gt;
+
+[![Review Change Stack](https://storage.googleapis.com/coderabbit_public_assets/review-stack-in-coderabbit-ui.svg)](https://app.coderabbit.ai/change-stack/cebert/cache-ttl-analyzer/pull/9)
+
+&lt;!-- review_stack_entry_end --&gt;
+&lt;!-- This is an auto-generated comment: review in progress by coderabbit.ai --&gt;
+
+&gt; [!NOTE]
+&gt; Currently processing new changes in this PR. This may take a few minutes, please wait...
+&gt; 
+&gt; &lt;details&gt;
+&gt; &lt;summary&gt;⚙️ Run configuration&lt;/summary&gt;
+&gt; 
+&gt; **Configuration used**: defaults
+&gt; 
+&gt; **Review profile**: CHILL
+&gt; 
+&gt; **Plan**: Pro Plus
+&gt; 
+&gt; **Run ID**: `1554edae-4543-42c8-b765-66fd12b8d00b`
+&gt; 
+&gt; &lt;/details&gt;
+&gt; 
+&gt; &lt;details&gt;
+&gt; &lt;summary&gt;📥 Commits&lt;/summary&gt;
+&gt; 
+&gt; Reviewing files that changed from the base of the PR and between 297a776902b59d3851cbe07f05f39aa6411989f0 and e9fa70204bf68b573bbaf4fca3c664e9fe9eee77.
+&gt; 
+&gt; &lt;/details&gt;
+&gt; 
+&gt; &lt;details&gt;
+&gt; &lt;summary&gt;📒 Files selected for processing (1)&lt;/summary&gt;
+&gt; 
+&gt; * `docs/PLAN.md`
+&gt; 
+&gt; &lt;/details&gt;
+&gt; 
+&gt; ```ascii
+&gt;  ____________________________________________________________________________________________________________________________________________________________________
+&gt; &lt; Use blackboards to coordinate workflow. Use blackboards to coordinate disparate facts and agents, while maintaining independence and isolation among participants. &gt;
+&gt;  --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+&gt;   \
+&gt;    \   (\__/)
+&gt;        (•ㅅ•)
+&gt;        / 　 づ
+&gt; ```
+
+&lt;!-- end of auto-generated comment: review in progress by coderabbit.ai --&gt;
+
+&lt;!-- finishing_touch_checkbox_start --&gt;
+
+&lt;details&gt;
+&lt;summary&gt;✨ Finishing Touches&lt;/summary&gt;
+
+&lt;details&gt;
+&lt;summary&gt;🧪 Generate unit tests (beta)&lt;/summary&gt;
+
+- [ ] &lt;!-- {&quot;checkboxId&quot;: &quot;f47ac10b-58cc-4372-a567-0e02b2c3d479&quot;, &quot;radioGroupId&quot;: &quot;utg-output-choice-group-unknown_comment_id&quot;} --&gt;   Create PR with unit tests
+- [ ] &lt;!-- {&quot;checkboxId&quot;: &quot;6ba7b810-9dad-11d1-80b4-00c04fd430c8&quot;, &quot;radioGroupId&quot;: &quot;utg-output-choice-group-unknown_comment_id&quot;} --&gt;   Commit unit tests in branch `docs/build-plan`
+
+&lt;/details&gt;
+
+&lt;/details&gt;
+
+&lt;!-- finishing_touch_checkbox_end --&gt;
+&lt;!-- tips_start --&gt;
+
+---
+
+
+
+
+&lt;sub&gt;Comment `@coderabbitai help` to get the list of available commands.&lt;/sub&gt;
+
+&lt;!-- tips_end --&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-56-096Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-56-096Z" class="timestamp-link"><time datetime="2026-08-30T20:10:56.096Z" data-timestamp="2026-08-30T20:10:56.096Z">2026-08-30T20:10:56.096Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-10-56-100Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-10-56-100Z" class="timestamp-link"><time datetime="2026-08-30T20:10:56.100Z" data-timestamp="2026-08-30T20:10:56.100Z">2026-08-30T20:10:56.100Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>CodeRabbit is still processing — that was its "review in progress" comment. I'll keep polling until the actual review lands.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-11-00-454Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-11-00-454Z" class="timestamp-link"><time datetime="2026-08-30T20:11:00.454Z" data-timestamp="2026-08-30T20:11:00.454Z">2026-08-30T20:11:00.454Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01NR3HA6ZbA2BSVcZs2KwnrV">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Poll until CodeRabbit review completes, then dump findings</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">for i in $(seq 1 40); do
+  n=$(gh pr view 9 --repo cebert/cache-ttl-analyzer --json reviews --jq &#39;[.reviews[] | select(.author.login | test(&#34;coderabbit&#34;; &#34;i&#34;))] | length&#39; 2&gt;/dev/null || echo 0)
+  inprog=$(gh pr view 9 --repo cebert/cache-ttl-analyzer --json comments --jq &#39;[.comments[] | select(.author.login==&#34;coderabbitai&#34;) | .body] | map(select(test(&#34;review in progress&#34;))) | length&#39; 2&gt;/dev/null || echo 1)
+  if [ &#34;${n:-0}&#34; -gt 0 ] || [ &#34;${inprog:-1}&#34; -eq 0 ]; then echo &#34;CodeRabbit review completed&#34;; break; fi
+  sleep 30
+done
+echo &#34;--- reviews ---&#34;
+gh pr view 9 --repo cebert/cache-ttl-analyzer --json reviews --jq &#39;.reviews[] | {author: .author.login, state: .state}&#39;
+echo &#34;--- inline review comments ---&#34;
+gh api repos/cebert/cache-ttl-analyzer/pulls/9/comments --jq &#39;.[] | {author: .user.login, path: .path, line: .line, body: (.body | .[0:400])}&#39;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T20-11-02-166Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-11-02-166Z" class="timestamp-link"><time datetime="2026-08-30T20:11:02.166Z" data-timestamp="2026-08-30T20:11:02.166Z">2026-08-30T20:11:02.166Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Command running in background with ID: buptgyn6j. Output is being written to: /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/tasks/buptgyn6j.output. You will be notified when it completes. To check interim output, use Read on that file path.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T20-11-04-907Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-11-04-907Z" class="timestamp-link"><time datetime="2026-08-30T20:11:04.907Z" data-timestamp="2026-08-30T20:11:04.907Z">2026-08-30T20:11:04.907Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Still watching in the background — CodeRabbit's review is in progress on PR #9. When it completes I'll report its findings, and if nothing needs fixing, publish this session's transcript onto the PR branch.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-002.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<span class="current">3</span>
+<a href="page-004.html">4</a>
+<a href="page-004.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
