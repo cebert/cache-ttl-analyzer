@@ -1,8 +1,7 @@
 /**
- * WP-01/WP-02 placeholder app: proves the stub engine satisfies the frozen
- * contract end-to-end through a real Web Worker in the browser. The real UI
- * (upload, progress, results) lands in WP-07/WP-08 against WP-D's designs,
- * which also introduce the i18n string catalog this throwaway screen skips.
+ * WP-01/WP-02 placeholder: exercises the frozen contract end-to-end through
+ * a real Web Worker. The real UI (and the i18n catalog this throwaway
+ * screen skips) lands in WP-07/08 against WP-D's designs.
  */
 
 import { useEffect, useRef, useState } from 'react'

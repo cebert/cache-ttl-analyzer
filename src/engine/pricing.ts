@@ -1,10 +1,8 @@
 /**
- * WP-02 — schema for `src/config/pricing.json` (frozen with the contract;
- * WP-04 populates the actual file from the published pricing page).
- *
- * Rates are USD per million tokens at published Anthropic API rates
- * (decision D2). Unknown model ids are never guessed — see the
- * unknown-model degradation policy in `contract.ts`.
+ * WP-02 — schema for `src/config/pricing.json` (frozen; WP-04 populates the
+ * file from the published pricing page). Rates are USD per million tokens
+ * at published Anthropic API rates (D2). Unknown model ids are never
+ * guessed — see the degradation policy in `contract.ts`.
  */
 
 export interface CacheMultipliers {
@@ -24,14 +22,14 @@ export interface ModelPricing {
   /** Output rate, USD per 1M tokens. */
   outputPerMTok: number
   /**
-   * Multipliers keyed by observed `usage.service_tier` values ("standard",
-   * "batch", ...). Applied to both input-side and output rates. Missing key
-   * or missing map = 1.0 ("standard" MUST be 1.0 when present).
+   * Keyed by observed `usage.service_tier` values ("standard", "batch", ...),
+   * applied to input-side and output rates. Missing key or map = 1.0;
+   * "standard" MUST be 1.0 when present.
    */
   serviceTierMultipliers?: Record<string, number>
   /**
-   * Multipliers keyed by observed `usage.speed` values (e.g. "fast" = 2.0 on
-   * Opus 5, so $5/$25 becomes $10/$50). Same defaulting rule as tiers.
+   * Keyed by observed `usage.speed` values (e.g. "fast" = 2.0 on Opus 5).
+   * Same defaulting rule as tiers.
    */
   speedMultipliers?: Record<string, number>
 }

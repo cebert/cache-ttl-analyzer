@@ -1,20 +1,15 @@
 /**
- * Leveled logging abstraction (docs/PLAN.md §2, decision D13).
+ * Leveled logging (docs/PLAN.md §2, D13): a thin in-house wrapper.
+ * Console-only, never transmitted anywhere — remote collection would
+ * contradict the privacy stance and the strict CSP. Quiet in production;
+ * `?debug=1` or `localStorage["cta-debug"] = "1"` elevates verbosity.
  *
- * A thin wrapper instead of a dependency: console-only, never shipped
- * anywhere — remote log collection would contradict the privacy stance and
- * the strict CSP. Quiet by default in production; a user-accessible debug
- * flag (`?debug=1` query param or `localStorage["cta-debug"] = "1"`) elevates
- * verbosity for self-serve troubleshooting.
+ * SENSITIVE DATA RULE: never log session-log-derived strings (titles, cwd,
+ * branches, prompts) or file contents — counts, enums, durations, and error
+ * codes only. Anything the user must act on belongs in the UI.
  *
- * SENSITIVE DATA RULE: never pass session-log-derived strings (titles, cwd,
- * git branches, prompts, file contents) or file bytes to a logger. Log
- * counts, enums, durations, and error codes only. Anything a user must act
- * on belongs in the UI, not the log.
- *
- * Works in both the main thread and Web Workers: environment probes are
- * guarded, and `setLogSink` lets worker code forward log events to the main
- * thread over the worker message protocol (wired in WP-07).
+ * Worker-safe: environment probes are guarded, and `setLogSink` lets a
+ * worker forward events to the main thread (wired in WP-07).
  */
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent'

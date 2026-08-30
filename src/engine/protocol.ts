@@ -1,15 +1,11 @@
 /**
  * WP-02 — the Web Worker message protocol (frozen with the contract).
  *
- * The main thread owns the Worker lifecycle. Cancellation has two layers:
- * a cooperative `cancel` message (the engine aborts via `AbortSignal` and
- * replies `cancelled`), and the host's `Worker.terminate()` as the hard
- * stop (always available; the UI's cancel button may use both).
- *
- * Worker log events are forwarded to the main thread as `log` messages so
- * the D13 logging abstraction covers worker code; the host replays them
- * into its own logger sink. Log args must obey the sensitive-data rule in
- * `src/lib/logger.ts`.
+ * The main thread owns the Worker lifecycle. Cancellation is layered: the
+ * cooperative `cancel` message (engine aborts, replies `cancelled`) plus
+ * `Worker.terminate()` as the always-available hard stop. Worker log events
+ * are forwarded as `log` messages (D13) and must obey the sensitive-data
+ * rule in `src/lib/logger.ts`.
  */
 
 import type { AnalysisResult, EngineProgress, ParseStats } from './contract'

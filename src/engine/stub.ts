@@ -1,9 +1,8 @@
 /**
- * WP-02 acceptance stub: an `AnalysisEngine` returning canned data that
- * satisfies the frozen contract end-to-end through the worker. Replaced by
- * the real engine in WP-03/04/05; the canned numbers are loosely modeled on
- * the feasibility doc's session 43e08bdd (the gap-heavy session where 1h
- * won) but are NOT real analysis output.
+ * WP-02 acceptance stub: an `AnalysisEngine` returning canned data through
+ * the full worker protocol. Replaced by the real engine in WP-03/04/05.
+ * Numbers are loosely modeled on the feasibility doc's gap-heavy session
+ * where 1h won; they are NOT real analysis output.
  */
 
 import type {

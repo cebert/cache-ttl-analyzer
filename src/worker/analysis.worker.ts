@@ -1,8 +1,7 @@
 /// <reference lib="webworker" />
 /**
- * Analysis Web Worker entry point. Currently wires the WP-02 stub engine;
- * WP-05 swaps in the real engine behind the same `AnalysisEngine` interface
- * without touching the protocol.
+ * Analysis Web Worker entry. Wires the WP-02 stub engine; WP-05 swaps in
+ * the real engine behind the same `AnalysisEngine` interface.
  */
 
 import { createStubEngine } from '../engine/stub'

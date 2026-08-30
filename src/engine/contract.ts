@@ -1,79 +1,47 @@
 /**
  * WP-02 — THE FROZEN ENGINE CONTRACT
- * ==================================
  *
- * Everything else in this codebase (parser WP-03, cost engine WP-04,
- * simulator WP-05, fixtures WP-06, UI WP-07/08) codes against the types in
- * this file, `pricing.ts`, and `protocol.ts`. Changes after the freeze
- * require touching docs/PLAN.md (WP-02). The ONE section expected to be
- * amended is the insight-event taxonomy (marked AMENDABLE below) — WP-05 and
- * WP-08 consume it and will discover needs.
+ * Parser (WP-03), cost engine (WP-04), simulator (WP-05), fixtures (WP-06),
+ * and UI (WP-07/08) all code against this file, `pricing.ts`, and
+ * `protocol.ts`. Changes after the freeze require touching docs/PLAN.md.
+ * One exception: the insight-event taxonomy (marked AMENDABLE below) is
+ * expected to grow.
  *
- * ---------------------------------------------------------------------------
- * PRE-FREEZE LOG INSPECTION FINDINGS (required by WP-02; recorded 2026-08-30)
- * ---------------------------------------------------------------------------
- * Corpus inspected: transcripts/004-build-plan/session.jsonl (Claude Code
- * v2.1.251; 715 rows; 201 assistant rows deduping to 79 requests, one message
- * appearing as up to 8 rows) plus that session's real subagent transcript
- * (17 rows / 8 requests) found on disk next to it — see F2.
+ * PRE-FREEZE LOG INSPECTION FINDINGS (2026-08-30)
+ * Corpus: transcripts/004-build-plan/session.jsonl (v2.1.251; 715 rows, 201
+ * assistant rows deduping to 79 requests, one message spanning 8 rows) plus
+ * that session's on-disk subagent transcript (17 rows / 8 requests).
  *
- * F1. `ai-title` payload shape: `{ type: "ai-title", aiTitle: string,
- *     sessionId: string }`. No timestamp, uuid, or other fields. The record
- *     is REWRITTEN repeatedly (27 occurrences in one session, all
- *     identical here, but titles can be regenerated) — the parser must take
- *     the LAST occurrence.
- *
- * F2. Subagent sidechains are SEPARATE FILES on v2.1.251, not interleaved
- *     rows. The main session file contained zero `isSidechain: true` rows
- *     (across all 9 session files on the machine); the session's subagent
- *     conversation lives at
- *     `<project>/<session-id>/subagents/agent-<agentId>.jsonl`, with a
- *     sibling `agent-<agentId>.meta.json`
- *     (`{ agentType, description, toolUseId, spawnDepth }`). Every row in
- *     the subagent file has `isSidechain: true`, a constant `agentId`, and
- *     `sessionId` equal to the parent session; its `parentUuid` chains are
- *     fully self-contained (no references into the parent file). The
- *     subagent's first request wrote `ephemeral_5m_input_tokens` while the
- *     main conversation wrote 1h — live confirmation that the two TTL
- *     buckets are real and independently configured.
- *     CONSEQUENCES (also recorded in docs/PLAN.md):
- *       - Cache-thread key = `agentId` when present; rows without one belong
- *         to the main thread unless `isSidechain` is true (legacy interleaved
- *         logs from older versions), in which case threads are recovered from
- *         `parentUuid` chain roots.
- *       - A modern main-session upload contains NO subagent traffic; the
- *         subagent bucket appears when the uploaded file is itself a subagent
- *         transcript, or a legacy log with interleaved sidechain rows.
- *
- * F3. Request-start pairing: the immediate `parentUuid` parent of a
- *     request's first assistant row is usually an `attachment` row (77 of 79
- *     requests), not the user row. Walking the `parentUuid` chain reaches a
- *     `user` row for 100% of requests; its timestamp precedes the assistant
- *     row's by 1.8s min / 3.9s median / 26s p90 / 76s max (never negative).
- *     Rule: request start = timestamp of the nearest `user`-row ancestor via
- *     the `parentUuid` walk; fall back to the assistant row's own timestamp
- *     when no ancestor resolves. The parser therefore indexes
- *     `uuid`/`parentUuid`/`timestamp` for `user` AND `attachment` rows
- *     (metadata only — never content).
- *
- * F4. Record types not in the feasibility doc's list exist already
- *     (`frame-link`, `pr-link`, `artifact-comment-monitor`,
- *     `artifact-autoreact-ledger`) — the skip-and-count rule is load-bearing
- *     on day one, not just future-proofing.
- *
- * F5. Usage subfields are OPTIONAL: the subagent transcript's usage lacked
- *     `output_tokens_details`, `server_tool_use`, `iterations`, and `speed`.
- *     `service_tier`/`speed` default to "standard" when absent. Unknown
- *     additions (e.g. `inference_geo`) are ignored.
- *
- * F6. `parentUuid` is NOT a strict linear chain: only 56 of 122
- *     continuation rows (same `message.id` as the previous row) pointed at
- *     the preceding block's uuid. Dedup by `message.id` only; never assume
- *     row-to-row linearity.
- *
- * F7. `message.id` <-> `requestId` remained 1:1 (79:79), re-confirming
- *     feasibility §6.1's dedup key.
- * ---------------------------------------------------------------------------
+ * F1. `ai-title` = `{ type, aiTitle, sessionId }`; no timestamp or uuid.
+ *     Rewritten repeatedly (27 occurrences here) — take the LAST one.
+ * F2. Subagent sidechains are separate files on v2.1.251, not interleaved
+ *     rows: `<project>/<session-id>/subagents/agent-<agentId>.jsonl` plus
+ *     `agent-<agentId>.meta.json` ({ agentType, description, toolUseId,
+ *     spawnDepth }). Every row carries `isSidechain: true`, one `agentId`,
+ *     and the parent `sessionId`; `parentUuid` chains never leave the file.
+ *     The subagent's first request wrote ephemeral_5m while the main
+ *     conversation wrote 1h — both TTL buckets observed live.
+ *     Consequences: thread key = `agentId` when present; rows without one
+ *     are main-thread unless `isSidechain` is true (legacy interleaved
+ *     logs; threads recovered from `parentUuid` chain roots). A modern
+ *     main-session upload contains no subagent traffic.
+ * F3. Request start: walking `parentUuid` reaches a `user` row for 100% of
+ *     requests (the immediate parent is usually an `attachment`, 77/79);
+ *     that timestamp precedes the assistant row's by 1.8s min / 3.9s median
+ *     / 26s p90 / 76s max, never negative. Rule: nearest `user`-row
+ *     ancestor, else the assistant row's own timestamp. Requires indexing
+ *     uuid/parentUuid/timestamp of `user` and `attachment` rows — metadata
+ *     only, never content.
+ * F4. Record types beyond the feasibility doc's list already exist
+ *     (frame-link, pr-link, artifact-comment-monitor,
+ *     artifact-autoreact-ledger) — skip-and-count is load-bearing today.
+ * F5. Usage subfields are optional: subagent rows lacked
+ *     output_tokens_details, server_tool_use, iterations, and speed.
+ *     `service_tier`/`speed` default to "standard"; unknown additions
+ *     (e.g. inference_geo) are ignored.
+ * F6. `parentUuid` is not linear across a message's content-block rows
+ *     (56/122 continuation rows chained). Dedup by `message.id` only.
+ * F7. `message.id` <-> `requestId` stayed 1:1 (79:79) — dedup key holds.
  */
 
 /** A cache TTL the user can configure per bucket. */
@@ -94,22 +62,19 @@ export const CACHE_TTL_1H_MS = 60 * 60_000
 export const MALFORMED_LINE_REJECT_RATIO = 0.1
 
 /**
- * UNKNOWN-MODEL DEGRADATION POLICY (frozen):
- * Requests whose `model` has no entry in the pricing config are never
- * guessed. They are excluded from all dollar figures and disclosed in
- * `UnknownModelReport`. Their share is measured in TOTAL TOKENS
- * (input + cache read + cache write + output) across DEDUPED requests,
- * per bucket. When the share in a bucket exceeds this ratio, that bucket's
- * recommendation is suppressed (`recommendation: "no-verdict"`,
- * `verdictSuppressed: true`) — costs are still shown for the priced share.
+ * UNKNOWN-MODEL DEGRADATION POLICY (frozen): model ids missing from the
+ * pricing config are never guessed — their requests are excluded from all
+ * dollar figures and disclosed in `UnknownModelReport`. Share = total
+ * tokens (input + cache read + cache write + output) across deduped
+ * requests, per bucket; above this ratio the bucket's recommendation
+ * becomes "no-verdict" while costs for the priced share still show.
  */
 export const UNKNOWN_MODEL_SUPPRESSION_RATIO = 0.1
 
 /**
- * Versions of Claude Code this build's parser has been validated against
- * (inclusive range, semver-ish x.y.z compare). Outside the range: warn,
- * never fail (feasibility §4). CI's format-drift canary pins fixtures to
- * this range (docs/PLAN.md §5).
+ * Validated Claude Code versions (inclusive, x.y.z compare). Outside the
+ * range: warn, never fail (feasibility §4). CI's format-drift canary pins
+ * fixtures to this range (docs/PLAN.md §5).
  */
 export const VALIDATED_VERSION_RANGE = { min: '2.1.193', max: '2.1.251' } as const
 
@@ -232,31 +197,25 @@ export interface ParsedSession {
 export type Recommendation = CacheTtl | 'no-verdict'
 
 /**
- * The two TTL settings' buckets (feasibility §3): "main" =
- * `promptCacheTtl`, "subagent" = `subagentPromptCacheTtl`. The subagent
- * bucket is present only when the parsed file contains sidechain traffic
- * (see F2 for when that can happen); the UI must not imply subagent traffic
- * was evaluated when the bucket is absent.
+ * "main" = `promptCacheTtl`, "subagent" = `subagentPromptCacheTtl`
+ * (feasibility §3). The subagent bucket exists only when the file contains
+ * sidechain traffic (F2); the UI must not imply it was evaluated otherwise.
  */
 export type BucketId = 'main' | 'subagent'
 
 /**
- * MIXED-TTL WRITE HANDLING IN COUNTERFACTUALS (frozen):
- * Server tools insert their own 5m cache writes regardless of the user's
- * setting. Counterfactuals reprice ONLY the user-controllable share:
- * user-controlled writes take the scenario TTL (both write price and expiry
- * window), while server-tool 5m writes stay 5m in BOTH scenarios and expire
- * as their own class (`expiryClass: "server-tool-5m"`). Per request, the
- * user-controllable share is the bucket's dominant-TTL write tokens; the
- * residual split tokens are the server-tool share. Two edge cases are pinned
- * so conforming simulators cannot diverge: when a bucket has no write tokens
- * at all (`observedTtl: null`) there is no user-controllable share and
- * nothing to reprice; when the 5m/1h write tokens tie exactly, the dominant
- * TTL is `"1h"` (server tools only ever add 5m writes, so nonzero 1h tokens
- * can only be user-controlled). The reconciliation check
- * (PLAN §5) replays each request with its OBSERVED per-request split — not a
- * single session-wide TTL — and must reproduce actual cost within the stated
- * approximation.
+ * MIXED-TTL WRITE HANDLING IN COUNTERFACTUALS (frozen): server tools insert
+ * their own 5m writes regardless of the user's setting, so counterfactuals
+ * reprice only the user-controllable share. User-controlled writes take the
+ * scenario TTL (write price and expiry window); server-tool 5m writes stay
+ * 5m in both scenarios as their own expiry class ("server-tool-5m"). Per
+ * request, the user-controllable share is the bucket's dominant-TTL write
+ * tokens; the residual split tokens are the server-tool share. Pinned edge
+ * cases: no writes at all (`observedTtl: null`) → nothing to reprice; an
+ * exact 5m/1h tie → dominant TTL is "1h" (server tools only add 5m writes,
+ * so nonzero 1h tokens are user-controlled). The reconciliation check
+ * (PLAN §5) replays each request with its observed per-request split and
+ * must reproduce actual cost within the stated approximation.
  */
 export interface TtlTokenSplit {
   fiveMinuteWriteTokens: number
@@ -306,9 +265,8 @@ export interface BucketAnalysis {
    */
   observedTtl: CacheTtl | null
   /**
-   * Whether the observed cross-bucket pattern proves explicit configuration
-   * (the two unambiguous patterns from feasibility §3). Never claims
-   * "default".
+   * Whether the cross-bucket pattern proves explicit configuration
+   * (feasibility §3); never claims "default".
    */
   configExplicitness: 'provably-explicit' | 'ambiguous' | 'unknown'
   scenarios: { fiveMinute: ScenarioCost; oneHour: ScenarioCost }
@@ -340,19 +298,16 @@ export interface AnalysisResult {
   /** Copied from the pricing config; shown beside every dollar figure. */
   pricesAsOf: string
   /**
-   * The all-or-nothing expiry approximation is conservative toward 5m
-   * (feasibility §7); the UI must disclose it. Present so the UI never
-   * hard-codes the disclosure's factual basis.
+   * All-or-nothing expiry is conservative toward 5m (feasibility §7); the
+   * UI must disclose it and reads the basis from here.
    */
   approximation: { allOrNothingExpiry: true; conservativeToward: CacheTtl }
 }
 
 /* ---------------------------------------------------------------------------
  * Insight events — ⚠️ AMENDABLE SECTION ⚠️
- * The ONE part of this contract expected to change after the freeze: WP-05
- * (generation) and WP-08 / WP-D (display) will discover event kinds and
- * fields they need. Amendments still require a docs/PLAN.md touch, but are
- * anticipated here.
+ * The one part expected to change after the freeze (WP-05 and WP-08/WP-D
+ * will discover needs). Amendments still require a docs/PLAN.md touch.
  * ------------------------------------------------------------------------- */
 
 export type HardResetCause = 'model-change' | 'effort-change' | 'version-change'
