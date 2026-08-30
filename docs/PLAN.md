@@ -413,12 +413,13 @@ Cloudflare edge with the full CSP and `X-Robots-Tag: noindex`; the app loaded
 from the preview and its module Web Worker ran to completion with zero CSP
 violations; the PR comment updated in place across three preview runs instead
 of duplicating.
-**Not yet verified at time of writing:** `wrangler deploy` with custom-domain
-*route reconciliation* has never run — previews use `versions upload`, which
-does not touch routes — so the production token scope is proven only for
-uploads. cacheanalyzer.com will not serve the security headers until the first
-merge to `main`. Both are settled by that first production deploy; if it fails
-it will be on route permissions.
+**Production deploy verified (2026-08-30, merge of #13):** the open question was
+`wrangler deploy` reconciling the `cacheanalyzer.com` custom-domain route, which
+previews never exercise (`versions upload` does not touch routes). It succeeded
+on the first run, so the **Edit Cloudflare Workers** token scope is right.
+cacheanalyzer.com now serves all eight security headers including the full CSP,
+and carries no `X-Robots-Tag` — that rule is correctly scoped to preview
+hostnames only, leaving production indexable.
 
 ### WP-10 — Launch polish
 **Depends on:** WP-08, WP-09.
