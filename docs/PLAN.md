@@ -382,9 +382,12 @@ repo connected in the Cloudflare dashboard; no Cloudflare credential stored
 in GitHub — see D15: Cloudflare does not support OIDC/trusted publishing for
 `wrangler` deploys, and Workers Builds is the closest no-stored-secret
 equivalent). **PR preview deployments** via the same Workers Builds
-connection: every PR branch gets a preview build with its own URL surfaced
-as a PR check, so platform behavior (CSP headers, `File.stream()` in the
-worker, SPA routing) is verified in the real Workers runtime before merge;
+connection: every PR branch gets a preview build, and Cloudflare's GitHub
+integration posts a comment on the PR with the build status and two links —
+a per-commit preview URL and a stable branch-alias URL that always points
+at the branch's latest version — so platform behavior (CSP headers,
+`File.stream()` in the worker, SPA routing) is verified in the real Workers
+runtime before merge;
 the post-deploy security-header smoke check runs against previews too.
 Previews build only for branches in this repo (not forks), and preview URLs
 are public — acceptable for a static, open-source app. Document the Workers
