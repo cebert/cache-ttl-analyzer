@@ -32,8 +32,24 @@ A static web app, deployed to Cloudflare, where a user:
 
 Plus: clear instructions for finding session logs on macOS and Windows, a
 prominent privacy statement ("analysis is local; this is open source — verify
-it yourself" with a link to the repo), and a "prices as of" date on every
-dollar figure.
+it yourself" with a link to the repo), a dedicated **data policy page** (see
+§3a), and a "prices as of" date on every dollar figure.
+
+Two cross-cutting requirements, cheap now and expensive to retrofit:
+
+- **Localization-ready from day one.** MVP ships English only, but no
+  user-facing string is hard-coded in a component: all copy lives in locale
+  resource files (react-i18next or equivalent — chosen in WP-07), and all
+  number, currency, date, and duration formatting goes through the `Intl`
+  APIs keyed to the active locale. Adding a second language later must be a
+  translation task, not a refactor.
+- **Data policy page**: a first-class page, linked from the footer and the
+  upload screen, stating in plain language: analysis runs entirely in the
+  browser; the file is never uploaded, stored, or sent anywhere; the strict
+  CSP enforces this at the platform level (with a one-line "check devtools"
+  pointer); no analytics or tracking in the MVP; the project is open source
+  (repo link); and any future optional API-powered analysis will be opt-in
+  with an explicit, itemized disclosure of what would be sent.
 
 ### Non-goals for MVP (deferred, in rough priority order)
 
@@ -244,7 +260,9 @@ cancel), and the results view (session identification card, recommendation
 card, cost comparison,
 conditional subagent section, cache-event timeline, educational explainers,
 session-history strip). It should also cover the empty/error states: unknown
-model, skipped records, version warning, malformed file.
+model, skipped records, version warning, malformed file. Include the data
+policy page, and design copy areas with text expansion in mind (translated
+strings run ~30% longer than English).
 Exports (screens, and the canvas link) are committed to `docs/design/` so
 WP-07 and WP-08 sessions can implement against them without guessing.
 *Acceptance:* every screen and state listed above has a design in
@@ -257,8 +275,11 @@ Upload (drag-drop + picker), Web Worker wiring with progress bar and cancel,
 in-memory history of this browser session's analyses, "find your logs"
 instructions (macOS: `~/.claude/projects/...`; Windows path; note
 `CLAUDE_CONFIG_DIR` and the 30-day cleanup), privacy statement with repo
-link, sample-session loader. File-size cap and the three validation verdicts
-(valid / warnings / not a session log) as distinct UI states.
+link, data policy page, sample-session loader. File-size cap and the three
+validation verdicts (valid / warnings / not a session log) as distinct UI
+states. Sets up the i18n foundation: locale resource files, the translation
+hook pattern, and `Intl`-based formatters — every string in WP-07 and WP-08
+goes through it (English-only catalog for MVP).
 *Acceptance:* full flow works against the WP-02 stub engine; cancel actually
 terminates the worker mid-parse; a non-session file gets the plain-language
 rejection, not a broken analysis.
@@ -350,6 +371,8 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D7 | `prototype-sim.py` is the reference implementation, generating golden fixtures the TS engine must match; plus independent hand-computed tests | Cross-validation between two implementations, with hand-computed values as the tiebreaker. (Claude's vote) |
 | D8 | Domain is **cacheanalyzer.com** (user purchasing, 2026-08-30). Deploys target `workers.dev` until the custom domain is wired up in WP-09 | Name was available; buying via Cloudflare Registrar keeps DNS in the same account as the Worker. (User) |
 | D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |
+| D10 | Localization-ready architecture from day one; English-only catalog for MVP | Externalized strings + `Intl` formatting are cheap now and a painful retrofit; future languages become translation tasks. (User, 2026-08-30) |
+| D11 | Dedicated data policy page in the MVP | Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30) |
 
 ## 7. Risks
 
