@@ -10,4 +10,11 @@
     "directory": "./dist",
     "not_found_handling": "single-page-application",
   },
+  // cacheanalyzer.com lives in the same Cloudflare account as this Worker;
+  // Cloudflare manages DNS + TLS for the custom domain automatically (D8).
+  "routes": [{ "pattern": "cacheanalyzer.com", "custom_domain": true }],
+  // Keep the workers.dev URL and per-version preview URLs alongside the
+  // custom domain — used for development and PR previews (WP-09).
+  "workers_dev": true,
+  "preview_urls": true,
 }

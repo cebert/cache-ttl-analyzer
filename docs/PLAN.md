@@ -381,8 +381,14 @@ GitHub Actions: PR workflow (typecheck, lint, test, build) required on
 repo connected in the Cloudflare dashboard; no Cloudflare credential stored
 in GitHub — see D15: Cloudflare does not support OIDC/trusted publishing for
 `wrangler` deploys, and Workers Builds is the closest no-stored-secret
-equivalent). Document the Workers Builds setup in README. Branch
-protection on `main`. Serve the strict CSP and security headers (via the
+equivalent). **PR preview deployments** via the same Workers Builds
+connection: every PR branch gets a preview build with its own URL surfaced
+as a PR check, so platform behavior (CSP headers, `File.stream()` in the
+worker, SPA routing) is verified in the real Workers runtime before merge;
+the post-deploy security-header smoke check runs against previews too.
+Previews build only for branches in this repo (not forks), and preview URLs
+are public — acceptable for a static, open-source app. Document the Workers
+Builds setup in README. Branch protection on `main`. Serve the strict CSP and security headers (via the
 Workers static-assets headers config). Once the domain is in the Cloudflare
 account, attach
 **cacheanalyzer.com** as a custom domain on the Worker (wrangler
@@ -463,7 +469,7 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D5 | Rates live in a committed `pricing.json` with a `pricesAsOf` date; unknown models reported to the user | Simple, auditable, no runtime fetch. API-driven rates possible later. (User) |
 | D6 | Fixtures are synthetic + Claude-generated scenario sessions; no personal sessions bundled | Avoids publishing usage patterns; scenarios can be engineered to teach specific lessons and to verify verdicts. (User) |
 | D7 | The Python simulator — brought to full spec parity in WP-06 — is an **independently written second implementation** generating golden fixtures the TS engine must match; hand-computed tests are the tiebreaker | Re-scoped after independent review: the original prototype implements almost none of the correctness rules and was never a valid oracle. Cross-validation still catches divergent bugs. (Claude's vote, revised) |
-| D8 | Domain is **cacheanalyzer.com** (purchased 2026-08-30, in the user's Cloudflare account). Deploys target `workers.dev` until the custom domain is wired up in WP-09 | Name was available; buying via Cloudflare Registrar keeps DNS in the same account as the Worker. (User) |
+| D8 | Domain is **cacheanalyzer.com** (purchased 2026-08-30, in the same Cloudflare account the Worker deploys to). Attached as a custom domain on the Worker on 2026-08-30, ahead of WP-09; `workers.dev` and preview URLs stay enabled alongside it | Name was available; buying via Cloudflare Registrar keeps DNS in the same account as the Worker, so Cloudflare manages DNS/TLS automatically. (User) |
 | D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |
 | D10 | Localization-ready architecture from day one; English-only catalog for MVP | Externalized strings + `Intl` formatting are cheap now and a painful retrofit; future languages become translation tasks. (User, 2026-08-30) |
 | D11 | Dedicated data policy page in the MVP | Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30) |

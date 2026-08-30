@@ -5,7 +5,7 @@ Upload Claude Code session logs in files (JSON or JSONL), and this tool will ana
 
 **Status:** in progress — scaffold and frozen engine contract landed (WP-01, WP-02); the analysis engine is still a stub. See [docs/PLAN.md](docs/PLAN.md).
 
-**Live URL:**  _not deployed yet (Cloudflare, planned)_
+**Live URL:** [cacheanalyzer.com](https://cacheanalyzer.com) (placeholder while the engine is built)
 
 ## Why
 
@@ -77,3 +77,29 @@ production builds. To get verbose output for troubleshooting, either:
 When contributing: never log session-log-derived strings (titles, paths,
 branches, prompts) or file contents — counts, enums, durations, and error
 codes only.
+
+## How changes ship
+
+Every change lands through a PR into `main` ([docs/PLAN.md](docs/PLAN.md) §4):
+
+1. **Automated review:** [CodeRabbit](https://coderabbit.ai) reviews every PR
+   (settings in [`.coderabbit.yaml`](.coderabbit.yaml)). House rule: findings
+   are verified against the code before being applied — each one gets an
+   explicit agree/disagree with reasons on the PR, and inaccurate findings
+   are rejected rather than blindly applied.
+2. **CI checks** (WP-09, upcoming): GitHub Actions runs typecheck, lint,
+   tests, and build as required checks on `main`. GitHub Actions never
+   deploys and holds no Cloudflare credentials.
+3. **Deployment:** the app deploys to Cloudflare Workers as static assets
+   (`wrangler.jsonc`), with production on
+   [cacheanalyzer.com](https://cacheanalyzer.com) (a custom domain on the
+   Worker; Cloudflare manages DNS/TLS) plus a `workers.dev` URL for
+   development. Deploys are currently manual (`npm run deploy`, using your
+   local `wrangler login`). WP-09 switches this to **Cloudflare Workers
+   Builds**: the repo is connected in the Cloudflare dashboard, a merge to
+   `main` triggers a production deploy, and every PR branch gets its own
+   preview URL surfaced as a PR check — so platform behavior (CSP headers,
+   worker streaming) is testable before merge. No Cloudflare API token is
+   stored in GitHub in any of this; Cloudflare does not support OIDC deploys,
+   and Workers Builds is the closest no-stored-secret equivalent (decision
+   D15 in the plan).
