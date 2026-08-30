@@ -1,21 +1,24 @@
 ---
 name: publish-transcript
-description: Publish a Claude Code session from this project into transcripts/ as redacted HTML, plain text, and raw JSONL. Use when the user wants to add, publish, save, or commit a session log / transcript to the repo. Reviews the session for secrets and PII, redacts them, renders with simonw/claude-code-transcripts, updates the session map, and commits with a conventional commit.
+description: Publish a Claude Code session from this project into transcripts/ as redacted HTML and raw JSONL. Use when the user wants to add, publish, save, or commit a session log / transcript to the repo. Reviews the session for secrets and PII, redacts them, renders with simonw/claude-code-transcripts, updates the session map, and commits with a conventional commit.
 ---
 
 # Publish a session transcript
 
-Turns one Claude Code session for this repo into three committed artifacts:
+Turns one Claude Code session for this repo into two committed artifacts:
 
 | Output | Path |
 |---|---|
-| Rendered HTML (simonw/claude-code-transcripts) | `transcripts/html/<slug>/` |
-| Plain text | `transcripts/text/<slug>.txt` |
-| Redacted source JSONL | `transcripts/raw/<slug>.jsonl` |
+| Rendered HTML (simonw/claude-code-transcripts) | `transcripts/html/<NNN-slug>/` |
+| Redacted source JSONL | `transcripts/raw/<NNN-slug>.jsonl` |
 
-**Every artifact is rendered from the redacted JSONL, never from the original.**
-Redact once at the source and all three outputs stay consistent — never redact
-the HTML and text separately.
+**The HTML is rendered from the redacted JSONL, never from the original.**
+Redact once at the source and both outputs stay consistent — never redact the
+rendered HTML separately.
+
+`to_text.py` renders a session as plain text for *your* review in step 2. That
+rendering is a working file: it is never committed. Only `raw/` and `html/` go
+into the repo.
 
 ## Prerequisites
 
@@ -39,7 +42,9 @@ clearly enough to match exactly one row).
 
 **Publishing the current session:** the JSONL is still being written, so it will
 not contain this final turn. That is expected and fine — say so, and offer to
-re-run later if they want the tail included.
+re-run later if they want the tail included. Note that the skill is loaded at
+session start, so a session that *created or edited* the skill cannot invoke it
+by name; follow these steps directly instead.
 
 ## Step 2 — Stage and render for review
 
@@ -73,6 +78,10 @@ match:
 - Real names, emails, phone numbers, addresses of anyone (the user included)
 - Customer, client, or employer names the user may not want public
 - Internal hostnames, private URLs, ticket IDs, Slack/DM links, S3 buckets
+- **Names of the user's other projects.** A session that ran `ls ~/.claude/projects`,
+  `git remote -v` elsewhere, or any directory listing above the repo will name
+  unrelated work. A regex cannot catch this — it is the single most likely real
+  leak in an otherwise clean session.
 - Unreleased or confidential product details discussed in passing
 - `.env` file contents, private keys, or `~/.aws/credentials` echoed by a tool
 - Anything in a file the repo's `.gitignore` excludes (this repo ignores
@@ -102,6 +111,20 @@ Write `$W/redactions.json` — a list of rules, each with a `reason`:
 Rules are literal by default; add `"regex": true` for a pattern. Use
 `[REDACTED_<KIND>]` placeholders so a reader can tell *what* was removed.
 
+**Redact the shortest distinctive token, not the full prefixed value.** A
+transcript contains *truncated* copies of its own content — tool output gets cut
+off, scanner context windows clip mid-value, and prose refers to values with an
+ellipsis. A rule for `sk-ant-api03-<key>` will sail past `...-api03-<key>` and
+`sk-ant-api03-<pre>...`, leaving fragments behind. Add a rule for the bare core
+(`<key>`) as well as the full value, and for a multi-part name like
+`acme-widget-service` add one for `acme` too.
+
+**Watch for self-reference.** Once a session discusses its own redaction, the
+sensitive strings appear in the discussion — in your grep commands, your
+findings summary, and your questions to the user. Re-copying the source JSONL
+after that point pulls those in, and each re-copy adds more. Copy the source
+once, redact and verify against that snapshot, and stop; do not chase the tail.
+
 Present the proposed list to the user — grouped by category, with the reason and
 match count for each — and get approval before applying. **If you find a live
 credential, tell the user plainly that it should be rotated**, since it existed
@@ -125,15 +148,15 @@ something you meant to redact is still in the file.
 The second scan is the real check: re-read its output and confirm every
 remaining hit is something you and the user consciously decided to keep.
 
-## Step 6 — Render the three artifacts
+## Step 6 — Render the two artifacts
 
-Pick a slug: `YYYY-MM-DD-short-topic` (date of the session, kebab-case topic,
-e.g. `2026-08-30-transcript-skill`).
+Name the session `NNN-short-topic`: a zero-padded counter one higher than the
+highest already in `transcripts/raw/`, plus a kebab-case topic — e.g.
+`002-cost-model`. The same name is used for both formats.
 
 ```bash
-SLUG=<slug>
+SLUG=<NNN-short-topic>
 claude-code-transcripts json $W/redacted.jsonl -o transcripts/html/$SLUG
-python3 $S/to_text.py $W/redacted.jsonl -o transcripts/text/$SLUG.txt
 cp $W/redacted.jsonl transcripts/raw/$SLUG.jsonl
 ```
 
@@ -143,8 +166,7 @@ publishing decision the user has to make explicitly.
 Then confirm the redaction survived rendering:
 
 ```bash
-python3 $S/scan_secrets.py transcripts/raw/$SLUG.jsonl \
-    transcripts/text/$SLUG.txt transcripts/html/$SLUG/*.html
+python3 $S/scan_secrets.py transcripts/raw/$SLUG.jsonl transcripts/html/$SLUG/*.html
 ```
 
 ## Step 7 — Update the session map
@@ -153,11 +175,28 @@ Add a row to the table in `transcripts/README.md`:
 
 | Date | Session | Covers | Share link | Notes |
 |---|---|---|---|---|
-| 2026-08-30 | [2026-08-30-transcript-skill](html/2026-08-30-transcript-skill/) | Built the transcript publishing skill | | 3 emails redacted |
+| 2026-08-30 | [001-transcript-skill](html/001-transcript-skill/) | Built the transcript publishing skill | | 3 emails redacted |
 
 Keep rows in date order. Put a short, honest note about what was redacted in the
 Notes column — that is the reader's signal that gaps are deliberate. Leave the
 share link blank unless the user has published one.
+
+**Ask the user what the session covers — don't just write it yourself.** Propose
+a one-line summary drawn from reading the transcript, and ask them to confirm or
+replace it. They know why the session mattered; the transcript only shows what
+happened in it.
+
+Aim the summary at *why the work was done*, not the mechanics of what was
+typed. Where a session advanced a stated goal of the project, say so — that
+connection is the reason the transcript is worth keeping, and it is exactly the
+part a reader cannot reconstruct from the log.
+
+- Weak: "Created four Python scripts and a SKILL.md"
+- Better: "Built the transcript publishing skill, so build sessions can be
+  published without leaking secrets or PII — a stated goal of the project"
+
+Use the same confirmed summary for the commit subject in step 8, so the map row
+and the git history agree.
 
 ## Step 8 — Commit
 
