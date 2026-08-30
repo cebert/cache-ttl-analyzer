@@ -7,3 +7,7 @@ public/samples
 package-lock.json
 # Prose is hand-formatted; keep docs diffs meaningful
 *.md
+# Design exports are authored for the Claude Design canvas and re-seeded from
+# these files verbatim; reformatting them quadruples the markup and makes
+# design diffs unreadable
+docs/design/wp-d-ux
