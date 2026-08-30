@@ -121,9 +121,13 @@ export class JsonlLineSplitter {
   }
 }
 
+const abortError = () => new DOMException('aborted', 'AbortError')
+
 /**
  * Drive a splitter from a `ReadableStream`, invoking `onLine` per event.
- * Checks `signal` between chunks and reports consumed byte counts.
+ * Honors `signal` even while a read is pending (a `read()` takes no signal
+ * of its own, so each one is raced against the abort) and reports consumed
+ * byte counts. On abort or a callback error the source is cancelled.
  */
 export async function readJsonlLines(
   stream: ReadableStream<Uint8Array>,
@@ -135,13 +139,31 @@ export async function readJsonlLines(
   } = {},
 ): Promise<void> {
   const splitter = options.splitter ?? new JsonlLineSplitter()
+  const { signal } = options
+  if (signal?.aborted) throw abortError()
+  let onAbort: (() => void) | undefined
+  const aborted = signal
+    ? new Promise<never>((_, reject) => {
+        onAbort = () => reject(abortError())
+        signal.addEventListener('abort', onAbort, { once: true })
+      })
+    : undefined
+  // Always handled: a late abort after completion must not surface as an
+  // unhandled rejection.
+  aborted?.catch(() => {})
   const reader = stream.getReader()
   let bytes = 0
   let completed = false
   try {
     for (;;) {
-      if (options.signal?.aborted) throw new DOMException('aborted', 'AbortError')
-      const { done, value } = await reader.read()
+      // Both checks are needed: the flag catches an abort raised while a
+      // chunk was being handled (a source that enqueues synchronously can
+      // otherwise keep winning the race), the race catches an abort raised
+      // while a read is pending on an idle source.
+      if (signal?.aborted) throw abortError()
+      const { done, value } = aborted
+        ? await Promise.race([reader.read(), aborted])
+        : await reader.read()
       if (done) break
       bytes += value.length
       for (const event of splitter.push(value)) onLine(event)
@@ -150,6 +172,7 @@ export async function readJsonlLines(
     for (const event of splitter.finish()) onLine(event)
     completed = true
   } finally {
+    if (signal && onAbort) signal.removeEventListener('abort', onAbort)
     // On abort or an error from `onLine`, cancel the source so a File or
     // file stream releases its resources now rather than at GC time.
     if (!completed) await reader.cancel().catch(() => {})

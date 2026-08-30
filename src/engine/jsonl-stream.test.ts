@@ -163,6 +163,41 @@ describe('readJsonlLines', () => {
     expect(cancelled).toBe(true)
   })
 
+  it('aborts a read that is pending on an idle source', async () => {
+    const controller = new AbortController()
+    let cancelled = false
+    const stream = new ReadableStream<Uint8Array>({
+      pull() {
+        // Never enqueue: the reader's read() stays pending until aborted.
+        return new Promise(() => {})
+      },
+      cancel() {
+        cancelled = true
+      },
+    })
+    setTimeout(() => controller.abort(), 20)
+    await expect(
+      readJsonlLines(stream, () => {}, { signal: controller.signal }),
+    ).rejects.toMatchObject({ name: 'AbortError' })
+    expect(cancelled).toBe(true)
+  }, 5_000)
+
+  it('rejects immediately on an already-aborted signal without taking a reader', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const stream = new ReadableStream<Uint8Array>({
+      pull() {
+        // Block rather than return empty: an empty synchronous pull makes
+        // the stream re-pull in a microtask loop that starves the worker.
+        return new Promise(() => {})
+      },
+    })
+    await expect(
+      readJsonlLines(stream, () => {}, { signal: controller.signal }),
+    ).rejects.toMatchObject({ name: 'AbortError' })
+    expect(stream.locked).toBe(false)
+  })
+
   it('cancels the source when the line callback throws', async () => {
     let cancelled = false
     const stream = new ReadableStream<Uint8Array>({
