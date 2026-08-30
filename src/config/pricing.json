@@ -1,0 +1,154 @@
+{
+  "pricesAsOf": "2026-08-30",
+  "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+  "cacheMultipliers": { "read": 0.1, "write5m": 1.25, "write1h": 2 },
+  "models": {
+    "claude-fable-5": {
+      "displayName": "Claude Fable 5",
+      "inputPerMTok": 10,
+      "outputPerMTok": 50,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-mythos-5": {
+      "displayName": "Claude Mythos 5",
+      "inputPerMTok": 10,
+      "outputPerMTok": 50,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-opus-5": {
+      "displayName": "Claude Opus 5",
+      "inputPerMTok": 5,
+      "outputPerMTok": 25,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1, "fast": 2 }
+    },
+    "claude-opus-4-8": {
+      "displayName": "Claude Opus 4.8",
+      "inputPerMTok": 5,
+      "outputPerMTok": 25,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1, "fast": 2 }
+    },
+    "claude-opus-4-7": {
+      "displayName": "Claude Opus 4.7",
+      "inputPerMTok": 5,
+      "outputPerMTok": 25,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-opus-4-6": {
+      "displayName": "Claude Opus 4.6",
+      "inputPerMTok": 5,
+      "outputPerMTok": 25,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1, "fast": 1 }
+    },
+    "claude-opus-4-5": {
+      "displayName": "Claude Opus 4.5",
+      "inputPerMTok": 5,
+      "outputPerMTok": 25,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-opus-4-5-20251101": {
+      "displayName": "Claude Opus 4.5",
+      "inputPerMTok": 5,
+      "outputPerMTok": 25,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-opus-4-1": {
+      "displayName": "Claude Opus 4.1",
+      "inputPerMTok": 15,
+      "outputPerMTok": 75,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-opus-4-1-20250805": {
+      "displayName": "Claude Opus 4.1",
+      "inputPerMTok": 15,
+      "outputPerMTok": 75,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-opus-4-0": {
+      "displayName": "Claude Opus 4",
+      "inputPerMTok": 15,
+      "outputPerMTok": 75,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-opus-4-20250514": {
+      "displayName": "Claude Opus 4",
+      "inputPerMTok": 15,
+      "outputPerMTok": 75,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-sonnet-5": {
+      "displayName": "Claude Sonnet 5",
+      "inputPerMTok": 2,
+      "outputPerMTok": 10,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-sonnet-4-6": {
+      "displayName": "Claude Sonnet 4.6",
+      "inputPerMTok": 3,
+      "outputPerMTok": 15,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-sonnet-4-5": {
+      "displayName": "Claude Sonnet 4.5",
+      "inputPerMTok": 3,
+      "outputPerMTok": 15,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-sonnet-4-5-20250929": {
+      "displayName": "Claude Sonnet 4.5",
+      "inputPerMTok": 3,
+      "outputPerMTok": 15,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-sonnet-4-0": {
+      "displayName": "Claude Sonnet 4",
+      "inputPerMTok": 3,
+      "outputPerMTok": 15,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-sonnet-4-20250514": {
+      "displayName": "Claude Sonnet 4",
+      "inputPerMTok": 3,
+      "outputPerMTok": 15,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-haiku-4-5": {
+      "displayName": "Claude Haiku 4.5",
+      "inputPerMTok": 1,
+      "outputPerMTok": 5,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-haiku-4-5-20251001": {
+      "displayName": "Claude Haiku 4.5",
+      "inputPerMTok": 1,
+      "outputPerMTok": 5,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    },
+    "claude-3-5-haiku-20241022": {
+      "displayName": "Claude Haiku 3.5",
+      "inputPerMTok": 0.8,
+      "outputPerMTok": 4,
+      "serviceTierMultipliers": { "standard": 1, "batch": 0.5, "priority": 1 },
+      "speedMultipliers": { "standard": 1 }
+    }
+  }
+}
