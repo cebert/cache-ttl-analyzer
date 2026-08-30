@@ -67,11 +67,16 @@ Neutral by default; each accent owns exactly one meaning.
 | amber | `#D97706` | `amber-600` | validation warnings |
 | red | `#DC2626` | `red-600` | failed requests, rejected files |
 
-The seven accents are stock Tailwind; the six neutrals and tints marked *extend*
-need `theme.extend.colors`, because this ground and ink are cooler and bluer than
-Tailwind's slate. Accent tints used: `#EFF4FE` blue, `#EEEFFE` indigo, `#FDF4E7`
-amber, `#FCEBEB` red — define these alongside rather than reaching for `blue-50`,
-which is warmer than this ground.
+Seven of these map to stock Tailwind — the five semantic accents plus the two
+neutral text colors, `slate-500` and `slate-400`. The six marked *extend* need
+`theme.extend.colors`, because this ground and ink are cooler and bluer than
+Tailwind's slate.
+
+Accent tints, all defined alongside rather than reaching for `blue-50` and its
+siblings, which are warmer than this ground: `#EFF4FE` blue, `#EEEFFE` indigo,
+`#FDF4E7` amber, `#FCEBEB` red, and `#E7F5F0` green. The green tint is reserved
+— green currently appears only at full strength on the saving figure — so it is
+on the token sheet but not yet on any screen.
 
 No gradients, glow, animation or neon. Radius 10 on sheets, 6 on controls, 4 on
 badges.

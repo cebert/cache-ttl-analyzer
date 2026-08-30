@@ -43,7 +43,7 @@
       "x": 0,
       "y": -250,
       "w": 470,
-      "text": "Calm developer blue\nEach hue has one job: blue #2563EB for interaction and the recommendation, indigo for cache expiries, green for money saved, amber for validation warnings, red for failed requests. No gradients, no glow, no purple wash.\n\nIBM Plex Sans and Mono, self-hosted. The last section maps every token to Tailwind: seven accents are stock, six neutrals and tints need theme.extend."
+      "text": "Calm developer blue\nEach hue has one job: blue #2563EB for interaction and the recommendation, indigo for cache expiries, green for money saved, amber for validation warnings, red for failed requests. No gradients, no glow, no purple wash.\n\nIBM Plex Sans and Mono, self-hosted. The last section maps every token to Tailwind: seven map to stock Tailwind, six neutrals need theme.extend."
     },
     {
       "id": "l10n-note",
