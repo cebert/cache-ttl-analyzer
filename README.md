@@ -103,7 +103,7 @@ Every change lands through a PR into `main` ([docs/PLAN.md](docs/PLAN.md) §4):
    `wrangler versions upload --preview-alias <branch>`, which publishes a
    version *without* touching the live deployment. A bot comment on the PR
    carries two links: a per-commit preview URL, and a branch-alias URL
-   (`<branch>-cache-ttl-analyzer.workers.dev`) that always points at the
+   (`<branch>-cache-ttl-analyzer.<subdomain>.workers.dev`) that always points at the
    branch's latest version. This is how platform behavior — CSP headers,
    `File.stream()` in the worker, SPA routing — gets verified in the real
    Workers runtime before merge. Fork PRs are skipped: they cannot read the

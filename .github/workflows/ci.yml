@@ -111,25 +111,38 @@ jobs:
           npx wrangler versions upload \
             --preview-alias "${{ steps.alias.outputs.alias }}" \
             2>&1 | tee upload.log
-          version_url=$(grep -oE 'https://[a-z0-9-]+\.workers\.dev' upload.log | head -n1)
+
+          # Read the URLs off wrangler's own labeled lines rather than
+          # matching a bare URL pattern: the hostname carries an account
+          # subdomain (<version>-<worker>.<subdomain>.workers.dev) that is not
+          # ours to hardcode. Strip CR and any ANSI colour first.
+          # A parse miss must not fail a preview that Cloudflare accepted, so
+          # both greps are allowed to come back empty.
+          clean=$(sed -e 's/\r$//' -e 's/\x1b\[[0-9;]*m//g' upload.log)
+          version_url=$(sed -n 's/^Version Preview URL: *//p' <<<"$clean" | tail -n1)
+          alias_url=$(sed -n 's/^Version Preview Alias URL: *//p' <<<"$clean" | tail -n1)
+
           echo "version_url=$version_url" >> "$GITHUB_OUTPUT"
+          echo "alias_url=$alias_url" >> "$GITHUB_OUTPUT"
 
       - name: Comment preview URLs on the PR
         uses: actions/github-script@v8
         env:
-          ALIAS: ${{ steps.alias.outputs.alias }}
           VERSION_URL: ${{ steps.upload.outputs.version_url }}
+          ALIAS_URL: ${{ steps.upload.outputs.alias_url }}
         with:
           script: |
-            const { ALIAS, VERSION_URL } = process.env
+            const { VERSION_URL, ALIAS_URL } = process.env
+            const unknown = '_not reported by wrangler_'
             const marker = '<!-- cache-ttl-analyzer-preview -->'
             const body = [
               marker,
               '### Cloudflare preview',
               '',
-              `| Commit preview | ${VERSION_URL || '_not reported by wrangler_'} |`,
+              '| | URL |',
               '| --- | --- |',
-              `| Branch alias | https://${ALIAS}-cache-ttl-analyzer.workers.dev |`,
+              `| Commit preview | ${VERSION_URL || unknown} |`,
+              `| Branch alias | ${ALIAS_URL || unknown} |`,
               '',
               `Built from ${context.sha.slice(0, 7)}. The branch alias always points at this branch's latest version.`,
             ].join('\n')
