@@ -34,7 +34,7 @@ export default function App() {
 
   useEffect(() => () => workerRef.current?.terminate(), [])
 
-  function runStubAnalysis() {
+  function runPlaceholderAnalysis() {
     workerRef.current?.terminate()
     const worker = new Worker(new URL('./worker/analysis.worker.ts', import.meta.url), {
       type: 'module',
@@ -98,11 +98,11 @@ export default function App() {
       <p>
         Analyze a Claude Code session log to see whether a 5-minute or 1-hour prompt-cache TTL would
         have cost less — entirely in your browser. Under construction; this placeholder exercises
-        the frozen engine contract through a stub Web Worker.
+        the frozen engine contract through the real engine in a Web Worker, on placeholder data.
       </p>
       <p>
-        <button onClick={runStubAnalysis} disabled={state.phase === 'running'}>
-          Run stub analysis
+        <button onClick={runPlaceholderAnalysis} disabled={state.phase === 'running'}>
+          Run placeholder analysis
         </button>{' '}
         <button onClick={cancel} disabled={state.phase !== 'running'}>
           Cancel
@@ -121,7 +121,7 @@ export default function App() {
       {state.phase === 'done' && (
         <>
           <p>
-            Stub verdict: <strong>{state.result.buckets[0]?.recommendation}</strong> (canned data,
+            Verdict: <strong>{state.result.buckets[0]?.recommendation}</strong> (placeholder data,
             prices as of {state.result.pricesAsOf})
           </p>
           <pre>{JSON.stringify(state.result, null, 2)}</pre>

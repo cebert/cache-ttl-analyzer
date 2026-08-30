@@ -554,6 +554,19 @@ describe('per-request pricing modifiers survive the replay', () => {
     close(bucket.actualCost.totalUsd, 0.02035)
     close(bucket.scenarios.fiveMinute.cost.totalUsd, 0.01285)
   })
+
+  it('batch requests keep their half-price tier in both scenarios', () => {
+    // Opus 5 batch: base 10×$2.50 = 0.000025; 1h write 1000×$5 = 0.005; out 5×$12.50 = 0.0000625 → 0.0050875
+    // 5m scenario: write 1000×$3.125 = 0.003125 → 0.0032125
+    const bucket = analyzeBucket(
+      'main',
+      [req({ id: 'r1', start: 0, w1h: 1000, tier: 'batch' })],
+      PRICING,
+    )
+    close(bucket.actualCost.totalUsd, 0.0050875)
+    expect(bucket.scenarios.oneHour.cost).toEqual(bucket.actualCost)
+    close(bucket.scenarios.fiveMinute.cost.totalUsd, 0.0032125)
+  })
 })
 
 describe('analyzeSession plumbing', () => {

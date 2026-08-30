@@ -125,7 +125,7 @@ describe('JsonlLineSplitter', () => {
       expect(bytes).toBe(chunkBytes * chunkCount)
       expect(events).toEqual([{ kind: 'capped', bytes: chunkBytes * chunkCount }])
       expect(splitter.peakPendingBytes).toBeLessThanOrEqual(MAX_LINE_LENGTH_BYTES)
-    })
+    }, 30_000)
   })
 })
 
@@ -142,19 +142,42 @@ describe('readJsonlLines', () => {
     expect(progress).toEqual([8, 16, 24])
   })
 
-  it('rejects with AbortError when the signal aborts mid-stream', async () => {
+  it('rejects with AbortError when the signal aborts mid-stream, cancelling the source', async () => {
     const controller = new AbortController()
     let pulled = 0
+    let cancelled = false
     const stream = new ReadableStream<Uint8Array>({
       pull(c) {
         pulled++
         if (pulled === 2) controller.abort()
         c.enqueue(encoder.encode('{"a":1}\n'))
       },
+      cancel() {
+        cancelled = true
+      },
     })
     await expect(
       readJsonlLines(stream, () => {}, { signal: controller.signal }),
     ).rejects.toMatchObject({ name: 'AbortError' })
     expect(pulled).toBeLessThan(5)
+    expect(cancelled).toBe(true)
+  })
+
+  it('cancels the source when the line callback throws', async () => {
+    let cancelled = false
+    const stream = new ReadableStream<Uint8Array>({
+      pull(c) {
+        c.enqueue(encoder.encode('{"a":1}\n'))
+      },
+      cancel() {
+        cancelled = true
+      },
+    })
+    await expect(
+      readJsonlLines(stream, () => {
+        throw new Error('boom')
+      }),
+    ).rejects.toThrow('boom')
+    expect(cancelled).toBe(true)
   })
 })

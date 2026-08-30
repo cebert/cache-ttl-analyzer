@@ -137,6 +137,7 @@ export async function readJsonlLines(
   const splitter = options.splitter ?? new JsonlLineSplitter()
   const reader = stream.getReader()
   let bytes = 0
+  let completed = false
   try {
     for (;;) {
       if (options.signal?.aborted) throw new DOMException('aborted', 'AbortError')
@@ -147,7 +148,11 @@ export async function readJsonlLines(
       options.onChunk?.(bytes)
     }
     for (const event of splitter.finish()) onLine(event)
+    completed = true
   } finally {
+    // On abort or an error from `onLine`, cancel the source so a File or
+    // file stream releases its resources now rather than at GC time.
+    if (!completed) await reader.cancel().catch(() => {})
     reader.releaseLock()
   }
 }
