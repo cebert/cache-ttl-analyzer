@@ -1,0 +1,20 @@
+// Cloudflare Workers static-assets deployment (no server-side code — the MVP
+// is deliberately backend-free; see docs/PLAN.md §2).
+// The strict CSP / security headers and the cacheanalyzer.com custom domain
+// are wired up in WP-09.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cache-ttl-analyzer",
+  "compatibility_date": "2026-08-30",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+  },
+  // cacheanalyzer.com lives in the same Cloudflare account as this Worker;
+  // Cloudflare manages DNS + TLS for the custom domain automatically (D8).
+  "routes": [{ "pattern": "cacheanalyzer.com", "custom_domain": true }],
+  // Keep the workers.dev URL and per-version preview URLs alongside the
+  // custom domain — used for development and PR previews (WP-09).
+  "workers_dev": true,
+  "preview_urls": true,
+}

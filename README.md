@@ -3,9 +3,9 @@
 
 Upload Claude Code session logs in files (JSON or JSONL), and this tool will analyze whether you could save money by paying for a longer cache window duration.
 
-**Status:** scaffolding — nothing implemented yet. See [docs/PLAN.md](docs/PLAN.md).
+**Status:** in progress — scaffold and frozen engine contract landed (WP-01, WP-02); the analysis engine is still a stub. See [docs/PLAN.md](docs/PLAN.md).
 
-**Live URL:**  _not deployed yet (Cloudflare, planned)_
+**Live URL:** [cacheanalyzer.com](https://cacheanalyzer.com) (placeholder while the engine is built)
 
 ## Why
 
@@ -33,4 +33,73 @@ From my experience, many developers are still unaware of the cost impact their b
 | `.coderabbit.yaml` | [CodeRabbit](https://coderabbit.ai) AI review settings for pull requests |
 
 ## Development
-TODO
+
+Prerequisites: [Node.js](https://nodejs.org/) 22+ (developed on 26) and npm.
+
+```sh
+npm install
+npm run dev        # Vite dev server with HMR
+```
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Vite dev server |
+| `npm run build` | Typecheck (`tsc -b`) + production build to `dist/` |
+| `npm test` | Vitest, single run (`npm run test:watch` for watch mode) |
+| `npm run lint` | [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) |
+| `npm run format` | Prettier, write mode (`format:check` in CI) |
+| `npm run typecheck` | `tsc -b` only |
+| `npm run preview` | Serve the production build via Vite |
+| `npx wrangler dev` | Serve the production build the way Cloudflare Workers will (build first) |
+| `npm run deploy` | Build and deploy to Cloudflare Workers (manual; CI deploys land in WP-09) |
+
+### Architecture in one paragraph
+
+Analysis runs entirely in the browser: a Web Worker
+(`src/worker/analysis.worker.ts`) streams the uploaded JSONL through the
+engine (`src/engine/` — pure TypeScript, no DOM, unit-testable in Node) and
+posts progress/results back over a typed message protocol. The frozen
+engine contract lives in `src/engine/contract.ts` (with `pricing.ts` and
+`protocol.ts`) — read its header before touching engine code; changes
+require touching [docs/PLAN.md](docs/PLAN.md). The current engine is the
+WP-02 stub returning canned data.
+
+### Debug logging
+
+All logging goes through `src/lib/logger.ts` (see docs/PLAN.md, decision
+D13): console-only, never transmitted anywhere, quiet (`warn`) by default in
+production builds. To get verbose output for troubleshooting, either:
+
+- add `?debug=1` to the URL, or
+- run `localStorage.setItem('cta-debug', '1')` in the devtools console (and
+  reload; remove with `localStorage.removeItem('cta-debug')`).
+
+When contributing: never log session-log-derived strings (titles, paths,
+branches, prompts) or file contents — counts, enums, durations, and error
+codes only.
+
+## How changes ship
+
+Every change lands through a PR into `main` ([docs/PLAN.md](docs/PLAN.md) §4):
+
+1. **Automated review:** [CodeRabbit](https://coderabbit.ai) reviews every PR
+   (settings in [`.coderabbit.yaml`](.coderabbit.yaml)). House rule: findings
+   are verified against the code before being applied — each one gets an
+   explicit agree/disagree with reasons on the PR, and inaccurate findings
+   are rejected rather than blindly applied.
+2. **CI checks** (WP-09, upcoming): GitHub Actions runs typecheck, lint,
+   tests, and build as required checks on `main`. GitHub Actions never
+   deploys and holds no Cloudflare credentials.
+3. **Deployment:** the app deploys to Cloudflare Workers as static assets
+   (`wrangler.jsonc`), with production on
+   [cacheanalyzer.com](https://cacheanalyzer.com) (a custom domain on the
+   Worker; Cloudflare manages DNS/TLS) plus a `workers.dev` URL for
+   development. Deploys are currently manual (`npm run deploy`, using your
+   local `wrangler login`). WP-09 switches this to **Cloudflare Workers
+   Builds**: the repo is connected in the Cloudflare dashboard, a merge to
+   `main` triggers a production deploy, and every PR branch gets its own
+   preview URL surfaced as a PR check — so platform behavior (CSP headers,
+   worker streaming) is testable before merge. No Cloudflare API token is
+   stored in GitHub in any of this; Cloudflare does not support OIDC deploys,
+   and Workers Builds is the closest no-stored-secret equivalent (decision
+   D15 in the plan).

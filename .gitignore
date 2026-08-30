@@ -1,2 +1,25 @@
 .env
 .env.*
+
+# Dependencies and build output
+node_modules
+dist
+*.local
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# Wrangler
+.wrangler
+
+# Session worktrees (other agents' workspaces)
+.claude/worktrees/

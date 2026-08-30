@@ -35,10 +35,14 @@ user can bring.
 
 One JSON object per line. Record `type` values observed: `assistant`, `user`, `attachment`, `system`,
 `file-history-snapshot`, `file-history-delta`, `mode`, `permission-mode`,
-`bridge-session`, `ai-title`, `atis-latch`, `last-prompt`, `queue-operation`.
+`bridge-session`, `ai-title`, `atis-latch`, `last-prompt`, `queue-operation` —
+and the list keeps growing (§12).
 
-**Only `type: "assistant"` rows carry billing data.** Everything else is ignorable
-for this tool.
+**Only `type: "assistant"` rows carry billing data.** But not every other row
+is ignorable (amended 2026-08-30 — §12): `user` and `attachment` rows carry no
+billing payload, yet their `uuid`/`parentUuid`/`timestamp` metadata must be
+retained for request-start pairing, and the last `ai-title` record feeds the
+session identification card. Everything else can be skipped and counted.
 
 ## 2. The billing payload
 
@@ -250,6 +254,10 @@ dedup must be **global across files**, not per-file.
 
 ### 6.4 Sidechains are a separate cache namespace
 
+> **Amended 2026-08-30 (WP-02 inspection — see §12):** on v2.1.251 subagent
+> turns are *separate files*, not `isSidechain: true` rows in the session
+> file. The partitioning requirement stands; the mechanism changed.
+
 `isSidechain: true` marks subagent turns. A subagent starts its own conversation
 with its own system prompt and tool set, so its first request cannot read the
 parent's cache and it warms one of its own. The simulator must partition by
@@ -257,8 +265,10 @@ parent's cache and it warms one of its own. The simulator must partition by
 
 Per §3 this is also the boundary of the second setting, `subagentPromptCacheTtl` —
 so this is not merely a correctness detail but the split along which the tool
-reports two separate recommendations. None appear in this sample, so **the path
-is untested against real data until a session with subagents is captured.**
+reports two separate recommendations. None appeared in the original sample,
+which left the path untested against real data at the time this section was
+written. *(Superseded: a real subagent session — in the modern separate-file
+layout — has since been captured and inspected; §12.)*
 
 ### 6.5 Model and rate heterogeneity within one session
 
@@ -300,6 +310,9 @@ Second-order: `timestamp` on an assistant row is response completion, not reques
 start, and TTL runs from start. The preceding `user` row's timestamp is a good
 proxy for start (observed ~2–5s earlier). Using it tightens gap accuracy; ignoring
 it biases gaps slightly long. Cheap to do — do it.
+*(Refined 2026-08-30, §12: "preceding" means the nearest `user`-row ancestor
+via the `parentUuid` chain, which usually passes through an `attachment` row —
+not file adjacency.)*
 
 Third: sub-5-minute gaps that a 1h TTL would have covered are irrelevant, so the
 simulation is only sensitive in the 5m–1h band. In this sample, only 1 session had
@@ -397,3 +410,60 @@ more. The *caching semantics* the tool models, by contrast, are documented in de
 
 None of these price anything or model cache TTL. **No prior art was found for the
 cost-counterfactual use case**, which is the gap this project fills.
+
+## 12. Addendum (2026-08-30): WP-02 pre-freeze inspection findings
+
+The WP-02 contract freeze required inspecting a real session with subagent
+activity (`transcripts/004-build-plan/`, Claude Code v2.1.251 — 715 rows, 201
+assistant rows deduping to 79 requests). Full findings F1–F7 live in the
+header of `src/engine/contract.ts`; this addendum records what changed
+relative to the body of this document. docs/PLAN.md §2 was amended the same
+day.
+
+**Subagent transcripts are separate files now (supersedes §6.4's mechanism).**
+The main session file — and every *top-level* `<session-id>.jsonl` on this
+machine — contains zero `isSidechain: true` rows; on older Claude Code
+versions those rows were interleaved into the main file, and a parser must
+still handle that legacy layout. On v2.1.251 the subagent conversation lives at
+`<project>/<session-id>/subagents/agent-<agentId>.jsonl`, with a sibling
+`agent-<agentId>.meta.json` (`{ agentType, description, toolUseId,
+spawnDepth }`). Every row in it carries `isSidechain: true`, a constant
+`agentId`, and the parent's `sessionId`; its `parentUuid` chains never
+reference the parent file. Consequences:
+
+- Thread identification is trivial on modern versions (`agentId`, one thread
+  per file); `parentUuid`-chain recovery is only needed for older logs with
+  interleaved rows.
+- A single-file upload of a modern main-session log contains **no** subagent
+  traffic — the tool can only show a subagent bucket when the user uploads a
+  subagent transcript itself (or a legacy interleaved log). The §6.3 note on
+  folder upload extends: a future multi-file mode is also what reunites a
+  session with its subagents.
+- The "capture a subagent session" open item (§10) is resolved: captured and
+  inspected. The subagent's first request wrote `ephemeral_5m_input_tokens`
+  while the main conversation wrote 1h — a live confirmation of the two
+  independent TTL buckets from §3, observed in one session.
+
+**Request-start pairing (refines §7's second-order note).** The immediate
+`parentUuid` parent of a request's first assistant row is usually an
+`attachment` row (77 of 79 requests). Walking the chain reaches a `user` row
+for 100% of requests; its timestamp precedes the assistant row's by 1.8s min /
+3.9s median / 26s p90 / 76s max (never negative). A parser must index
+`uuid`/`parentUuid`/`timestamp` for `user` and `attachment` rows (metadata
+only) to compute request starts.
+
+**Format drift is already visible (reinforces §4).** Four record types absent
+from §1's list appeared: `frame-link`, `pr-link`, `artifact-comment-monitor`,
+`artifact-autoreact-ledger`. Skip-and-count is load-bearing on day one.
+
+**Usage subfields are optional (tightens §2).** The subagent transcript's
+`usage` lacked `output_tokens_details`, `server_tool_use`, `iterations`, and
+`speed`; a new `inference_geo` field appeared. Parsers must default
+`service_tier`/`speed` to `"standard"` and ignore unknown additions.
+
+**Smaller confirmations.** `ai-title` is `{ type, aiTitle, sessionId }` (no
+timestamp), rewritten repeatedly — 27 occurrences in one session; take the
+last. `message.id` ↔ `requestId` stayed 1:1 (§6.1 holds). `parentUuid` is not
+a linear chain across a message's content-block rows (only 56 of 122
+continuation rows pointed at the preceding block), so dedup must rely on
+`message.id` alone.
