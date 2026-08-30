@@ -67,6 +67,15 @@ export default function App() {
       }
     }
 
+    // A worker that fails before posting any protocol message (e.g. script
+    // load failure) would otherwise leave the UI stuck in "running".
+    worker.onerror = (event) => {
+      log.error('worker failed', event.message)
+      worker.terminate()
+      if (workerRef.current === worker) workerRef.current = null
+      setState({ phase: 'error', message: event.message || 'worker failed to start' })
+    }
+
     const file = new File(['{"type":"assistant"}\n'], 'stub-session.jsonl', {
       type: 'application/jsonl',
     })

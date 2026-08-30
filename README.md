@@ -3,7 +3,7 @@
 
 Upload Claude Code session logs in files (JSON or JSONL), and this tool will analyze whether you could save money by paying for a longer cache window duration.
 
-**Status:** scaffolding — nothing implemented yet. See [docs/PLAN.md](docs/PLAN.md).
+**Status:** in progress — scaffold and frozen engine contract landed (WP-01, WP-02); the analysis engine is still a stub. See [docs/PLAN.md](docs/PLAN.md).
 
 **Live URL:**  _not deployed yet (Cloudflare, planned)_
 

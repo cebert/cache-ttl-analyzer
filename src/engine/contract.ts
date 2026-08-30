@@ -248,7 +248,12 @@ export type BucketId = 'main' | 'subagent'
  * window), while server-tool 5m writes stay 5m in BOTH scenarios and expire
  * as their own class (`expiryClass: "server-tool-5m"`). Per request, the
  * user-controllable share is the bucket's dominant-TTL write tokens; the
- * residual split tokens are the server-tool share. The reconciliation check
+ * residual split tokens are the server-tool share. Two edge cases are pinned
+ * so conforming simulators cannot diverge: when a bucket has no write tokens
+ * at all (`observedTtl: null`) there is no user-controllable share and
+ * nothing to reprice; when the 5m/1h write tokens tie exactly, the dominant
+ * TTL is `"1h"` (server tools only ever add 5m writes, so nonzero 1h tokens
+ * can only be user-controlled). The reconciliation check
  * (PLAN §5) replays each request with its OBSERVED per-request split — not a
  * single session-wide TTL — and must reproduce actual cost within the stated
  * approximation.
@@ -295,7 +300,10 @@ export interface BucketAnalysis {
   actualCost: CostBreakdown
   /** Observed write-TTL mix, the basis for TTL inference (feasibility §2). */
   observedWriteSplit: TtlTokenSplit
-  /** Token-weighted dominant observed TTL, or null when no writes occurred. */
+  /**
+   * Token-weighted dominant observed TTL; null when no writes occurred; on
+   * an exact tie, "1h" (see the mixed-TTL policy above).
+   */
   observedTtl: CacheTtl | null
   /**
    * Whether the observed cross-bucket pattern proves explicit configuration

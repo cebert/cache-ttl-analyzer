@@ -37,7 +37,11 @@ const STUB_STATS: ParseStats = {
   invalidUsageRowsSkipped: 0,
 }
 
-export function makeStubResult(fileName: string, fileSizeBytes: number): AnalysisResult {
+export function makeStubResult(
+  fileName: string,
+  fileSizeBytes: number,
+  pricesAsOf: string,
+): AnalysisResult {
   return {
     metadata: {
       sessionId: '00000000-0000-4000-8000-000000stub00',
@@ -141,7 +145,7 @@ export function makeStubResult(fileName: string, fileSizeBytes: number): Analysi
       },
     ],
     unknownModels: { models: [], excludedRequests: 0, excludedTotalTokens: 0 },
-    pricesAsOf: '2026-08-30',
+    pricesAsOf,
     approximation: { allOrNothingExpiry: true, conservativeToward: '5m' },
   }
 }
@@ -166,7 +170,7 @@ export function createStubEngine(): AnalysisEngine {
       if (signal.aborted) throw new DOMException('aborted', 'AbortError')
       const outcome: EngineOutcome = {
         kind: 'analysis',
-        result: makeStubResult(input.fileName, input.fileSizeBytes),
+        result: makeStubResult(input.fileName, input.fileSizeBytes, input.pricing.pricesAsOf),
       }
       return outcome
     },

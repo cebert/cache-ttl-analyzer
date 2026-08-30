@@ -1,5 +1,7 @@
 dist
 node_modules
+# Session worktrees and config — other agents' workspaces live here
+.claude
 transcripts
 public/samples
 package-lock.json
