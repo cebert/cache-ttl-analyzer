@@ -102,6 +102,15 @@ Two cross-cutting requirements, cheap now and expensive to retrofit:
   threshold).
 - **UI** consumes a frozen engine contract (WP-02) so UI and engine work can
   proceed in parallel.
+- **Logging** goes through a small leveled abstraction (`loglevel`, `tslog`,
+  or a thin wrapper — chosen in WP-01), used everywhere including the worker
+  (worker log events forwarded to the main thread). Quiet by default in
+  production; a debug flag (query param or `localStorage` toggle, documented
+  on the data policy page) elevates verbosity so users can self-serve
+  troubleshooting output. **Console-only, never shipped anywhere** — remote
+  log collection would contradict the CSP/privacy stance. Anything the user
+  needs to act on (skipped records, warnings) still surfaces in the UI, not
+  just the log.
 
 ### Input validation and secure file handling
 
@@ -193,7 +202,9 @@ passes CI (typecheck, lint, tests, build) and CodeRabbit review.
 **Depends on:** nothing. **Blocks:** everything.
 Vite + React + TS app skeleton; Vitest; ESLint + Prettier; `wrangler.jsonc`
 for Workers static assets; npm scripts (`dev`, `build`, `test`, `lint`,
-`typecheck`, `deploy`); README "Development" section filled in.
+`typecheck`, `deploy`); the logging abstraction (pick `loglevel`/`tslog` or
+write the ~50-line wrapper) with the debug-flag mechanism; README
+"Development" section filled in.
 *Acceptance:* `npm run build && npm test` green; `wrangler dev` serves the
 placeholder app.
 
@@ -420,6 +431,7 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D10 | Localization-ready architecture from day one; English-only catalog for MVP | Externalized strings + `Intl` formatting are cheap now and a painful retrofit; future languages become translation tasks. (User, 2026-08-30) |
 | D11 | Dedicated data policy page in the MVP | Data privacy is a core product value; the policy also pre-commits the disclosure standard for any future opt-in API feature. (User, 2026-08-30) |
 | D12 | No in-app billing-mode questionnaire; the API-rates framing is a stated label | Deliberate simplification of feasibility §3's "ask the user, don't guess"; revisit if users report confusion. (Post-review, 2026-08-30) |
+| D13 | All logging through a leveled abstraction with a user-accessible debug flag; console-only, no remote collection | Troubleshooting a client-only app depends on users' consoles; remote logging would contradict the privacy stance. (User, 2026-08-30) |
 
 ## 7. Risks
 
