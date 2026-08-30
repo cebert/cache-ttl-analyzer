@@ -38,8 +38,11 @@ One JSON object per line. Record `type` values observed: `assistant`, `user`, `a
 `bridge-session`, `ai-title`, `atis-latch`, `last-prompt`, `queue-operation` —
 and the list keeps growing (§12).
 
-**Only `type: "assistant"` rows carry billing data.** Everything else is ignorable
-for this tool.
+**Only `type: "assistant"` rows carry billing data.** But not every other row
+is ignorable (amended 2026-08-30 — §12): `user` and `attachment` rows carry no
+billing payload, yet their `uuid`/`parentUuid`/`timestamp` metadata must be
+retained for request-start pairing, and the last `ai-title` record feeds the
+session identification card. Everything else can be skipped and counted.
 
 ## 2. The billing payload
 
@@ -262,9 +265,10 @@ parent's cache and it warms one of its own. The simulator must partition by
 
 Per §3 this is also the boundary of the second setting, `subagentPromptCacheTtl` —
 so this is not merely a correctness detail but the split along which the tool
-reports two separate recommendations. None appear in this sample, so **the path
-is untested against real data until a session with subagents is captured.**
-*(Since captured and inspected — §12.)*
+reports two separate recommendations. None appeared in the original sample,
+which left the path untested against real data at the time this section was
+written. *(Superseded: a real subagent session — in the modern separate-file
+layout — has since been captured and inspected; §12.)*
 
 ### 6.5 Model and rate heterogeneity within one session
 
@@ -417,8 +421,10 @@ relative to the body of this document. docs/PLAN.md §2 was amended the same
 day.
 
 **Subagent transcripts are separate files now (supersedes §6.4's mechanism).**
-The main session file — and every session file on this machine — contains zero
-`isSidechain: true` rows. The subagent conversation lives at
+The main session file — and every *top-level* `<session-id>.jsonl` on this
+machine — contains zero `isSidechain: true` rows; on older Claude Code
+versions those rows were interleaved into the main file, and a parser must
+still handle that legacy layout. On v2.1.251 the subagent conversation lives at
 `<project>/<session-id>/subagents/agent-<agentId>.jsonl`, with a sibling
 `agent-<agentId>.meta.json` (`{ agentType, description, toolUseId,
 spawnDepth }`). Every row in it carries `isSidechain: true`, a constant
