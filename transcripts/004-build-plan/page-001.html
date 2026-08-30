@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/4</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-08-30T19-37-19-209Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T19-37-19-209Z" class="timestamp-link"><time datetime="2026-08-30T19:37:19.209Z" data-timestamp="2026-08-30T19:37:19.209Z">2026-08-30T19:37:19.209Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-08-30T19-37-19-208Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T19-37-19-208Z" class="timestamp-link"><time datetime="2026-08-30T19:37:19.208Z" data-timestamp="2026-08-30T19:37:19.208Z">2026-08-30T19:37:19.208Z</time></a></div><div class="message-content">
+<div class="user-content"><p><command-name>/model</command-name>
+            <command-message>model</command-message>
+            <command-args></command-args></p></div></div></div>
+<div class="message user" id="msg-2026-08-30T19-37-19-208Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T19-37-19-208Z" class="timestamp-link"><time datetime="2026-08-30T19:37:19.208Z" data-timestamp="2026-08-30T19:37:19.208Z">2026-08-30T19:37:19.208Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-stdout>Set model to <code>Fable 5</code> and saved as your default for new sessions</local-command-stdout></p></div></div></div>
+<div class="message user" id="msg-2026-08-30T19-38-29-943Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T19-38-29-943Z" class="timestamp-link"><time datetime="2026-08-30T19:38:29.943Z" data-timestamp="2026-08-30T19:38:29.943Z">2026-08-30T19:38:29.943Z</time></a></div><div class="message-content">
+<div class="user-content"><p>I have created a repository for cache-ttl-analyzer. The scaffolding for this repository has been created and I have pushed this skeleton repository to GitHub. The goal of this tool is to allow users to upload their Claude Code session logs and analyze if they could save money by paying for longer caching durations. As a secondary benefit, I could see this tool helping educate users on how to better utilize caching. I believe there are still many users who are unaware that changing models or effort in the middle of a session has an impact on caching. Additionally, I still observe many individuals keeping long-running sessions idle for extended periods of time and are unaware of the caching ramifications.</p>
+<p>Claude Code Subscription users have a default promptCacheTtl value of 1h for their main session. However, many enterprise customers pay at API billing rates and with providers, such as Amazon Bedrock, can make an organization decision if they want to cache sessions for 5 minutes or an hour. This decision can have a noticeable impact on cost. </p>
+<p>Please explore this repository to familiarize yourself with it. I have already had an agent research of this type of analysis is possible using Claude Session logs (which has been confirmed). </p>
+<p>I want to decompose this project into parts. I plan on asking agents to complete individual tasks. We will want to keep capture the plan as an artifact in this repository.</p>
+<p>Some high-level requirements I have are:
+This tool needs to be deployed and usable in a browser
+GitHub Actions Workflows will be used for CI/CD
+Since this is a hobby project and not a production application, I only need a single PROD deployment for now
+I have a personal Cloudflare account and would like to deploy this to Cloudflare as this is a good choice for a hobby project for minimal cost 
+Users upload a session log to their browser. 
+Analysis should all be performed locally so that users are not concerned about their personal session information being uploaded somewhere without their permission. 
+We should remind users that this is an open source project and that they can confirm this behavior themselves by looking at code
+Session analysis is an important part of this tool, most of which should be done in the clients browser
+Basic analysis will inform the user if their session would have been more or less expensive with 5m or 1hr caching using Anthropic's published API rates
+Analysis could be CPU intensive, so we want a UX experience that indicates processing is occurring and allows a user to back out
+Nice to have analysis would be informing a user of how many times the cache was invalidated or warm (so that they can learn better cache management skills)
+I want the recommendations of this application to be as accurate as possible. We will want unit tests to verify that our computational logic is correct. 
+We need clear instructions to inform users where to find their sessions logs on Windows and macOS machines
+It would be good to also add some sample sessions in case users are not comfortable 
+If time permits, I would like to add an optional feature where users can upload their timestamp information and token user information (without session details and sensitive information) to the Claude API so that they can have more detailed analysis. It should be very clear to users that this is optional and what data will be sent to Anthropic (data privacy and making users informed of data policy is important). If we add this API integration it will be more important to add rate limiting to prevent someone from abusing this tool and running up a bill. 
+Let’s not immediately worry about session persistence, we can add that later and for not it will complicate things
+We will not require authentication for now 
+I’d prefer to use React+TypeScript / Vite as I believe this is the recommended development pattern from Cloudflare for this type of application.
+I am considering purchasing a vanity domain for this site 
+We will want to setup a full CI/CD process in GitHub to Cloudflare</p>
+<p>Ask me the 5–10 questions whose answers would most change the design. Don't propose anything yet. Then we will build the plan. I plan on starting several opus sessions to implement parts of our plan once we both agree that the plan is sufficiently detailed and well-positioned for success. </p>
+<p>I plan on using a Claude Design session to help us get a nice UX for this tool.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-38-32-739Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-38-32-739Z" class="timestamp-link"><time datetime="2026-08-30T19:38:32.739Z" data-timestamp="2026-08-30T19:38:32.739Z">2026-08-30T19:38:32.739Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-38-33-448Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-38-33-448Z" class="timestamp-link"><time datetime="2026-08-30T19:38:33.448Z" data-timestamp="2026-08-30T19:38:33.448Z">2026-08-30T19:38:33.448Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll explore the repository first to get familiar with what's already there, then ask my questions.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-38-34-487Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-38-34-487Z" class="timestamp-link"><time datetime="2026-08-30T19:38:34.487Z" data-timestamp="2026-08-30T19:38:34.487Z">2026-08-30T19:38:34.487Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01A1ZZmjiVfYYzyeSxT64emx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">List repo files and branches</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">find ~/Code/cache-ttl-analyzer -type f -not -path &#39;*/node_modules/*&#39; -not -path &#39;*/.git/*&#39; | head -50 &amp;&amp; echo &#34;---&#34; &amp;&amp; git -C ~/Code/cache-ttl-analyzer branch -a</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-38-36-208Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-38-36-208Z" class="timestamp-link"><time datetime="2026-08-30T19:38:36.208Z" data-timestamp="2026-08-30T19:38:36.208Z">2026-08-30T19:38:36.208Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>~/Code/cache-ttl-analyzer/.editorconfig
+~/Code/cache-ttl-analyzer/README.md
+~/Code/cache-ttl-analyzer/.gitignore
+~/Code/cache-ttl-analyzer/.coderabbit.yaml
+~/Code/cache-ttl-analyzer/CLAUDE.md
+~/Code/cache-ttl-analyzer/transcripts/README.md
+~/Code/cache-ttl-analyzer/docs/PLAN.md
+~/Code/cache-ttl-analyzer/src/.gitkeep
+~/Code/cache-ttl-analyzer/docs/design/.gitkeep
+~/Code/cache-ttl-analyzer/public/samples/.gitkeep
+~/Code/cache-ttl-analyzer/docs/design/claude-code-session-logs/prototype-sim.py
+~/Code/cache-ttl-analyzer/docs/design/claude-code-session-logs/README.md
+~/Code/cache-ttl-analyzer/docs/design/claude-code-session-logs/feasibility.md
+~/Code/cache-ttl-analyzer/transcripts/003-coderabbit-setup/page-001.html
+~/Code/cache-ttl-analyzer/transcripts/003-coderabbit-setup/index.html
+~/Code/cache-ttl-analyzer/transcripts/003-coderabbit-setup/session.jsonl
+~/Code/cache-ttl-analyzer/transcripts/001-transcript-skill/page-001.html
+~/Code/cache-ttl-analyzer/transcripts/001-transcript-skill/index.html
+~/Code/cache-ttl-analyzer/transcripts/001-transcript-skill/session.jsonl
+~/Code/cache-ttl-analyzer/transcripts/002-log-format-feasibility/page-001.html
+~/Code/cache-ttl-analyzer/transcripts/002-log-format-feasibility/index.html
+~/Code/cache-ttl-analyzer/transcripts/002-log-format-feasibility/session.jsonl
+~/Code/cache-ttl-analyzer/transcripts/002-log-format-feasibility/page-003.html
+~/Code/cache-ttl-analyzer/transcripts/002-log-format-feasibility/page-002.html
+~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript/SKILL.md
+~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript/scripts/apply_redactions.py
+~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript/scripts/list_sessions.py
+~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript/scripts/to_text.py
+~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript/scripts/scan_secrets.py
+---
+  chore/enable-coderabbit
+* docs/coderabbit-session-log
+  docs/transcript-final-turns
+  main
+  remotes/origin/HEAD -&gt; origin/main
+  remotes/origin/chore/enable-coderabbit
+  remotes/origin/docs/coderabbit-session-log
+  remotes/origin/docs/transcript-final-turns
+  remotes/origin/main</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-38-38-285Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-38-38-285Z" class="timestamp-link"><time datetime="2026-08-30T19:38:38.285Z" data-timestamp="2026-08-30T19:38:38.285Z">2026-08-30T19:38:38.285Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0166gR5QcV4ou2RLBXwCASvq"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;~/Code/cache-ttl-analyzer/docs/PLAN.md&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-38-38-305Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-38-38-305Z" class="timestamp-link"><time datetime="2026-08-30T19:38:38.305Z" data-timestamp="2026-08-30T19:38:38.305Z">2026-08-30T19:38:38.305Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	# Build plan
+2	
+3	_Stub — to be written._
+4	
+5	## Phases
+6	
+7	_Stub — to be written._
+8	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-38-38-585Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-38-38-585Z" class="timestamp-link"><time datetime="2026-08-30T19:38:38.585Z" data-timestamp="2026-08-30T19:38:38.585Z">2026-08-30T19:38:38.585Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_015qhzxV6FB4wmVMEEHPZFve"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;~/Code/cache-ttl-analyzer/README.md&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-38-38-610Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-38-38-610Z" class="timestamp-link"><time datetime="2026-08-30T19:38:38.610Z" data-timestamp="2026-08-30T19:38:38.610Z">2026-08-30T19:38:38.610Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	
+2	# cache-ttl-analyzer
+3	
+4	Upload Claude Code session logs in files (JSON or JSONL), and this tool will analyze whether you could save money by paying for a longer cache window duration.
+5	
+6	**Status:** scaffolding — nothing implemented yet. See [docs/PLAN.md](docs/PLAN.md).
+7	
+8	**Live URL:**  _not deployed yet (Cloudflare, planned)_
+9	
+10	## Why
+11	
+12	[Prompt caching](https://code.claude.com/docs/en/prompt-caching) plays a critical role in agentic harnesses like Claude Code. Without caching, every turn must be reprocessed, which increases latency and cost.
+13	
+14	This tool was created to help answer the question: **should I pay for longer cache windows?**
+15	
+16	Claude Code picks a cache TTL for you, but the default depends on your plan. On a Claude subscription plan, the main conversation is cached for one hour under plan usage (usage credit usage drops to 5 minutes). When using an API key or a cloud provider like Amazon Bedrock, the default TTL is only five minutes. Users who aren&#x27;t on a subscription plan must decide whether paying for longer caching (which incurs extra cost) is more economical than staying with shorter window durations. 
+17	
+18	Many excellent tools are already available to trace and review coding harness sessions, such as [Datadog Lapdog](https://chrisebert.net/see-what-your-ai-coding-agent-is-doing-with-datadog-lapdog/) and [Agents View](https://www.agentsview.io/).  However, these tools arguably focus less on prompt caching and seem to assume users are on subscription plans. 
+19	
+20	The organization I work for is increasingly concerned about AI costs and ensuring the value delivered matches or exceeds token costs. Like many other organizations, we are on a legacy Claude Code Enterprise Subscription plan with subsidized tokens that ends soon. Our organization is planning for the increased costs it will incur when it transitions to API-based billing in Amazon Bedrock or another provider with usage-based billing. Caching is one lever we can use to control costs, but few tools help us focus on this problem. The cache TTL analyzer can help with making these decisions. 
+21	
+22	From my experience, many developers are still unaware of the cost impact their behaviors have on caching. For example, changing effort or models mid-session will invalidate the cache, and resuming long-lived sessions can result in expensive cache misses. A secondary goal of this tool is to raise awareness of the cost impact of these behaviors.
+23	
+24	## Repo map
+25	
+26	| Path | What&#x27;s in it |
+27	|---|---|
+28	| `docs/PLAN.md` | Build plan and phases |
+29	| `docs/design/` | Claude Design exports, screenshots |
+30	| `transcripts/` | The AI sessions that built this project ([map](transcripts/README.md)) |
+31	| `src/` | Application source |
+32	| `public/samples/` | Bundled demo session logs so the tool works without your own data |
+33	| `.coderabbit.yaml` | [CodeRabbit](https://coderabbit.ai) AI review settings for pull requests |
+34	
+35	## Development
+36	TODO</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-38-40-606Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-38-40-606Z" class="timestamp-link"><time datetime="2026-08-30T19:38:40.606Z" data-timestamp="2026-08-30T19:38:40.606Z">2026-08-30T19:38:40.606Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0112nzaRNfyuP11NSXgVaByr"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;~/Code/cache-ttl-analyzer/docs/design/claude-code-session-logs/feasibility.md&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-38-40-618Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-38-40-618Z" class="timestamp-link"><time datetime="2026-08-30T19:38:40.618Z" data-timestamp="2026-08-30T19:38:40.618Z">2026-08-30T19:38:40.618Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	# Feasibility: computing cache-TTL cost counterfactuals from Claude Code session logs
+2	
+3	**Date:** 2026-08-30
+4	**Question:** Do Claude Code session logs contain enough data to recompute what a
+5	session would have cost under a different `promptCacheTtl` (5m vs 1h), using
+6	Anthropic&#x27;s published API rates?
+7	
+8	**Verdict: Yes — build it.** Every input the cost model needs is present per
+9	request. The exact-dollar *actual* cost is fully determined by the logs; the
+10	*counterfactual* is a simulation with one honest approximation, described below.
+11	
+12	Two things the official docs added that reshape the product, both detailed later:
+13	there are **two TTL settings**, not one (`promptCacheTtl` and
+14	`subagentPromptCacheTtl`), so the tool should report two recommendations; and the
+15	**defaults depend on how the user is billed**, which determines whether the dollar
+16	figure is their real bill or a notional at-API-rates comparison. The one standing
+17	risk is that Anthropic documents the file format as internal and unstable (§4).
+18	
+19	A working prototype (`prototype-sim.py`, alongside this doc) ran over 7 real
+20	sessions end-to-end and produced differentiated recommendations, so this is
+21	confirmed by execution, not by reading the schema.
+22	
+23	---
+24	
+25	## 1. Where the logs live and what they are
+26	
+27	[Officially](https://code.claude.com/docs/en/sessions#where-transcripts-are-stored):
+28	`~/.claude/projects/&lt;project&gt;/&lt;session-id&gt;.jsonl`, where `&lt;project&gt;` is the working
+29	directory path with non-alphanumeric characters replaced by `-` (truncated to 200
+30	chars plus a hash of the full path when longer). `CLAUDE_CONFIG_DIR` can move the
+31	root and `CLAUDE_CODE_PROJECT_DIR_NAME` can override the `&lt;project&gt;` segment, so an
+32	uploader must not assume the path encodes a real directory. Transcripts are cleaned
+33	up after 30 days by default (`cleanupPeriodDays`), which caps how much history any
+34	user can bring.
+35	
+36	One JSON object per line. Record `type` values observed: `assistant`, `user`, `attachment`, `system`,
+37	`file-history-snapshot`, `file-history-delta`, `mode`, `permission-mode`,
+38	`bridge-session`, `ai-title`, `atis-latch`, `last-prompt`, `queue-operation`.
+39	
+40	**Only `type: &quot;assistant&quot;` rows carry billing data.** Everything else is ignorable
+41	for this tool.
+42	
+43	## 2. The billing payload
+44	
+45	Every assistant row has `message.usage`:
+46	
+47	```json
+48	{
+49	  &quot;input_tokens&quot;: 2,
+50	  &quot;cache_creation_input_tokens&quot;: 13185,
+51	  &quot;cache_read_input_tokens&quot;: 23472,
+52	  &quot;output_tokens&quot;: 386,
+53	  &quot;output_tokens_details&quot;: { &quot;thinking_tokens&quot;: 237 },
+54	  &quot;cache_creation&quot;: {
+55	    &quot;ephemeral_5m_input_tokens&quot;: 0,
+56	    &quot;ephemeral_1h_input_tokens&quot;: 13185
+57	  },
+58	  &quot;service_tier&quot;: &quot;standard&quot;,
+59	  &quot;speed&quot;: &quot;standard&quot;,
+60	  &quot;server_tool_use&quot;: { &quot;web_search_requests&quot;: 0, &quot;web_fetch_requests&quot;: 0 },
+61	  &quot;iterations&quot;: [ ... ]
+62	}
+63	```
+64	
+65	Plus on the row itself: `timestamp` (ISO-8601, ms), `requestId`, `message.id`,
+66	`message.model`, `isSidechain`, `sessionId`, `cwd`, `gitBranch`, `version`.
+67	
+68	This is everything the cost model needs:
+69	
+70	| Needed | Field | Notes |
+71	|---|---|---|
+72	| Which model priced it | `message.model` | e.g. `claude-opus-5`, `claude-opus-4-8` |
+73	| Uncached input | `usage.input_tokens` | |
+74	| Cache reads | `usage.cache_read_input_tokens` | billed 0.1× base input |
+75	| Cache writes | `usage.cache_creation_input_tokens` | |
+76	| **Which TTL was actually used** | `usage.cache_creation.ephemeral_5m_input_tokens` / `ephemeral_1h_input_tokens` | the decisive field |
+77	| Output | `usage.output_tokens` | thinking tokens are already included |
+78	| Request timing | `timestamp` on the assistant row; the preceding `user` row approximates request *start* | drives the expiry simulation |
+79	| Rate modifiers | `usage.service_tier`, `usage.speed` | `speed: &quot;fast&quot;` on Opus 5 prices at $10/$50, not $5/$25 |
+80	
+81	**The configured `promptCacheTtl` value is not written to the log, and is not in
+82	`settings.json` either.** It must be *inferred* from the `cache_creation` split.
+83	That inference is reliable: in all 7 sessions on this machine, 100% of cache-write
+84	tokens landed in `ephemeral_1h_input_tokens`, correctly identifying a 1h
+85	configuration. Note the split is per-request, and a single request can legitimately
+86	mix both TTLs (server tools insert their own 5m writes), so treat it as a
+87	token-weighted mix, not a boolean.
+88	
+89	## 3. The setting being analyzed is actually two settings
+90	
+91	Anthropic documents [two independent TTL controls](https://code.claude.com/docs/en/prompt-caching#choose-the-ttl-yourself),
+92	each accepting `5m` or `1h`, both requiring Claude Code **v2.1.242 or later**:
+93	
+94	| Bucket | Setting | Env var | Covers |
+95	|---|---|---|---|
+96	| Main conversation | [`promptCacheTtl`](https://code.claude.com/docs/en/settings-reference#promptcachettl) | `CLAUDE_CODE_PROMPT_CACHE_TTL` | interactive turns, `-p` runs, Agent SDK turns, inline helpers |
+97	| Everything else | [`subagentPromptCacheTtl`](https://code.claude.com/docs/en/settings-reference#subagentpromptcachettl) | `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL` | subagents, workflows, teammates, forks, compaction, session titles |
+98	
+99	**This makes the sidechain handling in §6.4 a product feature, not an edge case.**
+100	The tool should report and recommend the two buckets separately — they are tuned
+101	separately, they have different default values, and an agent-heavy workload can
+102	easily want opposite answers for each.
+103	
+104	Resolution order when several controls apply (first match wins), per the docs:
+105	`FORCE_PROMPT_CACHING_5M=1` → the bucket&#x27;s env var → the bucket&#x27;s setting →
+106	a subagent&#x27;s `experimental.cacheTtl` frontmatter (v2.1.248+) →
+107	`ENABLE_PROMPT_CACHING_1H=1` → the bucket default.
+108	
+109	### What the log does and doesn&#x27;t reveal about the setting
+110	
+111	**The configured value is never recorded.** No record type carries `promptCacheTtl`,
+112	`subagentPromptCacheTtl`, either env var, or any settings snapshot — verified by
+113	scanning every line of all 9 local session files for those names and for `&quot;ttl&quot;`.
+114	The only hits are this project&#x27;s own conversation content. The setting is also absent
+115	from `settings.json`.
+116	
+117	What the log carries instead is the **effective TTL per request**, in
+118	`usage.cache_creation`. That is arguably better than the setting: it is ground truth
+119	*after* the entire six-step resolution order, so it already accounts for env vars,
+120	managed settings, subagent frontmatter, and the plan-usage downgrade. But it answers
+121	&quot;what happened&quot;, never &quot;what was configured&quot; or &quot;why&quot;.
+122	
+123	Two consequences:
+124	
+125	**Default vs. explicit is only inferable in one direction.** Comparing the two
+126	buckets narrows the possibilities, but never confirms a default:
+127	
+128	| Observed pattern | What it means |
+129	|---|---|
+130	| Main 1h, subagents 5m | Consistent with subscription-within-plan defaults — but identical to an API-key user who set `promptCacheTtl: 1h` and left the other alone. **Ambiguous.** |
+131	| Main 5m, subagents 5m | Consistent with API-key/credits defaults — or `FORCE_PROMPT_CACHING_5M=1`. **Ambiguous.** |
+132	| Both 1h | No default combination produces this. Requires `ENABLE_PROMPT_CACHING_1H=1` or both settings set. **Definitely explicit.** |
+133	| Main 5m, subagents 1h | No default produces this either. **Definitely explicit.** |
+134	
+135	So the tool can say &quot;this was explicitly configured&quot; with certainty in two of four
+136	cases, and can never say &quot;this was the default&quot; with certainty. Billing mode is not
+137	recoverable at all. Ask the user; don&#x27;t guess.
+138	
+139	**The second bucket is mostly invisible.** Of the request classes
+140	`subagentPromptCacheTtl` governs, only subagents appear in the transcript at all.
+141	Verified: four sessions carry an `ai-title` record — proving a background
+142	title-generation request ran — yet **no session contains a single Haiku-model
+143	assistant row**. Helper and background requests are not written to the transcript
+144	with usage. Compaction is unconfirmed either way, since no session in this corpus
+145	compacted.
+146	
+147	Practically: unless the uploaded session ran subagents, the tool sees only the main
+148	conversation bucket and can only advise on `promptCacheTtl`. It should say so rather
+149	than implying it evaluated both.
+150	
+151	### Defaults depend on how you&#x27;re billed — and this reframes the headline
+152	
+153	| Bucket | Claude subscription, within plan usage | Usage credits, API key, or cloud provider |
+154	|---|---|---|
+155	| Main conversation | **1 hour** | **5 minutes** |
+156	| Everything else | 5 minutes (except server-controlled helpers) | 5 minutes |
+157	
+158	This explains the corpus cleanly: every local session wrote 1h because these ran on
+159	a Claude subscription within plan usage, where 1h is the *default* — not because
+160	anything was misconfigured. Two consequences worth stating plainly in the product:
+161	
+162	- **The framing &quot;6 of 7 sessions were on the wrong setting&quot; is about cost at API
+163	  rates, not about a mistake anyone made.** For a subscription user inside plan
+164	  usage there is no per-token bill at all, so the dollar figures are a *notional*
+165	  &quot;what this would have cost at published API rates&quot; — exactly what was asked for,
+166	  but it must be labelled as such or it will read as an invoice.
+167	- **The audience that can act on the recommendation is the API-key / usage-credit /
+168	  cloud-provider user**, who defaults to 5m on both buckets and may be leaving the
+169	  1h win on the table for long, gap-heavy sessions. The tool cannot see billing mode
+170	  in the log, so it should ask, or present both readings.
+171	
+172	## 4. The format is officially unstable — plan for it
+173	
+174	This is the one genuine project risk, and it comes straight from Anthropic:
+175	
+176	&gt; Each line is a JSON object for a message, tool use, or metadata entry. **The entry
+177	&gt; format is internal to Claude Code and changes between versions, so scripts that
+178	&gt; parse these files directly can break on any release.** To build on session data,
+179	&gt; use `/export` or the script interfaces instead.
+180	&gt; — [Where transcripts are stored](https://code.claude.com/docs/en/sessions#where-transcripts-are-stored)
+181	
+182	The sanctioned alternatives don&#x27;t serve this use case: `/export` renders prose for a
+183	human and drops `usage` entirely, and the script interfaces
+184	([`--output-format json`](https://code.claude.com/docs/en/headless#get-structured-output),
+185	the [hook `transcript_path`](https://code.claude.com/docs/en/hooks#common-input-fields),
+186	the Agent SDK) all cover a *live* run, not the historical sessions already sitting on
+187	disk. Retrospective analysis has no supported path, so parsing the JSONL is the only
+188	way to build this — which is a deliberate tradeoff, not an oversight to discover later.
+189	
+190	Mitigations, all cheap:
+191	
+192	- **Pin to the `version` field**, which every assistant row carries. Record the
+193	  versions a build was validated against and warn on anything outside that range
+194	  rather than failing silently. The corpus already spans 2.1.193 / 2.1.247 / 2.1.251.
+195	- **Depend on the smallest possible surface.** The tool needs `type`, `timestamp`,
+196	  `message.id`, `message.model`, `message.usage`, `isSidechain`, `effort`, `version` —
+197	  eight fields. Never touch `message.content`. A narrow parser survives more releases
+198	  and, per §9, is also the privacy-correct design.
+199	- **Fail loudly and partially.** An unrecognized record type should be skipped and
+200	  counted, not crash the run; surface &quot;N records skipped&quot; in the UI.
+201	- **Ship fixtures** from each validated version so a format change shows up in CI
+202	  rather than in a user&#x27;s browser.
+203	
+204	## 5. The pricing math
+205	
+206	From Anthropic&#x27;s published rates:
+207	
+208	- cache **read** = 0.1× the base input rate
+209	- cache **write, 5m TTL** = 1.25× base input
+210	- cache **write, 1h TTL** = 2.0× base input
+211	- A cache read **refreshes the entry&#x27;s timer at no cost**, on either TTL.
+212	- Lifetime is measured from the **start** of the request that writes or reads it —
+213	  generation time counts against the window.
+214	
+215	Base rates ($/1M): Opus 5 and Opus 4.8 $5/$25 · Sonnet 5 $2/$10 ·
+216	Sonnet 4.6 $3/$15 · Haiku 4.5 $1/$5 · Fable 5 $10/$50.
+217	
+218	Break-even: 5m pays for itself at 2 requests (1.25 + 0.1 = 1.35 vs 2.0 uncached);
+219	1h needs 3+ (2.0 + 0.2 = 2.2 vs 3.0). **1h only wins when gaps exceed 5 minutes** —
+220	otherwise every request refreshes the 5m entry for free and the doubled write price
+221	is pure loss. This is exactly the tradeoff the tool exists to quantify.
+222	
+223	## 6. Traps that will silently produce wrong numbers
+224	
+225	These are the reason a naive implementation gives garbage, and they&#x27;re the real
+226	value of this research.
+227	
+228	### 6.1 One JSONL row per content block — dedup is mandatory
+229	
+230	Claude Code writes **one row per content block of an assistant message**, and
+231	**every one of those rows carries the full message `usage`**. Observed in real
+232	logs: `msg_011CdygtRmd95FeRM1AqU7Xt` appears **13 times**, all with identical
+233	`output_tokens: 12528`, `cache_read: 37044`. Summing rows overstates cost by up to
+234	13×. Across the sample, 281 rows collapsed to 142 real requests.
+235	
+236	**Dedup on `message.id`.** Verified 1:1 with `requestId` across all 669 assistant
+237	rows (0 requestIds mapping to &gt;1 message id, and vice versa), so either key works.
+238	
+239	### 6.2 Synthetic rows
+240	
+241	`message.model == &quot;&lt;synthetic&gt;&quot;` rows exist (2 in the sample, from API error
+242	paths). They have no `service_tier`/`speed` and represent no billable call.
+243	Exclude them.
+244	
+245	### 6.3 Cross-file duplication
+246	
+247	`--resume` / fork can copy history into a new session file. Not observed in this
+248	sample (0 message ids in &gt;1 file), but if the tool accepts a folder upload,
+249	dedup must be **global across files**, not per-file.
+250	
+251	### 6.4 Sidechains are a separate cache namespace
+252	
+253	`isSidechain: true` marks subagent turns. A subagent starts its own conversation
+254	with its own system prompt and tool set, so its first request cannot read the
+255	parent&#x27;s cache and it warms one of its own. The simulator must partition by
+256	`isSidechain` before computing gaps.
+257	
+258	Per §3 this is also the boundary of the second setting, `subagentPromptCacheTtl` —
+259	so this is not merely a correctness detail but the split along which the tool
+260	reports two separate recommendations. None appear in this sample, so **the path
+261	is untested against real data until a session with subagents is captured.**
+262	
+263	### 6.5 Model and rate heterogeneity within one session
+264	
+265	The corpus spans `claude-opus-5` and `claude-opus-4-8`, though each individual
+266	session held one model. Price per request anyway — a mid-session `/model` switch is
+267	both legal and, per the docs below, a full cache invalidation. Also honor
+268	`service_tier` (batch = 50%) and `speed` (fast mode = 2× on Opus 5).
+269	
+270	### 6.6 Model, effort, and version changes reset the cache entirely
+271	
+272	Per Anthropic&#x27;s docs, the cache key includes the **model**, the **effort level**,
+273	and the **fast-mode header** — and a Claude Code upgrade usually changes the system
+274	prompt, invalidating from the top. All three are recoverable from the log: the row
+275	carries `message.model`, `effort`, and `version`.
+276	
+277	The simulator must treat a change in any of them as a hard cache reset, independent
+278	of elapsed time. In this corpus each session held one model, one effort, and one
+279	version, so no in-session reset occurs — but `effort` does vary across sessions
+280	(`high` vs `medium`) and `version` spans 2.1.193 / 2.1.247 / 2.1.251, so the fields
+281	are live and the case is real.
+282	
+283	## 7. The one real approximation
+284	
+285	The actual cost is exact. The counterfactual is not, for one reason:
+286	
+287	**The logs report aggregate token counts, not per-breakpoint detail.** Claude Code
+288	uses up to 4 cache breakpoints. When a 5m entry lapses, real-world behavior is a
+289	*partial* invalidation — some breakpoints survive, some don&#x27;t — but the logs only
+290	give you a single `cache_read_input_tokens` total. The simulator therefore models
+291	expiry as all-or-nothing: if the gap since the previous same-thread request exceeds
+292	the TTL, the tokens that were read become a fresh write at the write multiplier.
+293	
+294	This **overstates** the penalty of the shorter TTL in mixed cases, which means the
+295	5m recommendation is conservative — it will under-sell 5m rather than over-sell it.
+296	That&#x27;s the right direction to be wrong in, and it should be stated in the UI rather
+297	than hidden.
+298	
+299	Second-order: `timestamp` on an assistant row is response completion, not request
+300	start, and TTL runs from start. The preceding `user` row&#x27;s timestamp is a good
+301	proxy for start (observed ~2–5s earlier). Using it tightens gap accuracy; ignoring
+302	it biases gaps slightly long. Cheap to do — do it.
+303	
+304	Third: sub-5-minute gaps that a 1h TTL would have covered are irrelevant, so the
+305	simulation is only sensitive in the 5m–1h band. In this sample, only 1 session had
+306	gaps in that band — which is also the only session where 1h won.
+307	
+308	Fourth, and newly confirmed from the docs: **cache scope is wider than one session.**
+309	Claude Code&#x27;s cache is effectively scoped to machine + working directory, so parallel
+310	sessions in the same directory read each other&#x27;s cache; a fork reads its parent&#x27;s;
+311	`/rewind` lands back on an already-warm entry; and the compaction request reads the
+312	conversation prefix. A strictly per-session simulation therefore ignores real cross-
+313	session hits. Treating each session independently is the right v1 — it is the unit
+314	the user uploads and reasons about — but the folder-level rollup should not claim to
+315	be exact, and cross-session sharing is a plausible v2 refinement.
+316	
+317	## 8. Prototype results (real sessions, this machine)
+318	
+319	| Session | Requests | Span | Cost @5m | Cost @1h | Better | Delta |
+320	|---|---|---|---|---|---|---|
+321	| 908ed721 | 8 | 1.1m | $0.77 | $1.07 | **5m** | $0.30 |
+322	| 3dd62ac3 | 19 | 10.7m | $1.93 | $2.32 | **5m** | $0.40 |
+323	| 43e08bdd | 50 | 80.2m | $6.97 | $4.83 | **1h** | $2.13 |
+324	| 334db6f6 | 142 | 29.1m | $11.86 | $12.80 | **5m** | $0.94 |
+325	| 4cb8948e | 56 | 19.2m | $4.63 | $5.10 | **5m** | $0.47 |
+326	| d4592e2c | 10 | 2.9m | $0.83 | $1.07 | **5m** | $0.24 |
+327	| 98d37497 | 11 | 1.3m | $0.54 | $0.71 | **5m** | $0.16 |
+328	
+329	The result is not degenerate — it flips on session shape. Tight agent loops favor
+330	5m (writes are half price and reads keep refreshing); the 80-minute session with
+331	human think-time gaps favors 1h by 31%. All these sessions actually ran at 1h, so
+332	6 of 7 were on the wrong setting. That&#x27;s the product.
+333	
+334	## 9. Privacy: local-only processing is genuinely required, not decorative
+335	
+336	The JSONL contains full user prompts, full assistant output, complete file contents
+337	via `attachment` and `file-history-snapshot` records, absolute paths (`cwd`),
+338	`gitBranch`, and tool outputs. Uploading these to a server would be a real
+339	disclosure. The client-side-only design is the correct call and should be stated
+340	prominently — and the parser should never need to read `message.content` at all,
+341	only `usage` + metadata, which is worth enforcing in code as a defensive property.
+342	
+343	## 10. Open items before/during build
+344	
+345	- **JSON (non-JSONL) input.** The user asked for JSON support. Claude Code&#x27;s
+346	  `/export` output is a different shape and may not carry `usage`. **Verify against
+347	  a real export before promising it.** JSONL is confirmed and should be the primary
+348	  path.
+349	- **Capture a subagent session** as a fixture to exercise the `isSidechain` path.
+350	- **Capture a 5m-configured session** for the inverse direction; every local
+351	  session ran at 1h.
+352	- Decide whether to model a **hybrid** recommendation (1h on the stable system/tool
+353	  prefix, 5m on the conversation tail) — the logs can&#x27;t distinguish per-breakpoint
+354	  behavior, so this can only be presented as guidance, not a computed number.
+355	- Pricing table needs a stated &quot;rates as of&quot; date and an easy update path, sourced
+356	  from the [published pricing page](https://platform.claude.com/docs/en/about-claude/pricing).
+357	- **Consider whether the tool is even needed for a given user.** As of v2.1.251,
+358	  `/usage` shows a `Prompt cache (main)` line with hit ratio, miss count, and warm
+359	  state, and a statusline script can read the same `prompt_cache` object. That is
+360	  live, not retrospective, and gives no dollar counterfactual — but it is worth
+361	  knowing what the built-in already answers, and worth linking to from the UI.
+362	
+363	## 11. Sources
+364	
+365	### Official Anthropic documentation
+366	
+367	The format itself is barely documented — location and a stability warning, nothing
+368	more. The *caching semantics* the tool models, by contrast, are documented in depth.
+369	
+370	| Page | What it establishes |
+371	|---|---|
+372	| [Manage sessions › Where transcripts are stored](https://code.claude.com/docs/en/sessions#where-transcripts-are-stored) | The path layout, the `&lt;project&gt;` slug rule and 200-char truncation, retention (`cleanupPeriodDays`, default 30 days), `CLAUDE_CONFIG_DIR` / `CLAUDE_CODE_PROJECT_DIR_NAME`, and the **explicit warning that the entry format is internal and unstable** |
+373	| [Manage sessions › Access conversations from scripts](https://code.claude.com/docs/en/sessions#access-conversations-from-scripts) | The four sanctioned programmatic interfaces, and why none of them covers retrospective analysis |
+374	| [How Claude Code uses prompt caching](https://code.claude.com/docs/en/prompt-caching) | The whole model: prefix matching, the three-layer request ordering, and the full list of invalidating vs. cache-preserving actions |
+375	| [› Cache lifetime](https://code.claude.com/docs/en/prompt-caching#cache-lifetime) | The two TTLs, which requests fall in which bucket, and the billing-dependent defaults table |
+376	| [› Choose the TTL yourself](https://code.claude.com/docs/en/prompt-caching#choose-the-ttl-yourself) | Both settings, both env vars, the six-step resolution order, `FORCE_PROMPT_CACHING_5M`, and the official method for confirming which TTL was used — reading `usage.cache_creation` |
+377	| [› Cache scope](https://code.claude.com/docs/en/prompt-caching#cache-scope) | Cache is scoped to machine + directory; parallel same-directory sessions share it |
+378	| [› Subagents and the cache](https://code.claude.com/docs/en/prompt-caching#subagents-and-the-cache) | Subagents warm their own cache; forks read the parent&#x27;s |
+379	| [› Check cache performance](https://code.claude.com/docs/en/prompt-caching#check-cache-performance) | Field definitions for `cache_creation_input_tokens` and `cache_read_input_tokens` |
+380	| [Settings reference › `promptCacheTtl`](https://code.claude.com/docs/en/settings-reference#promptcachettl) · [`subagentPromptCacheTtl`](https://code.claude.com/docs/en/settings-reference#subagentpromptcachettl) | The two settings the tool exists to advise on |
+381	| [Environment variables](https://code.claude.com/docs/en/env-vars) | `CLAUDE_CODE_PROMPT_CACHE_TTL`, `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL`, `FORCE_PROMPT_CACHING_5M`, `ENABLE_PROMPT_CACHING_1H` |
+382	| [Costs › Prompt cache statistics](https://code.claude.com/docs/en/costs#prompt-cache-statistics) · [Statusline › prompt cache fields](https://code.claude.com/docs/en/statusline#prompt-cache-fields) | What the built-in `/usage` and statusline already report (v2.1.251+) |
+383	| [Non-interactive mode › structured output](https://code.claude.com/docs/en/headless#get-structured-output) | `--output-format json`, the one JSON shape with usage and cost |
+384	| [Hooks › common input fields](https://code.claude.com/docs/en/hooks#common-input-fields) | `transcript_path`, for a `SessionEnd` archiving hook |
+385	| [API › Prompt caching: 1-hour cache duration](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#1-hour-cache-duration) · [pricing](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pricing) | The canonical 1.25× / 2.0× write and 0.1× read multipliers |
+386	| [Published API pricing](https://platform.claude.com/docs/en/about-claude/pricing) | The per-model base rates |
+387	| [Lessons from building Claude Code: prompt caching is everything](https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything) | Design rationale — useful background, not a spec |
+388	
+389	### Prior art
+390	
+391	| Project | Why it&#x27;s relevant |
+392	|---|---|
+393	| [simonw/claude-code-transcripts](https://github.com/simonw/claude-code-transcripts) (Apache-2.0) | Closest prior art. Renders local JSONL **and Claude Code web JSON exports** to paginated HTML. Confirms the web-export JSON path is real and parseable, and is a working reference for record-type coverage. `uvx claude-code-transcripts --help` |
+394	| [Simon Willison&#x27;s write-up](https://simonwillison.net/2025/Dec/25/claude-code-transcripts/) (2025-12-25) | Background on the tool and the format |
+395	| [daaain/claude-code-log](https://github.com/daaain/claude-code-log) | Python CLI, JSONL → HTML/Markdown; another independent read of the record types |
+396	| [claude-code-transcripts (Rust crate)](https://docs.rs/claude-code-transcripts) | A typed parser — the closest thing to a written-down schema, and a useful cross-check on field nullability |
+397	
+398	None of these price anything or model cache TTL. **No prior art was found for the
+399	cost-counterfactual use case**, which is the gap this project fills.
+400	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-39-23-105Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-39-23-105Z" class="timestamp-link"><time datetime="2026-08-30T19:39:23.105Z" data-timestamp="2026-08-30T19:39:23.105Z">2026-08-30T19:39:23.105Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-39-35-683Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-39-35-683Z" class="timestamp-link"><time datetime="2026-08-30T19:39:35.683Z" data-timestamp="2026-08-30T19:39:35.683Z">2026-08-30T19:39:35.683Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I've explored the repo — the standout is <code>docs/design/claude-code-session-logs/feasibility.md</code>, which is thorough: it confirms the JSONL has everything needed, identifies the dedup/sidechain/model-switch traps, notes there are actually <em>two</em> TTL settings (<code>promptCacheTtl</code> and <code>subagentPromptCacheTtl</code>), and ships a working prototype (<code>prototype-sim.py</code>) validated on 7 real sessions. <code>docs/PLAN.md</code> is a stub awaiting the plan. That research sharpens what's worth asking.</p>
+<p>Here are the questions whose answers would most change the design:</p>
+<p><strong>1. Is the optional Anthropic API feature in the v1 plan at all — and if so, whose API key?</strong>
+This is the single biggest architectural fork. Without it, v1 can be a <em>fully static</em> Cloudflare deployment: no backend, no rate limiting, no abuse surface, and the strongest possible version of the "nothing leaves your browser" claim (verifiable by the absence of any server code). If it's in scope, the second fork matters just as much: users bring their own API key (can stay client-side, key never touches your infra) vs. a Worker holding <em>your</em> key (needs rate limiting, budget caps, abuse controls — real ongoing liability on a hobby project). Which is it, and for which phase?</p>
+<p><strong>2. What billing contexts should the recommendation speak to, and at whose rates?</strong>
+The feasibility doc shows billing mode is unrecoverable from the log, so the tool must either ask the user or present both readings ("your actual bill" vs. "notional at API rates"). Related: you mentioned Bedrock specifically — should v1 support provider rate tables (Bedrock/Vertex pricing and their cache multipliers), or Anthropic published API rates only with providers as a later enhancement?</p>
+<p><strong>3. V1 input scope: single session file, or folder/multi-session upload?</strong>
+Multi-file changes real things: global dedup across files, cross-session cache-sharing effects (§7 of the feasibility doc), a rollup UI, and folder-picker APIs that behave differently across browsers. Also: is Claude Code <em>web JSON export</em> support required for v1, or JSONL only? (The doc flags web-export JSON as unverified for <code>usage</code> data.)</p>
+<p><strong>4. Is the two-bucket (main vs. subagent TTL) recommendation in v1?</strong>
+The research says these are tuned independently and can want opposite answers, but no local fixture exercises the sidechain path yet. Report both buckets from day one, or ship main-conversation-only and add subagents when we have a real fixture?</p>
+<p><strong>5. How should the pricing table be maintained, and what happens on unknown model IDs?</strong>
+Options range from a hardcoded versioned table with a "rates as of" date (simple, can go stale) to a scheduled CI job that checks the pricing page. And when a session contains a model we don't have rates for: skip with a warning, or let the user enter rates manually?</p>
+<p><strong>6. Sample sessions: your real (redacted) sessions or synthetic fixtures?</strong>
+The repo already has redacted transcripts, but publishing real ones as demo data exposes your usage patterns and project names. Synthetic fixtures can also be <em>engineered</em> to demonstrate specific lessons (a 1h-wins session, a cache-thrash session, a mid-session model switch), which serves the educational goal better. Preference?</p>
+<p><strong>7. Should <code>prototype-sim.py</code> be the reference implementation?</strong>
+I.e., generate golden expected-output fixtures from it, and require the TypeScript implementation to match to the cent — versus treating the feasibility doc as the spec and reimplementing independently (which double-checks the prototype's logic but loses the cross-validation). This determines how the "accuracy is paramount" requirement gets tested.</p>
+<p><strong>8. Domain and launch sequencing: buy the vanity domain before or after first deploy?</strong>
+<code>workers.dev</code> works day one; a custom domain touches CI/CD config, and if you have a name in mind it can inform branding in the design session. Do you have a name picked, and do you want the plan to include the domain cutover?</p>
+<p><strong>9. How should the plan be shaped for your multi-session workflow?</strong>
+You'll run several Opus sessions in parallel against this plan. Should tasks be decomposed as strictly independent work packages (each = one branch + one PR into <code>main</code>, gated by CI and CodeRabbit), with explicit interface contracts between them (e.g., the parser/simulator's TypeScript types frozen early so UI and engine can proceed in parallel)? And roughly how many parallel sessions do you expect, so tasks are sized accordingly?</p>
+<p>One observation rather than a question: your requirement for cancellable, progress-indicating analysis points strongly at running the parser/simulator in a Web Worker — I'll bake that into the plan unless you object when we get there.</p></div></div></div>
+<div class="message user" id="msg-2026-08-30T19-48-01-479Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T19-48-01-479Z" class="timestamp-link"><time datetime="2026-08-30T19:48:01.479Z" data-timestamp="2026-08-30T19:48:01.479Z">2026-08-30T19:48:01.479Z</time></a></div><div class="message-content">
+<div class="user-content"><ol>
+<li>Anthropic API feature would be future after we get the MVP working 2. Let's assume API rates. My thought here is that subscription users may care less about cost than individuals who pay at API rate but regardless of which type of customer you are the API rates are important to be aware of. We can just make it clear in our readme and tool that this is our rationale for focusing on API-based billing. 3. I am not sure how long these sessions will take to process yet. For MVP let's allow the user to upload one session at a time. We can keep a history of sessions they processed in their current browser session (no persistent storage). Later, after if we determine this is a useful tool we could always add more durable persistance later. 4. Have an election on this and vote for which is more helpful to a user we also don't want to make things overly confusing. 5. That's a good question I had two thoughts on this we could call an anthropic API but for now maybe we can just pull the latest API rates and put it in a configuraiton file that the browser app has access to. If a model is not in our configuration file we can simply inform the user. It may also make sense to put a "prices as of" date so the user can determine if the pricing data is outdated. 6. I think we will probably make some synthetic fixtures. We can even use claude to make some actual sessions that highligh scenarios we want to cover (it will also help us verify our tool is working as we expect) 8. No domain idea yet we need to see which domains are available 9. We should break down the work for multiple sessions. WE may be able to run some in parellel or some may be dependent on eachother.</li>
+</ol></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-48-56-193Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-48-56-193Z" class="timestamp-link"><time datetime="2026-08-30T19:48:56.193Z" data-timestamp="2026-08-30T19:48:56.193Z">2026-08-30T19:48:56.193Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-48-59-819Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-48-59-819Z" class="timestamp-link"><time datetime="2026-08-30T19:48:59.819Z" data-timestamp="2026-08-30T19:48:59.819Z">2026-08-30T19:48:59.819Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All clear answers — and for the two you left to me, I'll make the call and record it in the plan: on the <strong>two-bucket question (Q4)</strong>, my vote is to always partition sidechains in the simulation (required for correctness anyway), headline the main-conversation recommendation, and show a subagent section <em>only when the uploaded session actually contains subagent turns</em> — helpful when relevant, invisible otherwise. On <strong>Q7</strong>, use <code>prototype-sim.py</code> as a fixture generator: it emits golden expected outputs that the TypeScript engine must match, alongside independent hand-computed unit tests so a shared bug can't hide in both.</p>
+<p>Now I'll write the plan to <code>docs/PLAN.md</code> on a new branch.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-49-00-668Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-49-00-668Z" class="timestamp-link"><time datetime="2026-08-30T19:49:00.668Z" data-timestamp="2026-08-30T19:49:00.668Z">2026-08-30T19:49:00.668Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01SHRAPFf4VkDiUkjvix1ejQ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Create docs/build-plan branch off main</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git -C ~/Code/cache-ttl-analyzer checkout -b docs/build-plan main</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-49-02-233Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-49-02-233Z" class="timestamp-link"><time datetime="2026-08-30T19:49:02.233Z" data-timestamp="2026-08-30T19:49:02.233Z">2026-08-30T19:49:02.233Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Switched to a new branch &#x27;docs/build-plan&#x27;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-18-464Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-18-464Z" class="timestamp-link"><time datetime="2026-08-30T19:50:18.464Z" data-timestamp="2026-08-30T19:50:18.464Z">2026-08-30T19:50:18.464Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_011XtBXtpoo2DtmGZdNKnc8T">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># Build plan
+
+The plan for taking cache-ttl-analyzer from scaffolding to a deployed MVP.
+Grounded in the research at
+[docs/design/claude-code-session-logs/feasibility.md](design/claude-code-session-logs/feasibility.md)
+(referenced below as &#34;the feasibility doc&#34;) — read it before implementing the
+parser or simulator; it documents the traps that make naive implementations
+silently wrong.
+
+This plan is decomposed into **work packages (WPs)** sized for individual Claude
+sessions, with an explicit dependency graph so independent WPs can run in
+parallel.
+
+---
+
+## 1. MVP definition
+
+A static web app, deployed to Cloudflare, where a user:
+
+1. Uploads **one Claude Code session log (JSONL)** at a time — or loads a
+   bundled sample.
+2. Watches analysis run **entirely in their browser** (Web Worker), with a
+   progress indicator and a cancel button.
+3. Gets a verdict: what the session actually cost at published Anthropic API
+   rates, what it *would have cost* under the other cache TTL (5m vs 1h), and a
+   recommendation.
+4. Sees cache-behavior insights: cache invalidations (expiry gaps, and hard
+   resets from model / effort / version changes), warm-read counts, and short
+   educational explanations of each.
+5. Can revisit sessions analyzed earlier in the same browser session
+   (in-memory history only — nothing persisted).
+
+Plus: clear instructions for finding session logs on macOS and Windows, a
+prominent privacy statement (&#34;analysis is local; this is open source — verify
+it yourself&#34; with a link to the repo), and a &#34;prices as of&#34; date on every
+dollar figure.
+
+### Non-goals for MVP (deferred, in rough priority order)
+
+- **Anthropic API deep-analysis feature** (upload timestamps/token counts for
+  richer analysis). Deferred until MVP proves useful. When picked up, the
+  BYO-API-key vs. our-key-plus-rate-limiting decision gets made then.
+- Multi-file / folder upload and cross-session rollups (requires global dedup
+  and cross-session cache modeling — feasibility doc §6.3, §7).
+- Provider-specific rate tables (Bedrock, Vertex). MVP uses Anthropic
+  published API rates only — see decision log.
+- Claude Code **web JSON export** input. Unverified that it carries `usage`
+  (feasibility doc §10). JSONL only for MVP.
+- Durable persistence, accounts, authentication.
+- Vanity domain. Launch on `workers.dev`; domain cutover is a fast follow once
+  a name is chosen.
+
+---
+
+## 2. Architecture
+
+- **Stack:** React + TypeScript + Vite. Deployed as **static assets on
+  Cloudflare Workers** via Wrangler. **No server-side code in the MVP** — this
+  is deliberate: the strongest form of the privacy claim is that there is no
+  backend to send data to.
+- **Analysis engine** (`src/engine/`): pure TypeScript, zero DOM/React
+  dependencies, so it runs in a Web Worker and is unit-testable in Node.
+  - **Parser** reads only the fields it needs (`type`, `timestamp`,
+    `message.id`, `message.model`, `message.usage`, `isSidechain`, `effort`,
+    `version`) and **never reads `message.content`** — enforced by a test that
+    feeds a session whose content blocks are poison values and asserts they
+    never appear in any output (feasibility doc §9).
+  - **Simulator** implements the counterfactual model from the feasibility
+    doc: see §3 below.
+- **Web Worker** wraps the engine: streams the file
+  (`File.stream()` + line splitting, so large logs don&#39;t need one giant
+  string), posts progress messages, and supports cancellation (terminate).
+- **Pricing config** (`src/config/pricing.json`): per-model base rates, cache
+  multipliers (read 0.1×, 5m write 1.25×, 1h write 2.0×), `service_tier` and
+  `speed` modifiers, and a top-level `pricesAsOf` date shown in the UI.
+  Unknown model IDs are reported to the user, never guessed.
+- **UI** consumes a frozen engine contract (WP-02) so UI and engine work can
+  proceed in parallel.
+
+### Engine correctness rules (from the feasibility doc — all mandatory)
+
+| Rule | Source |
+|---|---|
+| Dedup rows on `message.id` (one row per content block, each carries full usage; up to 13× overstatement otherwise) | §6.1 |
+| Exclude `message.model == &#34;&lt;synthetic&gt;&#34;` rows | §6.2 |
+| Partition by `isSidechain` before computing gaps — sidechains are a separate cache namespace | §6.4 |
+| Hard cache reset on any change of `model`, `effort`, or `version`, independent of elapsed time | §6.6 |
+| Price per request (models/tiers/speed can vary mid-session); honor `service_tier` and `speed` | §6.5 |
+| Gap timing: use the preceding `user` row&#39;s timestamp as request start | §7 |
+| Expiry model is all-or-nothing per gap; this is conservative toward 5m — disclose it in the UI | §7 |
+| Effective TTL comes from `usage.cache_creation` (`ephemeral_5m` / `ephemeral_1h` split), treated as a token-weighted mix | §2 |
+| Unrecognized record types are skipped and counted, surfaced as &#34;N records skipped&#34; | §4 |
+| Warn (don&#39;t fail) when `version` is outside the validated range | §4 |
+
+---
+
+## 3. What the analysis reports
+
+**Headline:** the main-conversation bucket. Cost at 5m vs cost at 1h,
+recommendation, and delta — labelled as *notional cost at published Anthropic
+API rates* with a one-line rationale (subscription users have no per-token
+bill; API-rate framing is what an API/Bedrock/credits user pays and what
+everyone should understand — see decision log).
+
+**Conditionally:** if the session contains sidechain turns, a second section
+for the **subagent bucket** (`subagentPromptCacheTtl`), with its own
+recommendation. When no sidechains exist, this section does not appear, and
+the tool does not imply it evaluated subagent traffic (feasibility doc §3).
+
+**Insights (the educational layer):**
+
+- Timeline of cache events: writes, warm reads, expiries (with the gap that
+  caused each), hard resets (annotated with the cause: model switch, effort
+  change, version upgrade).
+- Counts: cache invalidations, warm-read requests, wasted-write tokens.
+- Observed effective TTL per bucket, and whether the configuration was
+  provably explicit (the two unambiguous patterns from feasibility doc §3) —
+  otherwise no claim about defaults.
+- Session shape summary: request count, span, largest gap, share of gaps in
+  the 5m–1h band (the only band where the choice matters).
+
+---
+
+## 4. Work packages
+
+Sized so each WP is one focused session producing one PR into `main`. Every PR
+passes CI (typecheck, lint, tests, build) and CodeRabbit review.
+
+### WP-01 — Scaffold and tooling
+**Depends on:** nothing. **Blocks:** everything.
+Vite + React + TS app skeleton; Vitest; ESLint + Prettier; `wrangler.jsonc`
+for Workers static assets; npm scripts (`dev`, `build`, `test`, `lint`,
+`typecheck`, `deploy`); README &#34;Development&#34; section filled in.
+*Acceptance:* `npm run build &amp;&amp; npm test` green; `wrangler dev` serves the
+placeholder app.
+
+### WP-02 — Engine contract (do in the same session as WP-01)
+**Depends on:** WP-01. **Blocks:** WP-03, WP-04, WP-05, WP-07, WP-08.
+The frozen TypeScript interfaces everything else codes against:
+`ParsedSession` (deduped request records + skip/warning counts),
+`AnalysisResult` (per-bucket actual/counterfactual costs, recommendation,
+insight events), the Web Worker message protocol (start / progress / cancel /
+result / error), and the `pricing.json` schema. Documented inline; changes
+after freeze require touching this plan.
+*Acceptance:* types compile; a stub engine returning canned data satisfies
+them end-to-end through a stub worker.
+
+### WP-03 — Parser
+**Depends on:** WP-02. **Parallel with:** WP-04, WP-06, WP-09.
+Streaming JSONL parser implementing the correctness rules table (dedup,
+synthetic exclusion, skip-and-count, version warnings, minimal field surface,
+content-poison test).
+*Acceptance:* unit tests for every rule; parses a 100MB synthetic file without
+loading it into one string.
+
+### WP-04 — Pricing config and cost engine
+**Depends on:** WP-02. **Parallel with:** WP-03, WP-06, WP-09.
+`pricing.json` populated from the published pricing page (with `pricesAsOf`);
+actual-cost computation per request (base, cache read, 5m/1h writes, output,
+tier/speed modifiers); unknown-model reporting.
+*Acceptance:* hand-computed unit tests (values worked out on paper, not
+generated by code) for each modifier combination.
+
+### WP-05 — Counterfactual simulator
+**Depends on:** WP-03, WP-04.
+The core product: replay the session under each TTL; per-bucket partition;
+gap-driven expiry; hard resets; insight-event generation (§3 above).
+*Acceptance:* unit tests for reset/expiry/refresh edge cases, plus the golden
+fixtures from WP-06 matching to the cent.
+
+### WP-06 — Fixtures and golden data
+**Depends on:** WP-02 (shapes only). **Parallel with:** WP-03, WP-04.
+Two kinds of fixtures:
+1. **Crafted synthetic JSONL** exercising each trap: content-block
+   duplication, synthetic rows, sidechains, mid-session model switch, effort
+   change, version change, gaps in the 5m–1h band, mixed
+   `ephemeral_5m`/`ephemeral_1h` writes, unknown record types, unknown model.
+2. **Real sessions generated by Claude** enacting scenarios (a tight agent
+   loop where 5m wins; a long gap-heavy session where 1h wins; a session that
+   switches models mid-way) — these double as the bundled samples in
+   `public/samples/` and as end-to-end verification that the tool&#39;s verdicts
+   match intuition.
+
+Extend `prototype-sim.py` to emit expected-output JSON per fixture; commit
+those as golden files with a test harness that runs the TS engine against
+them.
+*Acceptance:* golden files committed; harness wired into `npm test`; samples
+are content-scrubbed (they&#39;ll be public).
+
+### WP-07 — UI shell
+**Depends on:** WP-02; visual design from the Claude Design session.
+**Parallel with:** WP-05.
+Upload (drag-drop + picker), Web Worker wiring with progress bar and cancel,
+in-memory history of this browser session&#39;s analyses, &#34;find your logs&#34;
+instructions (macOS: `~/.claude/projects/...`; Windows path; note
+`CLAUDE_CONFIG_DIR` and the 30-day cleanup), privacy statement with repo
+link, sample-session loader.
+*Acceptance:* full flow works against the WP-02 stub engine; cancel actually
+terminates the worker mid-parse.
+
+### WP-08 — Results and insights UI
+**Depends on:** WP-05, WP-07.
+Recommendation card (with the API-rates framing line and `pricesAsOf` date),
+cost comparison, conditional subagent section, cache-event timeline,
+educational explainers, approximation disclosure (§7 conservatism), skipped
+records / version warnings surfaced.
+*Acceptance:* renders correctly for each WP-06 sample, including the
+no-sidechain and unknown-model cases.
+
+### WP-09 — CI/CD
+**Depends on:** WP-01. **Parallel with:** WP-03, WP-04, WP-06.
+GitHub Actions: PR workflow (typecheck, lint, test, build) required on
+`main`; deploy workflow on push to `main` via `wrangler deploy` using a
+Cloudflare API token secret. Document secret setup in README. Branch
+protection on `main`.
+*Acceptance:* a PR shows the checks; a merge to `main` deploys to
+`workers.dev` and the README&#39;s Live URL is updated.
+
+### WP-10 — Launch polish
+**Depends on:** WP-08, WP-09.
+README rewrite for end users; verify samples load on the deployed site;
+cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity
+check with the 100MB fixture; final wording pass on privacy and
+approximation disclosures.
+
+### Dependency graph
+
+```mermaid
+graph LR
+    WP01[WP-01 Scaffold] --&gt; WP02[WP-02 Contract]
+    WP01 --&gt; WP09[WP-09 CI/CD]
+    WP02 --&gt; WP03[WP-03 Parser]
+    WP02 --&gt; WP04[WP-04 Pricing]
+    WP02 --&gt; WP06[WP-06 Fixtures]
+    WP02 --&gt; WP07[WP-07 UI shell]
+    WP03 --&gt; WP05[WP-05 Simulator]
+    WP04 --&gt; WP05
+    WP06 --&gt; WP05
+    WP05 --&gt; WP08[WP-08 Results UI]
+    WP07 --&gt; WP08
+    WP08 --&gt; WP10[WP-10 Launch]
+    WP09 --&gt; WP10
+    Design([Claude Design session]) -.-&gt; WP07
+    Design -.-&gt; WP08
+```
+
+**Suggested waves:** ① WP-01+02 (one session) → ② WP-03, WP-04, WP-06, WP-09,
+and the Claude Design session, all in parallel → ③ WP-05 and WP-07 in
+parallel → ④ WP-08 → ⑤ WP-10.
+
+---
+
+## 5. Testing strategy
+
+- **Unit tests** (Vitest) on parser rules and pricing math, with
+  hand-computed expected values.
+- **Golden-fixture cross-validation:** `prototype-sim.py` is the reference
+  implementation; the TS engine must reproduce its outputs to the cent on
+  every fixture. Independent hand-computed tests exist so a shared logic bug
+  can&#39;t hide in both implementations.
+- **Content-poison test:** proves `message.content` never influences or leaks
+  into output.
+- **Format-drift canary:** fixtures are tagged with the Claude Code `version`
+  they represent; the parser&#39;s validated-version range lives in one constant,
+  and CI fails if a fixture version falls outside it.
+
+---
+
+## 6. Decision log
+
+| # | Decision | Rationale |
+|---|---|---|
+| D1 | Anthropic API feature deferred to post-MVP | Keeps MVP fully static: no backend, no rate limiting, strongest privacy story. (User, 2026-08-30) |
+| D2 | All dollar figures at published Anthropic API rates, clearly labelled | API rates are what usage-billed users pay and what everyone should understand; rationale stated in README and UI. Provider tables (Bedrock/Vertex) deferred. (User) |
+| D3 | One session upload at a time; in-memory history only | Processing time unknown; persistence deferred until the tool proves useful. (User) |
+| D4 | Always partition sidechains in the simulation; headline the main bucket; show a subagent section only when the session contains sidechain turns | Partitioning is required for correctness regardless (§6.4); conditional display gives two-bucket value without confusing the majority whose sessions have no subagents. (Claude&#39;s vote, accepted) |
+| D5 | Rates live in a committed `pricing.json` with a `pricesAsOf` date; unknown models reported to the user | Simple, auditable, no runtime fetch. API-driven rates possible later. (User) |
+| D6 | Fixtures are synthetic + Claude-generated scenario sessions; no personal sessions bundled | Avoids publishing usage patterns; scenarios can be engineered to teach specific lessons and to verify verdicts. (User) |
+| D7 | `prototype-sim.py` is the reference implementation, generating golden fixtures the TS engine must match; plus independent hand-computed tests | Cross-validation between two implementations, with hand-computed values as the tiebreaker. (Claude&#39;s vote) |
+| D8 | Launch on `workers.dev`; pick/purchase a domain later | No name chosen yet; cutover is cheap. (User) |
+| D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |
+
+## 7. Risks
+
+| Risk | Mitigation |
+|---|---|
+| Log format is officially internal and unstable (feasibility §4) | Minimal field surface; version pinning + warning; skip-and-count; versioned fixtures in CI |
+| Pricing goes stale | `pricesAsOf` shown to users; single-file update path; periodic check noted in README |
+| Counterfactual is approximate (all-or-nothing expiry, feasibility §7) | Conservative direction (understates 1h&#39;s downside cases toward 5m) disclosed in the UI |
+| Subagent path untested against real data | WP-06 must include a real subagent session fixture before WP-05 is called done |
+| Huge session files stall the browser | Streaming parse in a worker; progress + cancel; 100MB perf test in WP-10 |
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-18-506Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-18-506Z" class="timestamp-link"><time datetime="2026-08-30T19:50:18.506Z" data-timestamp="2026-08-30T19:50:18.506Z">2026-08-30T19:50:18.506Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-25-633Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-25-633Z" class="timestamp-link"><time datetime="2026-08-30T19:50:25.633Z" data-timestamp="2026-08-30T19:50:25.633Z">2026-08-30T19:50:25.633Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-25-635Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-25-635Z" class="timestamp-link"><time datetime="2026-08-30T19:50:25.635Z" data-timestamp="2026-08-30T19:50:25.635Z">2026-08-30T19:50:25.635Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The plan already references the Claude Design session in the dependency graph and waves — I'll promote it to a first-class work package so it's explicit.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-31-265Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-31-265Z" class="timestamp-link"><time datetime="2026-08-30T19:50:31.265Z" data-timestamp="2026-08-30T19:50:31.265Z">2026-08-30T19:50:31.265Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_012oupSK8KaDN834uLp74FaA">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">### WP-07 — UI shell
+**Depends on:** WP-02; visual design from the Claude Design session.
+**Parallel with:** WP-05.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">### WP-D — UX design (Claude Design session)
+**Depends on:** nothing (MVP definition in this plan is the brief).
+**Parallel with:** WP-03, WP-04, WP-06, WP-09.
+A dedicated **Claude Design** session produces the visual direction and screen
+designs for the whole flow: landing page (privacy statement, upload,
+&#34;find your logs&#34; instructions, samples), the analyzing state (progress +
+cancel), and the results view (recommendation card, cost comparison,
+conditional subagent section, cache-event timeline, educational explainers,
+session-history strip). It should also cover the empty/error states: unknown
+model, skipped records, version warning, malformed file.
+Exports (screens, and the canvas link) are committed to `docs/design/` so
+WP-07 and WP-08 sessions can implement against them without guessing.
+*Acceptance:* every screen and state listed above has a design in
+`docs/design/`; user has signed off on the direction.
+
+### WP-07 — UI shell
+**Depends on:** WP-02; WP-D (visual design).
+**Parallel with:** WP-05.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-31-298Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-31-298Z" class="timestamp-link"><time datetime="2026-08-30T19:50:31.298Z" data-timestamp="2026-08-30T19:50:31.298Z">2026-08-30T19:50:31.298Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-34-209Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-34-209Z" class="timestamp-link"><time datetime="2026-08-30T19:50:34.209Z" data-timestamp="2026-08-30T19:50:34.209Z">2026-08-30T19:50:34.209Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01YPjidvMpdKyjDhZ4sDJekG">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">### WP-08 — Results and insights UI
+**Depends on:** WP-05, WP-07.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">### WP-08 — Results and insights UI
+**Depends on:** WP-05, WP-07, WP-D.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-34-242Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-34-242Z" class="timestamp-link"><time datetime="2026-08-30T19:50:34.242Z" data-timestamp="2026-08-30T19:50:34.242Z">2026-08-30T19:50:34.242Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-37-388Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-37-388Z" class="timestamp-link"><time datetime="2026-08-30T19:50:37.388Z" data-timestamp="2026-08-30T19:50:37.388Z">2026-08-30T19:50:37.388Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_018VAPBqTWEG6R6cnkKbfYyQ">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    WP09 --&gt; WP10
+    Design([Claude Design session]) -.-&gt; WP07
+    Design -.-&gt; WP08
+```
+
+**Suggested waves:** ① WP-01+02 (one session) → ② WP-03, WP-04, WP-06, WP-09,
+and the Claude Design session, all in parallel → ③ WP-05 and WP-07 in
+parallel → ④ WP-08 → ⑤ WP-10.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    WP09 --&gt; WP10
+    WPD([WP-D Claude Design]) --&gt; WP07
+    WPD --&gt; WP08
+```
+
+**Suggested waves:** ① WP-01+02 (one session) → ② WP-03, WP-04, WP-06, WP-09,
+and WP-D (the Claude Design session), all in parallel → ③ WP-05 and WP-07 in
+parallel → ④ WP-08 → ⑤ WP-10.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-37-425Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-37-425Z" class="timestamp-link"><time datetime="2026-08-30T19:50:37.425Z" data-timestamp="2026-08-30T19:50:37.425Z">2026-08-30T19:50:37.425Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-40-249Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-40-249Z" class="timestamp-link"><time datetime="2026-08-30T19:50:40.249Z" data-timestamp="2026-08-30T19:50:40.249Z">2026-08-30T19:50:40.249Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TFdr1u83hcm9LmHcRGXGya">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit build plan on docs/build-plan branch</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add docs/PLAN.md &amp;&amp; git commit -m &#34;docs(plan): write MVP build plan and work breakdown
+
+Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-41-926Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-41-926Z" class="timestamp-link"><time datetime="2026-08-30T19:50:41.926Z" data-timestamp="2026-08-30T19:50:41.926Z">2026-08-30T19:50:41.926Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><div class="commit-card"><a href="https://github.com/cebert/cache-ttl-analyzer/commit/d8a911d"><span class="commit-card-hash">d8a911d</span> docs(plan): write MVP build plan and work breakdown</a></div><pre>1 file changed, 302 insertions(+), 3 deletions(-)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-44-037Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-44-037Z" class="timestamp-link"><time datetime="2026-08-30T19:50:44.037Z" data-timestamp="2026-08-30T19:50:44.037Z">2026-08-30T19:50:44.037Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-49-321Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-49-321Z" class="timestamp-link"><time datetime="2026-08-30T19:50:49.321Z" data-timestamp="2026-08-30T19:50:49.321Z">2026-08-30T19:50:49.321Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01JzqQgJFvwndbTo12tk3aBE">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">mvp-decisions.md</span></div>
+<div class="file-tool-fullpath">~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer/memory/mvp-decisions.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">---
+name: mvp-decisions
+description: Locked MVP decisions for cache-ttl-analyzer (2026-08-30) and where the plan lives
+metadata:
+  type: project
+---
+
+The build plan lives in docs/PLAN.md (written 2026-08-30 on branch docs/build-plan); its Decision log (§6) is authoritative. Key locked decisions: MVP is fully static (no backend — Anthropic API feature deferred post-MVP); all dollar figures at published Anthropic API rates, labelled as such; one JSONL session upload at a time, in-memory history only; sidechains always partitioned, subagent-bucket section shown only when sidechains exist; pricing in committed pricing.json with pricesAsOf date; fixtures synthetic + Claude-generated (no personal sessions bundled); prototype-sim.py is the reference implementation generating golden fixtures; launch on workers.dev, domain later; UX comes from a dedicated Claude Design session (WP-D) with exports committed to docs/design/.
+
+Work is decomposed into WPs sized one-per-Claude-session, each one PR into main gated by CI + CodeRabbit. The user runs multiple parallel Opus sessions against this plan.
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-49-357Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-49-357Z" class="timestamp-link"><time datetime="2026-08-30T19:50:49.357Z" data-timestamp="2026-08-30T19:50:49.357Z">2026-08-30T19:50:49.357Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: ~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer/memory/mvp-decisions.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-52-084Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-52-084Z" class="timestamp-link"><time datetime="2026-08-30T19:50:52.084Z" data-timestamp="2026-08-30T19:50:52.084Z">2026-08-30T19:50:52.084Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01K6niN6dJFoTEebkLwSnSWr">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">MEMORY.md</span></div>
+<div class="file-tool-fullpath">~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer/memory/MEMORY.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># Memory index
+
+- [MVP decisions](mvp-decisions.md) — locked scope/architecture choices; docs/PLAN.md §6 is authoritative
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-52-117Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-52-117Z" class="timestamp-link"><time datetime="2026-08-30T19:50:52.117Z" data-timestamp="2026-08-30T19:50:52.117Z">2026-08-30T19:50:52.117Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: ~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer/memory/MEMORY.md (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-51-05-517Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-51-05-517Z" class="timestamp-link"><time datetime="2026-08-30T19:51:05.517Z" data-timestamp="2026-08-30T19:51:05.517Z">2026-08-30T19:51:05.517Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The plan is written and committed to <code>docs/PLAN.md</code> on a new branch <strong><code>docs/build-plan</code></strong> (commit <code>d8a911d</code>, not pushed). Claude Design is a first-class work package (WP-D), covering every screen and state — landing/upload, analyzing with progress+cancel, results, and the error/empty states — with exports committed to <code>docs/design/</code> so implementation sessions build against real designs instead of guessing.</p>
+<p>The plan's structure:</p>
+<ul>
+<li><strong>MVP definition and explicit non-goals</strong> — fully static Cloudflare deployment (no backend at all, which is itself the privacy story), one JSONL upload at a time, in-memory history, API-rates framing with your rationale stated, everything else deferred with reasons.</li>
+<li><strong>Architecture + a mandatory engine-correctness table</strong> distilled from the feasibility doc — dedup on <code>message.id</code>, synthetic-row exclusion, sidechain partitioning, hard resets on model/effort/version change, the user-row timestamp proxy, and the disclosed all-or-nothing expiry approximation. Any implementing session gets the traps in one table with section references back to the research.</li>
+<li><strong>Eleven work packages</strong> (WP-01…WP-10 plus WP-D), each sized for one Claude session producing one PR into <code>main</code> gated by CI and CodeRabbit, with a mermaid dependency graph and suggested waves: ① scaffold + frozen engine contract (one session) → ② parser, pricing engine, fixtures, CI/CD, and the design session <strong>all in parallel</strong> → ③ simulator + UI shell → ④ results UI → ⑤ launch polish. The WP-02 contract freeze is what makes wave ② safe to parallelize.</li>
+<li><strong>Testing strategy</strong> implementing your accuracy requirement: <code>prototype-sim.py</code> becomes the reference implementation emitting golden fixtures the TypeScript engine must match to the cent, backed by independent hand-computed unit tests, a content-poison test proving <code>message.content</code> never leaks into output, and a format-drift canary tied to the Claude Code <code>version</code> field.</li>
+<li><strong>Decision log</strong> recording all nine decisions from your answers, including the two you delegated: sidechains always partitioned with the subagent section shown only when the session actually has subagent turns (D4), and the prototype-as-reference-implementation approach (D7).</li>
+</ul>
+<p>Two things worth flagging: WP-06 requires capturing a <strong>real subagent session fixture</strong> before the simulator is called done (that path is untested against real data), and the fixtures include Claude-<em>generated</em> real sessions engineered to teach specific lessons — a tight loop where 5m wins, a gap-heavy session where 1h wins — which double as the bundled samples.</p>
+<p>Review <code>docs/PLAN.md</code> and tell me what to adjust. Once you're happy, say the word and I'll push the branch so you can open the PR — and wave ① (WP-01+02) is ready to hand to your first Opus session.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
