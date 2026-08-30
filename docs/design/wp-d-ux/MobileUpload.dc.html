@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;450;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #2563EB; text-decoration: none; }
+    a:hover { color: #1D4ED8; text-decoration: underline; }
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .sheet { background: #FFFFFF; border: 1px solid #D9E2EC; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+    .rule { height: 1px; background: #E8EEF4; }
+    .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #94A3B8; }
+    .stitle { font-size: 13px; font-weight: 600; color: #172033; }
+    .micro { font-size: 12px; line-height: 1.5; color: #64748B; }
+    .kv-k { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: #94A3B8; }
+  </style>
+</helmet>
+
+<div style="background: #F7F9FC; color: #172033; font-family: 'IBM Plex Sans', system-ui, sans-serif; min-height: 1020px; width: 390px;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px; height: 52px; background: #FFFFFF; border-bottom: 1px solid #D9E2EC;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.2V12l3.4 2.1"></path></svg>
+      <span style="font-size: 14.5px; font-weight: 600; letter-spacing: -0.02em;">cacheanalyzer</span>
+    </div>
+    <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3D4B60" stroke-width="1.8" stroke-linecap="round"><path d="M4 7.5h16"></path><path d="M4 12h16"></path><path d="M4 16.5h16"></path></svg>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 26px 16px 32px 16px;">
+
+    <div style="display: flex; flex-direction: column; gap: 9px; padding-bottom: 2px;">
+      <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.12; text-wrap: balance;">Should your sessions cache for five minutes, or an hour?</div>
+      <div style="font-size: 14.5px; line-height: 1.55; color: #3D4B60;">Add a Claude Code session log. You get the cost at both TTLs and the gaps that decide it — computed in this browser.</div>
+    </div>
+
+    <div class="sheet">
+      <div style="padding: 10px;">
+        <div style="border: 1.5px dashed #C6D3E3; border-radius: 8px; background: #FAFCFE; padding: 26px 16px; display: flex; flex-direction: column; align-items: center; gap: 13px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3.2H7.4A1.9 1.9 0 0 0 5.5 5.1v13.8a1.9 1.9 0 0 0 1.9 1.9h9.2a1.9 1.9 0 0 0 1.9-1.9V7.7Z"></path><path d="M14 3.2v4.5h4.5"></path><path d="M12 17.2v-5.6"></path><path d="M9.7 13.9 12 11.6l2.3 2.3"></path></svg>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+            <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.015em;">Add a session log</span>
+            <span class="micro">One <span class="mono" style="font-size: 11.5px;">.jsonl</span> file, up to 100 MB</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: center; height: 46px; width: 100%; border-radius: 7px; background: #2563EB; color: #FFFFFF; font-size: 15px; font-weight: 500;">Choose a file</div>
+        </div>
+      </div>
+      <div class="rule"></div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.2A1.7 1.7 0 0 1 5.7 4.5h4.1l2 2.4h6.5A1.7 1.7 0 0 1 20 8.6v9.7a1.7 1.7 0 0 1-1.7 1.7H5.7A1.7 1.7 0 0 1 4 18.3Z"></path></svg>
+        <span style="font-size: 14.5px; color: #172033;">Where are my session logs?</span>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <div style="padding: 13px 16px 11px 16px;">
+        <span class="stitle">Sessions</span>
+      </div>
+      <div class="rule"></div>
+      <div style="padding: 22px 16px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+        <span class="micro" style="font-size: 12.5px;">No sessions yet</span>
+        <span class="micro" style="font-size: 11px;">Ones you analyze appear here, in memory only</span>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <div style="padding: 13px 16px 11px 16px;">
+        <span class="stitle">Or start with a captured session</span>
+      </div>
+      <div class="rule"></div>
+      <div style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EEF4;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span style="font-size: 14px; font-weight: 600;">Tight agent loop</span>
+          <span class="mono" style="font-size: 10.5px; color: #94A3B8;">19 requests · 11 min · 94% hits</span>
+        </div>
+        <div style="display: flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 4px; background: #EDF1F7; flex-shrink: 0;"><span class="mono" style="font-size: 10px; font-weight: 600; color: #3D4B60;">5 min wins</span></div>
+      </div>
+      <div style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EEF4;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span style="font-size: 14px; font-weight: 600;">Long and gap-heavy</span>
+          <span class="mono" style="font-size: 10.5px; color: #94A3B8;">50 requests · 80 min · 76% hits</span>
+        </div>
+        <div style="display: flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 4px; background: #E3ECFD; flex-shrink: 0;"><span class="mono" style="font-size: 10px; font-weight: 600; color: #2563EB;">1 hour wins</span></div>
+      </div>
+      <div style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span style="font-size: 14px; font-weight: 600;">Model switched</span>
+          <span class="mono" style="font-size: 10.5px; color: #94A3B8;">62 requests · 45 min · 58% hits</span>
+        </div>
+        <div style="display: flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 4px; background: #EEEFFE; flex-shrink: 0;"><span class="mono" style="font-size: 10px; font-weight: 600; color: #4F46E5;">2 resets</span></div>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 11px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 3.6 5.2 6.2v5.2c0 4 2.8 7.2 6.8 8.6 4-1.4 6.8-4.6 6.8-8.6V6.2Z"></path><path d="M9.4 12 11.3 13.9l3.5-3.7"></path></svg>
+          <span class="stitle">Nothing is uploaded</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <span class="micro" style="font-size: 11.5px;">Analyzed in a Web Worker on your device. Never sent, never stored.</span>
+          <span class="micro" style="font-size: 11.5px;">The parser reads token counts and timestamps — never message content.</span>
+          <span class="micro" style="font-size: 11.5px;">A strict Content-Security-Policy blocks outbound connections.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <span style="font-size: 12.5px; color: #2563EB;">Data policy</span>
+          <span style="font-size: 12.5px; color: #2563EB;">Source</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

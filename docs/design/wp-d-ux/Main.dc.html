@@ -1,0 +1,309 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;450;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #2563EB; text-decoration: none; }
+    a:hover { color: #1D4ED8; text-decoration: underline; }
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .sheet { background: #FFFFFF; border: 1px solid #D9E2EC; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+    .rule { height: 1px; background: #E8EEF4; }
+    .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #94A3B8; }
+    .stitle { font-size: 12.5px; font-weight: 600; color: #172033; }
+    .micro { font-size: 11.5px; line-height: 1.5; color: #64748B; }
+    .kv-k { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: #94A3B8; }
+    .kv-v { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 12.5px; color: #172033; line-height: 1.45; }
+    .navrow { display: flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 6px; font-size: 12.5px; color: #3D4B60; }
+  </style>
+</helmet>
+
+<div style="background: #F7F9FC; color: #172033; font-family: 'IBM Plex Sans', system-ui, sans-serif; min-height: 1360px; display: flex; align-items: stretch;">
+
+  <!-- ============ SIDEBAR ============ -->
+  <div style="width: 236px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #D9E2EC; display: flex; flex-direction: column;">
+
+    <div style="height: 52px; display: flex; align-items: center; gap: 9px; padding: 0 16px; border-bottom: 1px solid #E8EEF4;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.2V12l3.4 2.1"></path></svg>
+      <span style="font-size: 14px; font-weight: 600; letter-spacing: -0.02em;">cacheanalyzer</span>
+    </div>
+
+    <div style="padding: 12px;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 7px; height: 34px; border-radius: 6px; background: #2563EB;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5v13M5.5 12h13"></path></svg>
+        <span style="font-size: 13px; font-weight: 500; color: #FFFFFF;">Add session</span>
+      </div>
+    </div>
+
+    <div style="padding: 4px 12px 0 12px; display: flex; flex-direction: column; gap: 3px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px 8px 10px;">
+        <span class="eyebrow">Sessions</span>
+        <span class="mono" style="font-size: 10.5px; color: #94A3B8;">3</span>
+      </div>
+
+      <div style="padding: 8px 10px; border-radius: 6px; background: #EFF4FE; display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <span class="mono" style="font-size: 12.5px; font-weight: 500; color: #2563EB;">1cf7a204</span>
+          <span class="mono" style="font-size: 11px; font-weight: 600; color: #059669;">$2.14</span>
+        </div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <span class="mono" style="font-size: 10.5px; color: #6B87B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">~/cache-ttl-analyzer</span>
+          <span class="mono" style="font-size: 10.5px; color: #2563EB; flex-shrink: 0;">1h</span>
+        </div>
+      </div>
+
+      <div style="padding: 8px 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <span class="mono" style="font-size: 12.5px; color: #172033;">334db6f6</span>
+          <span class="mono" style="font-size: 11px; font-weight: 600; color: #059669;">$0.94</span>
+        </div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <span class="mono" style="font-size: 10.5px; color: #94A3B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">~/statusline-plugin</span>
+          <span class="mono" style="font-size: 10.5px; color: #64748B; flex-shrink: 0;">5m</span>
+        </div>
+      </div>
+
+      <div style="padding: 8px 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <span class="mono" style="font-size: 12.5px; color: #172033;">908ed721</span>
+          <span class="mono" style="font-size: 11px; font-weight: 600; color: #059669;">$0.30</span>
+        </div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <span class="mono" style="font-size: 10.5px; color: #94A3B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">~/cache-ttl-analyzer</span>
+          <span class="mono" style="font-size: 10.5px; color: #64748B; flex-shrink: 0;">5m</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-grow: 1;"></div>
+
+    <div style="padding: 12px; display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #E8EEF4;">
+      <div style="display: flex; align-items: center; gap: 7px; padding: 0 10px 8px 10px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 3.6 5.2 6.2v5.2c0 4 2.8 7.2 6.8 8.6 4-1.4 6.8-4.6 6.8-8.6V6.2Z"></path><path d="M9.4 12 11.3 13.9l3.5-3.7"></path></svg>
+        <span class="micro" style="font-size: 11px;">Memory only — reloading clears these</span>
+      </div>
+      <div class="navrow">Find your logs</div>
+      <div class="navrow">Data policy</div>
+      <div class="navrow">About</div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <div style="flex-grow: 1; display: flex; flex-direction: column;">
+
+    <div style="height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 24px; background: #FFFFFF; border-bottom: 1px solid #D9E2EC;">
+      <span style="font-size: 14px; font-weight: 600; letter-spacing: -0.01em;">Wire up the counterfactual simulator</span>
+      <span class="mono" style="font-size: 11px; color: #94A3B8;">1cf7a204….jsonl · 4.2 MB · Claude Code 2.1.247</span>
+    </div>
+
+    <div style="padding: 20px 24px 32px 24px; display: flex; flex-direction: column; gap: 14px;">
+
+      <div style="display: flex; align-items: center; gap: 9px; padding: 8px 13px; border: 1px solid #F0DFC2; border-radius: 7px; background: #FDF4E7;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="8.6"></circle><path d="M12 8v4.6"></path><path d="M12 16.2h.01"></path></svg>
+        <span style="font-size: 12px; color: #92620A;">3 records skipped — unrecognized types, no billing data.</span>
+        <div style="flex-grow: 1;"></div>
+        <span style="font-size: 12px; color: #B4830E;">Details</span>
+      </div>
+
+      <div class="sheet">
+
+        <!-- verdict -->
+        <div style="background: #F4F7FE; border-bottom: 1px solid #E1E9F8; padding: 26px 28px 24px 28px; display: flex; flex-direction: column; gap: 22px;">
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 9px;">
+                <span class="eyebrow" style="color: #6B87B8;">Recommendation</span>
+                <div style="display: flex; align-items: center; height: 19px; padding: 0 7px; border-radius: 4px; background: #E3ECFD;"><span class="mono" style="font-size: 10.5px; color: #2563EB;">promptCacheTtl</span></div>
+              </div>
+              <div style="font-size: 46px; font-weight: 600; letter-spacing: -0.032em; line-height: 1.05;">Use the <span style="color: #2563EB;">1&#8209;hour</span> cache</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+              <span class="eyebrow" style="color: #6B87B8;">You would have saved</span>
+              <span class="mono" style="font-size: 44px; font-weight: 500; color: #059669; letter-spacing: -0.035em; line-height: 1;">$2.14</span>
+              <span style="font-size: 12.5px; color: #3D4B60;">31% less than 5 minutes</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 9px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <span style="font-size: 12.5px; color: #64748B; width: 78px; flex-shrink: 0;">5 minutes</span>
+              <div style="flex-grow: 1; height: 10px; border-radius: 3px; background: #E3E9F3; overflow: hidden;"><div style="width: 100%; height: 100%; background: #B9C6DA;"></div></div>
+              <span class="mono" style="font-size: 14px; color: #3D4B60; width: 52px; text-align: right; flex-shrink: 0;">$6.97</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <span style="font-size: 12.5px; font-weight: 600; color: #172033; width: 78px; flex-shrink: 0;">1 hour</span>
+              <div style="flex-grow: 1; height: 10px; border-radius: 3px; background: #E3E9F3; overflow: hidden;"><div style="width: 69.3%; height: 100%; background: #2563EB;"></div></div>
+              <span class="mono" style="font-size: 14px; font-weight: 600; color: #172033; width: 52px; text-align: right; flex-shrink: 0;">$4.83</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+            <span style="font-size: 13px; color: #3D4B60;">11 of 49 gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.</span>
+            <span class="micro" style="font-size: 11px;">Notional, at published API rates · 30 Aug 2026 · <span style="color: #2563EB;">why?</span></span>
+          </div>
+        </div>
+
+        <!-- metrics -->
+        <div style="padding: 16px 28px 18px 28px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="mono" style="font-size: 23px; font-weight: 500; letter-spacing: -0.02em;">76%</span><span class="micro">Cache hit rate</span><span class="mono" style="font-size: 10.5px; color: #94A3B8;">38 of 50</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="mono" style="font-size: 23px; font-weight: 500; letter-spacing: -0.02em;">2.41M</span><span class="micro">Cache reads</span><span class="mono" style="font-size: 10.5px; color: #94A3B8;">0.1× rate</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="mono" style="font-size: 23px; font-weight: 500; letter-spacing: -0.02em;">260k</span><span class="micro">Cache writes</span><span class="mono" style="font-size: 10.5px; color: #94A3B8;">2.0× rate, all 1h</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="mono" style="font-size: 23px; font-weight: 500; letter-spacing: -0.02em;">38k</span><span class="micro">Input tokens</span><span class="mono" style="font-size: 10.5px; color: #94A3B8;">uncached</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="mono" style="font-size: 23px; font-weight: 500; letter-spacing: -0.02em;">96k</span><span class="micro">Output tokens</span><span class="mono" style="font-size: 10.5px; color: #94A3B8;">thinking included</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="mono" style="font-size: 23px; font-weight: 500; letter-spacing: -0.02em; color: #DC2626;">4.0%</span><span class="micro">Error rate</span><span class="mono" style="font-size: 10.5px; color: #94A3B8;">2 failed</span></div>
+        </div>
+
+        <div class="rule"></div>
+
+        <!-- session details -->
+        <div style="padding: 16px 28px 18px 28px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px 26px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;"><span class="kv-k">Directory</span><span class="kv-v">~/Code/cache-ttl-analyzer</span></div>
+          <div style="display: flex; flex-direction: column; gap: 3px;"><span class="kv-k">Branch</span><span class="kv-v">feat/simulator</span></div>
+          <div style="display: flex; flex-direction: column; gap: 3px;"><span class="kv-k">Span</span><span class="kv-v">30 Aug 2026 · 09:12 – 10:32</span></div>
+          <div style="display: flex; flex-direction: column; gap: 3px;"><span class="kv-k">Observed TTL</span><span class="kv-v">1 hour, every write</span></div>
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="display: flex; align-items: center; gap: 6px;"><span class="kv-k">Model</span><div style="display: flex; align-items: center; height: 14px; padding: 0 4px; border-radius: 3px; background: #EEEFFE;"><span class="mono" style="font-size: 8.5px; font-weight: 600; color: #4F46E5;">CHANGED</span></div></div>
+            <span class="kv-v">opus-5 <span style="color: #94A3B8;">→</span> sonnet-5</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="display: flex; align-items: center; gap: 6px;"><span class="kv-k">Effort</span><div style="display: flex; align-items: center; height: 14px; padding: 0 4px; border-radius: 3px; background: #EEEFFE;"><span class="mono" style="font-size: 8.5px; font-weight: 600; color: #4F46E5;">CHANGED</span></div></div>
+            <span class="kv-v">high <span style="color: #94A3B8;">→</span> medium</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px;"><span class="kv-k">Requests</span><span class="kv-v">50 priced · 3 skipped</span></div>
+          <div style="display: flex; flex-direction: column; gap: 3px;"><span class="kv-k">Subagents</span><span class="kv-v">none</span></div>
+        </div>
+
+        <div class="rule"></div>
+
+        <!-- cache behaviour -->
+        <div style="padding: 16px 28px 20px 28px; display: flex; flex-direction: column; gap: 15px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+            <span class="stitle">Cache timeline</span>
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 7px; height: 7px; border-radius: 2px; background: #B9C6DA;"></div><span class="micro" style="font-size: 11px;">warm read</span></div>
+              <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 7px; height: 7px; border-radius: 2px; background: #6366F1;"></div><span class="micro" style="font-size: 11px;">expires at 5m</span></div>
+              <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 7px; height: 7px; border-radius: 2px; background: #DC2626;"></div><span class="micro" style="font-size: 11px;">failed</span></div>
+              <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 2px; height: 10px; background: #172033;"></div><span class="micro" style="font-size: 11px;">reset</span></div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 3px; height: 22px;">
+            <div style="width: 43.75%; border-radius: 4px 2px 2px 4px; background: #E3ECFD; display: flex; align-items: center; padding: 0 9px; overflow: hidden;"><span class="mono" style="font-size: 10px; color: #2563EB; white-space: nowrap;">opus-5 · high</span></div>
+            <div style="width: 22.5%; border-radius: 2px; background: #EDF1F7; display: flex; align-items: center; padding: 0 9px; overflow: hidden;"><span class="mono" style="font-size: 10px; color: #64748B; white-space: nowrap;">sonnet-5 · high</span></div>
+            <div style="width: 33.75%; border-radius: 2px 4px 4px 2px; background: #EDF1F7; display: flex; align-items: center; padding: 0 9px; overflow: hidden;"><span class="mono" style="font-size: 10px; color: #64748B; white-space: nowrap;">sonnet-5 · medium</span></div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="position: relative; height: 46px; background: #FAFCFE; border: 1px solid #E8EEF4; border-radius: 6px; overflow: hidden;">
+              <div style="position: absolute; left: 43.75%; top: 0; bottom: 0; width: 2px; background: #172033;"></div>
+              <div style="position: absolute; left: 66.25%; top: 0; bottom: 0; width: 2px; background: #172033;"></div>
+              <div style="position: absolute; left: 2%;   bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 4.8%; bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 7.6%; bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 10.4%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 23px; background: #DC2626;"></div>
+              <div style="position: absolute; left: 13.2%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 16%;  bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 18.8%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 21.6%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 24.4%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 27.2%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 30%;  bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 32.8%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 35.6%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 38.4%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 41.2%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 45%;  bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 47.8%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 50.6%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 23px; background: #DC2626;"></div>
+              <div style="position: absolute; left: 53.4%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 56.2%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 59%;  bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 61.8%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 64.6%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 67.5%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 70.3%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 73.1%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 75.9%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 78.7%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 81.5%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 84.3%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 87.1%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 89.9%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 92.7%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+              <div style="position: absolute; left: 95.5%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 31px; background: #6366F1;"></div>
+              <div style="position: absolute; left: 98.3%;bottom: 7px; width: 3px; border-radius: 1.5px; height: 13px; background: #B9C6DA;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span class="mono" style="font-size: 10.5px; color: #94A3B8;">09:12</span>
+              <span class="mono" style="font-size: 10.5px; color: #94A3B8;">10:32</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 40px; align-items: flex-start; padding-top: 4px; border-top: 1px solid #E8EEF4;">
+
+            <div style="width: 380px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 11px;">
+              <span class="eyebrow">Cache resets</span>
+              <div style="display: flex; align-items: baseline; gap: 12px;">
+                <span class="mono" style="font-size: 11px; color: #4F46E5; width: 92px; flex-shrink: 0;">09:47 · req 22</span>
+                <span style="font-size: 12.5px; color: #3D4B60;">model <span class="mono" style="font-size: 11.5px; color: #172033;">opus-5 → sonnet-5</span></span>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 12px;">
+                <span class="mono" style="font-size: 11px; color: #4F46E5; width: 92px; flex-shrink: 0;">10:05 · req 34</span>
+                <span style="font-size: 12.5px; color: #3D4B60;">effort <span class="mono" style="font-size: 11.5px; color: #172033;">high → medium</span></span>
+              </div>
+              <span class="micro" style="font-size: 11px;">96,400 tokens rewritten — the same under either TTL.</span>
+            </div>
+
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 11px;">
+              <span class="eyebrow">Gaps between requests</span>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 12.5px; color: #64748B; width: 124px; flex-shrink: 0;">under 5 minutes</span>
+                <div style="flex-grow: 1; height: 5px; border-radius: 3px; background: #EDF1F7; overflow: hidden;"><div style="width: 100%; height: 100%; background: #B9C6DA;"></div></div>
+                <span class="mono" style="font-size: 12px; color: #3D4B60; width: 22px; text-align: right; flex-shrink: 0;">38</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 12.5px; font-weight: 600; color: #172033; width: 124px; flex-shrink: 0;">5 minutes – 1 hour</span>
+                <div style="flex-grow: 1; height: 5px; border-radius: 3px; background: #EDF1F7; overflow: hidden;"><div style="width: 28.9%; height: 100%; background: #2563EB;"></div></div>
+                <span class="mono" style="font-size: 12px; font-weight: 600; color: #172033; width: 22px; text-align: right; flex-shrink: 0;">11</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 12.5px; color: #64748B; width: 124px; flex-shrink: 0;">over 1 hour</span>
+                <div style="flex-grow: 1; height: 5px; border-radius: 3px; background: #EDF1F7; overflow: hidden;"><div style="width: 0%; height: 100%; background: #2563EB;"></div></div>
+                <span class="mono" style="font-size: 12px; color: #3D4B60; width: 22px; text-align: right; flex-shrink: 0;">0</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="rule"></div>
+
+        <!-- caveats -->
+        <div style="padding: 14px 28px 16px 28px; background: #FBFCFE; display: flex; flex-direction: column; gap: 7px;">
+          <span class="eyebrow">Limits of this analysis</span>
+          <span class="micro" style="font-size: 11px;">No sidechain traffic — <span class="mono" style="font-size: 10.5px;">subagentPromptCacheTtl</span> not evaluated.</span>
+          <span class="micro" style="font-size: 11px;">The log records the observed TTL, never whether it was configured or defaulted.</span>
+          <span class="micro" style="font-size: 11px;">Expiry is modelled all-or-nothing, which overstates the 5-minute cost rather than understating it.</span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 2px;">
+        <span class="micro" style="font-size: 11px;">Read in this browser, never uploaded.</span>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <span style="font-size: 12px; color: #2563EB;">How to set promptCacheTtl</span>
+          <span style="font-size: 12px; color: #2563EB;">Source on GitHub</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

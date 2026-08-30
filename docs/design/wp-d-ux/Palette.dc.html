@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;450;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #2563EB; text-decoration: none; }
+    a:hover { color: #1D4ED8; text-decoration: underline; }
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .eyebrow { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #94A3B8; }
+    .sw { display: flex; flex-direction: column; gap: 6px; }
+    .swb { height: 44px; border-radius: 6px; border: 1px solid rgba(23,32,51,0.08); }
+    .swn { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 10.5px; color: #172033; }
+    .swr { font-size: 10.5px; color: #94A3B8; line-height: 1.35; }
+    .sheet { background: #FFFFFF; border: 1px solid #D9E2EC; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+    .sec { padding: 20px 24px; }
+    .rule { height: 1px; background: #E8EEF4; }
+  </style>
+</helmet>
+
+<div style="background: #F7F9FC; color: #172033; font-family: 'IBM Plex Sans', system-ui, sans-serif; min-height: 1560px; padding: 30px 32px 40px 32px; display: flex; flex-direction: column; gap: 16px;">
+
+  <div style="display: flex; flex-direction: column; gap: 5px;">
+    <span class="eyebrow">cacheanalyzer · design tokens</span>
+    <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">Calm developer blue</div>
+    <div style="font-size: 13.5px; line-height: 1.55; color: #64748B; max-width: 660px;">Neutral by default — soft off-white ground, white sheets, cool-gray rules, dark navy text. Blue carries interaction and the recommendation; every other hue is reserved for a specific state so color always means something.</div>
+  </div>
+
+  <div class="sheet">
+    <div class="sec" style="display: flex; flex-direction: column; gap: 10px;">
+      <span class="eyebrow">Neutrals</span>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px;">
+        <div class="sw"><div class="swb" style="background: #F7F9FC;"></div><span class="swn">#F7F9FC</span><span class="swr">background</span></div>
+        <div class="sw"><div class="swb" style="background: #FFFFFF;"></div><span class="swn">#FFFFFF</span><span class="swr">surface</span></div>
+        <div class="sw"><div class="swb" style="background: #D9E2EC;"></div><span class="swn">#D9E2EC</span><span class="swr">border</span></div>
+        <div class="sw"><div class="swb" style="background: #E8EEF4;"></div><span class="swn">#E8EEF4</span><span class="swr">inner rule</span></div>
+        <div class="sw"><div class="swb" style="background: #64748B;"></div><span class="swn">#64748B</span><span class="swr">muted text</span></div>
+        <div class="sw"><div class="swb" style="background: #172033;"></div><span class="swn">#172033</span><span class="swr">primary text</span></div>
+      </div>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="sec" style="display: flex; flex-direction: column; gap: 10px;">
+      <span class="eyebrow">Accents — each owns one meaning</span>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px;">
+        <div class="sw"><div class="swb" style="background: #2563EB;"></div><span class="swn">#2563EB</span><span class="swr">primary blue · the recommendation, links, primary action</span></div>
+        <div class="sw"><div class="swb" style="background: #6366F1;"></div><span class="swn">#6366F1</span><span class="swr">indigo · cache expiries</span></div>
+        <div class="sw"><div class="swb" style="background: #059669;"></div><span class="swn">#059669</span><span class="swr">green · money saved</span></div>
+        <div class="sw"><div class="swb" style="background: #D97706;"></div><span class="swn">#D97706</span><span class="swr">orange · validation warnings</span></div>
+        <div class="sw"><div class="swb" style="background: #DC2626;"></div><span class="swn">#DC2626</span><span class="swr">red · failed requests, rejected files</span></div>
+        <div class="sw"><div class="swb" style="background: #94A3B8;"></div><span class="swn">#94A3B8</span><span class="swr">slate · warm reads, faint labels</span></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding-top: 2px;">
+        <div class="sw"><div class="swb" style="background: #EFF4FE; height: 26px;"></div><span class="swn">#EFF4FE</span></div>
+        <div class="sw"><div class="swb" style="background: #EEEFFE; height: 26px;"></div><span class="swn">#EEEFFE</span></div>
+        <div class="sw"><div class="swb" style="background: #E7F5F0; height: 26px;"></div><span class="swn">#E7F5F0</span></div>
+        <div class="sw"><div class="swb" style="background: #FDF4E7; height: 26px;"></div><span class="swn">#FDF4E7</span></div>
+        <div class="sw"><div class="swb" style="background: #FCEBEB; height: 26px;"></div><span class="swn">#FCEBEB</span></div>
+        <div class="sw"><div class="swb" style="background: #F4F7FE; height: 26px;"></div><span class="swn">#F4F7FE</span><span class="swr">verdict band</span></div>
+      </div>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="sec" style="display: flex; flex-direction: column; gap: 15px;">
+      <span class="eyebrow">Type — IBM Plex, self-hosted, no external font requests</span>
+      <div style="display: flex; flex-direction: column; gap: 13px;">
+        <div style="display: flex; align-items: baseline; gap: 18px;"><span class="mono" style="font-size: 10px; color: #94A3B8; width: 108px; flex-shrink: 0;">verdict 52/600</span><span style="font-size: 42px; font-weight: 600; letter-spacing: -0.028em; line-height: 1.08;">Use the 1-hour cache</span></div>
+        <div style="display: flex; align-items: baseline; gap: 18px;"><span class="mono" style="font-size: 10px; color: #94A3B8; width: 108px; flex-shrink: 0;">metric 26/500</span><span class="mono" style="font-size: 26px; font-weight: 500; letter-spacing: -0.02em;">$4.83</span></div>
+        <div style="display: flex; align-items: baseline; gap: 18px;"><span class="mono" style="font-size: 10px; color: #94A3B8; width: 108px; flex-shrink: 0;">section 13/600</span><span style="font-size: 13px; font-weight: 600;">How the cache behaved</span></div>
+        <div style="display: flex; align-items: baseline; gap: 18px;"><span class="mono" style="font-size: 10px; color: #94A3B8; width: 108px; flex-shrink: 0;">body 13.5/1.55</span><span style="font-size: 13.5px; line-height: 1.55; color: #172033;">Eleven pauses were long enough to expire a five-minute cache.</span></div>
+        <div style="display: flex; align-items: baseline; gap: 18px;"><span class="mono" style="font-size: 10px; color: #94A3B8; width: 108px; flex-shrink: 0;">micro 11.5</span><span style="font-size: 11.5px; color: #64748B;">Notional cost at published Anthropic API rates.</span></div>
+        <div style="display: flex; align-items: baseline; gap: 18px;"><span class="mono" style="font-size: 10px; color: #94A3B8; width: 108px; flex-shrink: 0;">data 12.5 mono</span><span class="mono" style="font-size: 12.5px; color: #172033;">claude-opus-5 · 2,412,880 tokens</span></div>
+        <div style="display: flex; align-items: baseline; gap: 18px;"><span class="mono" style="font-size: 10px; color: #94A3B8; width: 108px; flex-shrink: 0;">eyebrow 10</span><span class="eyebrow">Recommendation</span></div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: #64748B;">IBM Plex Sans for interface and prose, IBM Plex Mono for every figure, identifier, path and model name. One family, two voices — engineered rather than fashionable, and open-licensed so both ship from our own origin under the strict CSP.</div>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="sec" style="display: flex; flex-direction: column; gap: 18px;">
+      <span class="eyebrow">Controls, and how little chrome they need</span>
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; height: 34px; padding: 0 15px; border-radius: 6px; background: #2563EB; color: #FFFFFF; font-size: 13px; font-weight: 500;">Analyze session</div>
+        <div style="display: flex; align-items: center; height: 34px; padding: 0 15px; border-radius: 6px; border: 1px solid #D9E2EC; background: #FFFFFF; color: #172033; font-size: 13px; font-weight: 500;">Choose a file</div>
+        <div style="display: flex; align-items: center; height: 34px; padding: 0 13px; border-radius: 6px; color: #64748B; font-size: 13px;">Cancel</div>
+        <div style="display: flex; align-items: center; height: 21px; padding: 0 8px; border-radius: 4px; background: #EFF4FE;"><span class="mono" style="font-size: 11px; color: #2563EB;">promptCacheTtl</span></div>
+        <div style="display: flex; align-items: center; height: 21px; padding: 0 8px; border-radius: 4px; background: #EEEFFE;"><span class="mono" style="font-size: 11px; color: #4F46E5;">11 expiries</span></div>
+        <div style="display: flex; align-items: center; height: 21px; padding: 0 8px; border-radius: 4px; background: #FCEBEB;"><span class="mono" style="font-size: 11px; color: #DC2626;">2 failed</span></div>
+      </div>
+      <div style="display: flex; gap: 24px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column; gap: 7px; width: 300px;">
+          <span class="mono" style="font-size: 10px; color: #94A3B8;">input · 34px, radius 6</span>
+          <div style="display: flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 6px; border: 1px solid #D9E2EC; background: #FFFFFF;"><span class="mono" style="font-size: 12px; color: #94A3B8;">~/.claude/projects/…</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 7px; flex-grow: 1;">
+          <span class="mono" style="font-size: 10px; color: #94A3B8;">standard dialog · one shape everywhere</span>
+          <div style="border: 1px solid #D9E2EC; border-radius: 10px; background: #FFFFFF; box-shadow: 0 10px 28px rgba(23,32,51,0.10); overflow: hidden;">
+            <div style="padding: 14px 16px 12px 16px; display: flex; flex-direction: column; gap: 5px;">
+              <span style="font-size: 13.5px; font-weight: 600;">Clear analysis history?</span>
+              <span style="font-size: 12px; line-height: 1.5; color: #64748B;">The three analyses held in this tab will be forgotten. Your log files are untouched.</span>
+            </div>
+            <div style="padding: 11px 16px; display: flex; justify-content: flex-end; gap: 8px; background: #F7F9FC; border-top: 1px solid #E8EEF4;">
+              <div style="display: flex; align-items: center; height: 30px; padding: 0 13px; border-radius: 6px; border: 1px solid #D9E2EC; background: #FFFFFF; font-size: 12.5px; color: #172033;">Keep them</div>
+              <div style="display: flex; align-items: center; height: 30px; padding: 0 13px; border-radius: 6px; background: #2563EB; color: #FFFFFF; font-size: 12.5px; font-weight: 500;">Clear</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: #64748B;">One white sheet per region, divided by <span class="mono" style="font-size: 11px;">#E8EEF4</span> rules — not a grid of floating cards. Radius 10 on sheets, 6 on controls, 4 on badges. Elevation is reserved for dialogs, so a shadow always means "this is modal".</div>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="sec" style="display: flex; flex-direction: column; gap: 13px;">
+      <span class="eyebrow">Tailwind mapping — seven map to stock Tailwind, six neutrals need extending</span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 32px;">
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #2563EB; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#2563EB</span><span class="mono" style="font-size: 11.5px; color: #059669;">blue-600</span><span class="swr">stock</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #6366F1; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#6366F1</span><span class="mono" style="font-size: 11.5px; color: #059669;">indigo-500</span><span class="swr">stock</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #059669; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#059669</span><span class="mono" style="font-size: 11.5px; color: #059669;">emerald-600</span><span class="swr">stock</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #D97706; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#D97706</span><span class="mono" style="font-size: 11.5px; color: #059669;">amber-600</span><span class="swr">stock</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #DC2626; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#DC2626</span><span class="mono" style="font-size: 11.5px; color: #059669;">red-600</span><span class="swr">stock</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #64748B; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#64748B</span><span class="mono" style="font-size: 11.5px; color: #059669;">slate-500</span><span class="swr">stock</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #94A3B8; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#94A3B8</span><span class="mono" style="font-size: 11.5px; color: #059669;">slate-400</span><span class="swr">stock</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #F7F9FC; border: 1px solid #E8EEF4; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#F7F9FC</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">ground</span><span class="swr">extend — cooler than slate-50</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #D9E2EC; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#D9E2EC</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">line</span><span class="swr">extend — between slate-200 and 300</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #E8EEF4; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#E8EEF4</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">line-soft</span><span class="swr">extend — inner rules</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #172033; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#172033</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">ink</span><span class="swr">extend — navy, warmer than slate-900</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #3D4B60; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#3D4B60</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">ink-2</span><span class="swr">extend — body copy</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 14px; height: 14px; border-radius: 3px; background: #F4F7FE; border: 1px solid #E8EEF4; flex-shrink: 0;"></div><span class="mono" style="font-size: 11.5px; width: 66px; flex-shrink: 0;">#F4F7FE</span><span class="mono" style="font-size: 11.5px; color: #2563EB;">verdict</span><span class="swr">extend — the one tinted band</span></div>
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.5; color: #64748B;">Six <span class="mono" style="font-size: 11px;">theme.extend.colors</span> entries and the rest is stock Tailwind, so the whole system is expressible in utility classes. The tinted 100-level swatches above are the same hues at ~96% lightness; define them alongside rather than reaching for <span class="mono" style="font-size: 11px;">blue-50</span>, which is warmer than this ground.</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
