@@ -335,7 +335,17 @@ session. Gaps are measured between request *starts* (F3). Hard resets
 (model / effort / version) empty the cache in every scenario and attribute
 no expiry to that gap. Only the bucket's dominant-TTL write share is
 repriced; server-tool writes keep their TTL as the `server-tool-5m` class
-and are not simulated for expiry. Unpriced requests are still replayed (so
+and are not simulated for expiry. **Contract wording note (post-review):**
+`contract.ts` says the residual split tokens are the server-tool share, and
+in the same paragraph that server tools only add 5m writes so nonzero 1h
+tokens are user-controlled. Those conflict for a 5m-dominant bucket with a
+1h residual (a mid-session config flip). The simulator follows the
+rationale: the server-tool share is only the 5m residual of a 1h-dominant
+bucket; in a 5m-dominant bucket every write is user-controlled and repriced
+per scenario. The warm entry's observed TTL is the bucket's dominant TTL,
+not the previous request's own split (a request whose only write was a
+server-tool 5m write must not shorten the user's live 1h entry). Amend the
+contract text to match when it is next touched. Unpriced requests are still replayed (so
 events and cache state stay right) but excluded from dollars. An exact cost
 tie recommends the observed TTL. A subagent-only upload still yields an
 empty `main` bucket with `no-verdict`. Hand-computed tests at Opus 5 rates

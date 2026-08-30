@@ -369,6 +369,60 @@ describe('mixed TTLs: only the user-controllable share is repriced', () => {
     })
   })
 
+  it("a request whose only write is a server-tool 5m write does not shorten the user's warm entry", () => {
+    // 1h-dominant: r1 writes 1000@1h; r2 (+60s) reads 1000 and only writes 300@5m
+    // (web search); r3 (+660s) reads 1300 warm — the log proves the 1h entry lived.
+    const bucket = analyzeBucket(
+      'main',
+      [
+        req({ id: 'r1', start: 0, w1h: 1000 }),
+        req({ id: 'r2', start: 60, read: 1000, w5m: 300 }),
+        req({ id: 'r3', start: 660, read: 1300 }),
+      ],
+      PRICING,
+    )
+    expect(bucket.observedTtl).toBe('1h')
+    expect(bucket.scenarios.oneHour.cost).toEqual(bucket.actualCost)
+    expect(bucket.scenarios.oneHour.cacheExpiries).toBe(0)
+    // Under 5m the 600s gap before r3 lapses the entry: its read becomes a write.
+    expect(bucket.scenarios.fiveMinute.cacheExpiries).toBe(1)
+    expect(bucket.scenarios.fiveMinute.events.find((e) => e.kind === 'expiry')).toMatchObject({
+      messageId: 'r3',
+      rewrittenTokens: 1300,
+    })
+    expect(bucket.recommendation).toBe('1h')
+  })
+
+  it('in a 5m-dominant bucket a 1h residual is user-controlled, never a server-tool write', () => {
+    // r1 writes 5000@5m; r2 (+60s) reads 5000, writes 1000@5m + 800@1h (a config flip).
+    const bucket = analyzeBucket(
+      'main',
+      [
+        req({ id: 'r1', start: 0, w5m: 5000 }),
+        req({ id: 'r2', start: 60, read: 5000, w5m: 1000, w1h: 800 }),
+      ],
+      PRICING,
+    )
+    expect(bucket.observedTtl).toBe('5m')
+    const { fiveMinute, oneHour } = bucket.scenarios
+    // "Everything at 5m" prices the 1800 tokens at 5m: 1800 × $6.25 = 0.01125 (+ r1's 0.03125)
+    close(fiveMinute.cost.cacheWrite1hUsd, 0)
+    close(fiveMinute.cost.cacheWrite5mUsd, 0.03125 + 0.01125)
+    // "Everything at 1h" prices them at 1h: 1800 × $10 = 0.018 (+ r1's 0.05)
+    close(oneHour.cost.cacheWrite1hUsd, 0.05 + 0.018)
+    close(oneHour.cost.cacheWrite5mUsd, 0)
+    for (const scenario of [fiveMinute, oneHour]) {
+      const writes = scenario.events.filter((e) => e.kind === 'cache-write' && e.messageId === 'r2')
+      expect(writes).toEqual([
+        expect.objectContaining({
+          ttl: scenario.ttl,
+          tokens: 1800,
+          expiryClass: 'user-controlled',
+        }),
+      ])
+    }
+  })
+
   it('dominant TTL is token-weighted, null without writes, and 1h on an exact tie', () => {
     expect(dominantTtl({ fiveMinuteWriteTokens: 0, oneHourWriteTokens: 0 })).toBeNull()
     expect(dominantTtl({ fiveMinuteWriteTokens: 10, oneHourWriteTokens: 9 })).toBe('5m')

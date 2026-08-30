@@ -366,6 +366,27 @@ describe('request start pairing (F3)', () => {
     expect(parse(rows).requests[1].requestStartTimestamp).toBe(at(10))
   })
 
+  it('walks through unrecognized rows (e.g. system) that link the chain', () => {
+    const rows = [
+      userRow('u0', null, at(0)),
+      {
+        ...common,
+        type: 'system',
+        subtype: 'local_command',
+        uuid: 's0',
+        parentUuid: 'u0',
+        timestamp: at(1),
+      },
+      assistantRow({ uuid: 'a0', parentUuid: 's0', ts: at(80), id: 'm0' }),
+    ]
+    const parsed = parse(rows)
+    expect(parsed.requests[0]).toMatchObject({
+      requestStartTimestamp: at(0),
+      requestStartSource: 'user-ancestor',
+    })
+    expect(parsed.stats.skippedRecordTypes).toEqual({ system: 1 })
+  })
+
   it('falls back to the assistant timestamp when no user ancestor resolves', () => {
     const rows = [
       attachmentRow('at0', 'missing', at(1)),
@@ -585,10 +606,13 @@ describe('usage copying (F5 optional subfields, numeric hygiene)', () => {
     })
   })
 
-  it('accepts zero and ignores unknown additions', () => {
+  it('accepts zero, the largest safe integer, and ignores unknown additions', () => {
     expect(
       parseUsage({ input_tokens: 0, output_tokens: 0, brand_new_field: { deep: true } }),
     ).not.toBeNull()
+    expect(parseUsage({ input_tokens: Number.MAX_SAFE_INTEGER })?.inputTokens).toBe(
+      Number.MAX_SAFE_INTEGER,
+    )
   })
 
   it.each([
@@ -598,6 +622,9 @@ describe('usage copying (F5 optional subfields, numeric hygiene)', () => {
     ['Infinity', { cache_read_input_tokens: Number.POSITIVE_INFINITY }],
     ['-Infinity', { cache_creation_input_tokens: Number.NEGATIVE_INFINITY }],
     ['numeric string', { input_tokens: '12' }],
+    ['fractional', { input_tokens: 1.5 }],
+    ['huge but finite (1e308)', { output_tokens: 1e308 }],
+    ['beyond MAX_SAFE_INTEGER', { input_tokens: 2 ** 53 }],
     ['boolean', { output_tokens: true }],
     ['object', { input_tokens: {} }],
     ['array', { input_tokens: [1] }],

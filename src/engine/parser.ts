@@ -122,13 +122,14 @@ function readTimestamp(obj: JsonObject): string | undefined {
 }
 
 /**
- * A token count: absent/null means 0 (F5); otherwise it must be a finite,
- * non-negative number. Returns undefined when invalid.
+ * A token count: absent/null means 0 (F5); otherwise it must be a
+ * non-negative safe integer (so sums can never overflow to Infinity and
+ * turn a share into NaN). Returns undefined when invalid.
  */
 function readTokenCount(obj: JsonObject, key: string): number | undefined {
   const value = obj[key]
   if (value === undefined || value === null) return 0
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return undefined
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) return undefined
   return value
 }
 
@@ -344,6 +345,10 @@ export class SessionParser {
         this.noteSessionFields(value)
         break
       default:
+        // Any other row with a uuid (e.g. `system`) still links the
+        // parentUuid chain: index its metadata so the request-start walk can
+        // pass through it, then skip-and-count it as before.
+        this.indexChainRow(value, false)
         this.countSkipped(type)
     }
   }

@@ -36,6 +36,10 @@ export function createEngine(): AnalysisEngine {
         totalBytes: input.fileSizeBytes,
         requestsSeen: parsed.requests.length,
       })
+      // Yield a macrotask so a cancel posted while the file was being read
+      // is dispatched before the CPU-bound analysis starts.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0))
+      if (signal.aborted) throw new DOMException('aborted', 'AbortError')
       const result = analyzeSession(parsed, input.pricing)
       if (signal.aborted) throw new DOMException('aborted', 'AbortError')
       return { kind: 'analysis', result }

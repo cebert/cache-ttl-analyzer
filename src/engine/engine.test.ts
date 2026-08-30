@@ -112,6 +112,22 @@ describe('createEngine', () => {
     expect(outcome).toMatchObject({ kind: 'rejected', reason: 'malformed-lines-exceed-threshold' })
   })
 
+  it('honors a cancel that lands after parsing, before analysis', async () => {
+    const controller = new AbortController()
+    const file = fileOf(SESSION)
+    await expect(
+      createEngine().analyze(
+        { stream: file.stream(), fileName: file.name, fileSizeBytes: file.size, pricing: PRICING },
+        {
+          onProgress: (p) => {
+            if (p.phase === 'analyzing') controller.abort()
+          },
+          signal: controller.signal,
+        },
+      ),
+    ).rejects.toMatchObject({ name: 'AbortError' })
+  })
+
   it('throws AbortError when cancelled', async () => {
     const controller = new AbortController()
     controller.abort()

@@ -25,10 +25,15 @@
  * no expiry is attributed to that gap, and the observed usage stands.
  *
  * MIXED TTLs (contract, frozen): only the user-controllable write share is
- * repriced — the bucket's dominant-TTL write tokens (tie → 1h). The
- * residual split tokens are server-tool writes, kept at their observed TTL
- * in both scenarios as their own expiry class and never simulated for
- * expiry (their reads are not separable from `cache_read_input_tokens`).
+ * repriced. Server tools only ever add 5m writes, so in a 1h-dominant
+ * bucket the 5m residual is the server-tool share — kept at 5m in both
+ * scenarios as its own expiry class and never simulated for expiry (its
+ * reads are not separable from `cache_read_input_tokens`). In a
+ * 5m-dominant bucket every write is user-controlled, including a 1h
+ * residual (a mid-session config flip), per the contract's rationale that
+ * nonzero 1h tokens are user-controlled. The warm entry's observed TTL is
+ * the bucket's dominant TTL: a request whose only write was a server-tool
+ * 5m write did not shorten the user's live entry.
  *
  * UNKNOWN MODELS (contract, frozen): excluded from every dollar figure but
  * still replayed so cache state and events stay right; a bucket whose
@@ -200,12 +205,16 @@ function replayThread(
     }
     const usage = request.usage
     const split = requestWriteSplit(request)
-    // The user-controllable share is the bucket's dominant-TTL write; with
-    // no bucket TTL (no writes anywhere) there is nothing to reprice.
+    // The user-controllable share: with no bucket TTL (no writes anywhere)
+    // there is nothing to reprice. Server tools only add 5m writes, so a
+    // 1h-dominant bucket's 5m residual is the server-tool share; in a
+    // 5m-dominant bucket every write is user-controlled.
     const userTtl = bucketTtl ?? scenario
-    let userWrite = userTtl === '5m' ? split.fiveMinuteWriteTokens : split.oneHourWriteTokens
-    const serverWrite = userTtl === '5m' ? split.oneHourWriteTokens : split.fiveMinuteWriteTokens
-    const serverTtl: CacheTtl = userTtl === '5m' ? '1h' : '5m'
+    let userWrite =
+      userTtl === '5m'
+        ? split.fiveMinuteWriteTokens + split.oneHourWriteTokens
+        : split.oneHourWriteTokens
+    const serverWrite = userTtl === '5m' ? 0 : split.fiveMinuteWriteTokens
     let reads = usage.cacheReadInputTokens
 
     if (previous !== undefined) {
@@ -217,10 +226,10 @@ function replayThread(
         warmTokens = 0
       } else {
         const gap = gapMs(previous, request)
-        // The TTL the previous write actually carried (per-request split,
-        // falling back to the bucket's dominant TTL).
-        const observedTtl = dominantTtl(requestWriteSplit(previous)) ?? bucketTtl ?? scenario
-        const observedMs = TTL_MS[observedTtl]
+        // The TTL the warm entry actually carried is the bucket's
+        // user-controlled TTL — not the previous request's own split, which
+        // a server-tool 5m write would otherwise masquerade as.
+        const observedMs = TTL_MS[userTtl]
         const aliveObserved = gap <= observedMs
         const aliveScenario = gap <= scenarioMs
         if (aliveObserved && !aliveScenario) {
@@ -279,7 +288,7 @@ function replayThread(
     if (serverWrite > 0) {
       events.push({
         kind: 'cache-write',
-        ttl: serverTtl,
+        ttl: '5m',
         tokens: serverWrite,
         expiryClass: 'server-tool-5m',
         ...base,
@@ -293,10 +302,8 @@ function replayThread(
           {
             baseInputTokens: usage.inputTokens,
             cacheReadTokens: reads,
-            cacheWrite5mTokens:
-              (scenario === '5m' ? userWrite : 0) + (serverTtl === '5m' ? serverWrite : 0),
-            cacheWrite1hTokens:
-              (scenario === '1h' ? userWrite : 0) + (serverTtl === '1h' ? serverWrite : 0),
+            cacheWrite5mTokens: (scenario === '5m' ? userWrite : 0) + serverWrite,
+            cacheWrite1hTokens: scenario === '1h' ? userWrite : 0,
             outputTokens: usage.outputTokens,
           },
           model,
@@ -349,7 +356,9 @@ function simulateScenario(
     }
     const replay = replayThread(thread, scenario, bucketTtl, pricing)
     costs.push(replay.cost)
-    result.events.push(...replay.events)
+    // No spread: a dense session's main thread can exceed the argument
+    // limit of a single call.
+    for (const event of replay.events) result.events.push(event)
     result.cacheExpiries += replay.cacheExpiries
     result.hardResets += replay.hardResets
     result.warmReadRequests += replay.warmReadRequests
@@ -415,7 +424,10 @@ export function analyzeBucket(
     else unpricedTokens += tokens
   }
   const actualCost = sumCosts(actualCosts)
-  const unpricedTokenShare = bucketTokens === 0 ? 0 : unpricedTokens / bucketTokens
+  const rawShare = bucketTokens === 0 ? 0 : unpricedTokens / bucketTokens
+  // Token counts are safe integers (parser), so this is defensive: a
+  // non-finite share must suppress, never silently pass the comparison.
+  const unpricedTokenShare = Number.isFinite(rawShare) ? rawShare : 1
 
   const fiveMinute = simulateScenario(threads, SCENARIOS[0], observedTtl, pricing)
   const oneHour = simulateScenario(threads, SCENARIOS[1], observedTtl, pricing)
