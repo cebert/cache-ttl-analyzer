@@ -81,7 +81,9 @@ Two cross-cutting requirements, cheap now and expensive to retrofit:
   dependencies, so it runs in a Web Worker and is unit-testable in Node.
   - **Parser** reads only the fields it needs (`type`, `timestamp`,
     `message.id`, `message.model`, `message.usage`, `isSidechain`, `effort`,
-    `version`) and **never reads `message.content`** — enforced by a test that
+    `version`, plus `uuid`/`parentUuid` for sidechain threading and
+    `sessionId`/`cwd`/`gitBranch` for the identification card) and **never
+    reads `message.content`** — enforced by a test that
     feeds a session whose content blocks are poison values and asserts they
     never appear in any output (feasibility doc §9). One deliberate, named
     exception: the `ai-title` record (the short session title Claude Code
@@ -96,10 +98,12 @@ Two cross-cutting requirements, cheap now and expensive to retrofit:
 - **Pricing config** (`src/config/pricing.json`): per-model base rates, cache
   multipliers (read 0.1×, 5m write 1.25×, 1h write 2.0×), `service_tier` and
   `speed` modifiers, and a top-level `pricesAsOf` date shown in the UI.
-  Unknown model IDs are reported to the user, never guessed; the WP-02
-  contract defines the degradation policy (unpriced requests excluded and
-  disclosed with their share; verdict suppressed when that share crosses a
-  threshold).
+  Unknown model IDs are reported to the user, never guessed; degradation
+  policy: unpriced requests are excluded and disclosed, their share measured
+  in **total tokens (input + cache + output) across deduped requests**, and
+  the verdict is suppressed when that share exceeds **10%** (both the metric
+  and the constant are named in the WP-02 contract so verdicts are
+  deterministic).
 - **UI** consumes a frozen engine contract (WP-02) so UI and engine work can
   proceed in parallel.
 - **Logging** goes through a small leveled abstraction (`loglevel`, `tslog`,
@@ -120,8 +124,9 @@ users that nothing is exfiltrated. Rules:
 
 - **Three validation verdicts:** *valid*; *valid with warnings* (skipped
   records, out-of-range version, unknown model); or *not a session log* — no
-  assistant rows carrying `usage`, or malformed-line share above a threshold
-  (~10%) — with a plain-language error, never a garbage analysis.
+  assistant rows carrying `usage`, or malformed lines exceeding **10% of
+  non-empty lines** (an exact named constant in the WP-02 contract) — with a
+  plain-language error, never a garbage analysis.
 - **Numeric hygiene:** every usage field is checked finite and non-negative
   before pricing; bad rows are skipped and counted.
 - **Log-derived strings are untrusted input.** Title, `cwd`, `gitBranch`,
@@ -149,9 +154,9 @@ users that nothing is exfiltrated. Rules:
 | Partition sidechains **per subagent thread**, not as one boolean bucket: parallel subagents interleave their `isSidechain: true` rows but each has its own cache namespace. Thread identification (likely `parentUuid`/`uuid` chains) is verified against a real multi-subagent log before the WP-02 freeze | §6.4 + review |
 | Hard cache reset on any change of `model`, `effort`, or `version`, independent of elapsed time | §6.6 |
 | Price per request (models/tiers/speed can vary mid-session); honor `service_tier` and `speed` | §6.5 |
-| Gap timing: use the preceding `user` row's timestamp as request start | §7 |
+| Gap timing: use the preceding `user` row's timestamp **from the same cache thread** as request start (interleaved subagent rows make "preceding" thread-relative); fall back to the assistant row's own timestamp when the thread has none | §7 + review |
 | Expiry model is all-or-nothing per gap; this is conservative toward 5m — disclose it in the UI | §7 |
-| Effective TTL comes from `usage.cache_creation` (`ephemeral_5m` / `ephemeral_1h` split), treated as a token-weighted mix | §2 |
+| Effective TTL comes from `usage.cache_creation` (`ephemeral_5m` / `ephemeral_1h` split). Counterfactuals reprice **only the user-controllable share**; server-tool 5m writes stay at 5m in both scenarios and are tracked as their own expiry class. The reconciliation check (§5) replays each request with its **observed per-request split**, not a single session-wide TTL | §2 + review |
 | Unrecognized record types are skipped and counted, surfaced as "N records skipped" | §4 |
 | Warn (don't fail) when `version` is outside the validated range | §4 |
 
@@ -224,8 +229,9 @@ session. The contract must also pin down two semantics the analysis depends
 on: the **unknown-model degradation policy** (excluded-and-disclosed;
 verdict suppressed above a threshold) and **mixed-TTL write handling** in
 counterfactuals (server tools insert their own 5m writes regardless of the
-user's setting — decide whether the 1h scenario reprices them or holds them
-at 5m, and document why).
+user's setting — default model: hold them at 5m in both scenarios as a
+separate expiry class and reprice only the user-controllable share; WP-02
+finalizes and documents this so the simulator is deterministic).
 
 Documented inline; changes after freeze require touching this plan. The
 insight-event taxonomy is the one section expected to be amended (WP-08 and
@@ -240,7 +246,7 @@ Streaming JSONL parser implementing the correctness rules table (dedup,
 synthetic exclusion, skip-and-count, version warnings, minimal field surface,
 content-poison test) and the validation/security rules (three verdicts,
 numeric hygiene, typed-record copying, line-length cap).
-Validation uses hand-rolled guards: with an eight-field surface they are less
+Validation uses hand-rolled guards: with a dozen-field surface they are less
 code than a schema library. (Zod v4.5 was considered and rejected for this
 hot path — a session log is thousands of lines, not enough to need it, and
 the dependency buys nothing here. Fine elsewhere in the app if a real need
@@ -324,8 +330,9 @@ WP-07 and WP-08 sessions can implement against them without guessing.
 **Parallel with:** WP-05.
 Upload (drag-drop + picker), Web Worker wiring with progress bar and cancel,
 in-memory history of this browser session's analyses, "find your logs"
-instructions (macOS: `~/.claude/projects/...`; Windows path; note
-`CLAUDE_CONFIG_DIR` and the 30-day cleanup), privacy statement with repo
+instructions (macOS: `~/.claude/projects/<project-slug>/<session-id>.jsonl`;
+Windows: `%USERPROFILE%\.claude\projects\...`; both moved by
+`CLAUDE_CONFIG_DIR` when set; note the 30-day default cleanup), privacy statement with repo
 link, data policy page, sample-session loader. File-size cap and the three
 validation verdicts (valid / warnings / not a session log) as distinct UI
 states. Sets up the i18n foundation: locale resource files, the translation
@@ -356,8 +363,11 @@ account, attach
 **cacheanalyzer.com** as a custom domain on the Worker (wrangler
 `routes`/custom domain config).
 *Acceptance:* a PR shows the checks; a merge to `main` deploys, reachable at
-`workers.dev` (and at cacheanalyzer.com once DNS is live); the README's Live
-URL is updated.
+`workers.dev` (and at cacheanalyzer.com once DNS is live); a post-deploy
+smoke check asserts the exact security headers on the live site
+(`Content-Security-Policy` present with `default-src 'self'` and no external
+`connect-src`) so a misconfigured headers file fails the deploy rather than
+silently voiding the privacy proof; the README's Live URL is updated.
 
 ### WP-10 — Launch polish
 **Depends on:** WP-08, WP-09.
@@ -411,7 +421,9 @@ parallel → ④ WP-08 → ⑤ WP-10.
   into output.
 - **Format-drift canary:** fixtures are tagged with the Claude Code `version`
   they represent; the parser's validated-version range lives in one constant,
-  and CI fails if a fixture version falls outside it.
+  and CI fails if a golden fixture's version falls outside it. One
+  deliberately out-of-range fixture is **exempt from the canary** and instead
+  asserts the warn-don't-fail path, so the two rules never conflict.
 
 ---
 
