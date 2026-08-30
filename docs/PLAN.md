@@ -47,8 +47,6 @@ dollar figure.
 - Claude Code **web JSON export** input. Unverified that it carries `usage`
   (feasibility doc §10). JSONL only for MVP.
 - Durable persistence, accounts, authentication.
-- Vanity domain. Launch on `workers.dev`; domain cutover is a fast follow once
-  a name is chosen.
 
 ---
 
@@ -227,9 +225,12 @@ no-sidechain and unknown-model cases.
 GitHub Actions: PR workflow (typecheck, lint, test, build) required on
 `main`; deploy workflow on push to `main` via `wrangler deploy` using a
 Cloudflare API token secret. Document secret setup in README. Branch
-protection on `main`.
-*Acceptance:* a PR shows the checks; a merge to `main` deploys to
-`workers.dev` and the README's Live URL is updated.
+protection on `main`. Once the domain is in the Cloudflare account, attach
+**cacheanalyzer.com** as a custom domain on the Worker (wrangler
+`routes`/custom domain config).
+*Acceptance:* a PR shows the checks; a merge to `main` deploys, reachable at
+`workers.dev` (and at cacheanalyzer.com once DNS is live); the README's Live
+URL is updated.
 
 ### WP-10 — Launch polish
 **Depends on:** WP-08, WP-09.
@@ -292,7 +293,7 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D5 | Rates live in a committed `pricing.json` with a `pricesAsOf` date; unknown models reported to the user | Simple, auditable, no runtime fetch. API-driven rates possible later. (User) |
 | D6 | Fixtures are synthetic + Claude-generated scenario sessions; no personal sessions bundled | Avoids publishing usage patterns; scenarios can be engineered to teach specific lessons and to verify verdicts. (User) |
 | D7 | `prototype-sim.py` is the reference implementation, generating golden fixtures the TS engine must match; plus independent hand-computed tests | Cross-validation between two implementations, with hand-computed values as the tiebreaker. (Claude's vote) |
-| D8 | Launch on `workers.dev`; pick/purchase a domain later | No name chosen yet; cutover is cheap. (User) |
+| D8 | Domain is **cacheanalyzer.com** (user purchasing, 2026-08-30). Deploys target `workers.dev` until the custom domain is wired up in WP-09 | Name was available; buying via Cloudflare Registrar keeps DNS in the same account as the Worker. (User) |
 | D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |
 
 ## 7. Risks
