@@ -62,7 +62,11 @@ dollar figure.
     `message.id`, `message.model`, `message.usage`, `isSidechain`, `effort`,
     `version`) and **never reads `message.content`** — enforced by a test that
     feeds a session whose content blocks are poison values and asserts they
-    never appear in any output (feasibility doc §9).
+    never appear in any output (feasibility doc §9). One deliberate, named
+    exception: the `ai-title` record (the short session title Claude Code
+    generates), read for the session identification card (§3) — a single
+    string, not conversation content. Not every session has one (4 of 7 in
+    the research corpus); payload shape to be verified in WP-03.
   - **Simulator** implements the counterfactual model from the feasibility
     doc: see §3 below.
 - **Web Worker** wraps the engine: streams the file
@@ -93,6 +97,13 @@ dollar figure.
 ---
 
 ## 3. What the analysis reports
+
+**First, a session identification card** so the user can confirm they loaded
+the session they intended — built entirely from content-free metadata: the
+session title (from the `ai-title` record when present), working directory
+(`cwd`), git branch, date and time span, duration, request count, model(s),
+Claude Code version, and file name/size. Message content is never shown; the
+card is why it never needs to be.
 
 **Headline:** the main-conversation bucket. Cost at 5m vs cost at 1h,
 recommendation, and delta — labelled as *notional cost at published Anthropic
@@ -191,7 +202,8 @@ are content-scrubbed (they'll be public).
 A dedicated **Claude Design** session produces the visual direction and screen
 designs for the whole flow: landing page (privacy statement, upload,
 "find your logs" instructions, samples), the analyzing state (progress +
-cancel), and the results view (recommendation card, cost comparison,
+cancel), and the results view (session identification card, recommendation
+card, cost comparison,
 conditional subagent section, cache-event timeline, educational explainers,
 session-history strip). It should also cover the empty/error states: unknown
 model, skipped records, version warning, malformed file.
@@ -213,8 +225,9 @@ terminates the worker mid-parse.
 
 ### WP-08 — Results and insights UI
 **Depends on:** WP-05, WP-07, WP-D.
-Recommendation card (with the API-rates framing line and `pricesAsOf` date),
-cost comparison, conditional subagent section, cache-event timeline,
+Session identification card (title/`cwd`/branch/span/models, with
+metadata-only fallback when `ai-title` is absent), recommendation card (with
+the API-rates framing line and `pricesAsOf` date), cost comparison, conditional subagent section, cache-event timeline,
 educational explainers, approximation disclosure (§7 conservatism), skipped
 records / version warnings surfaced.
 *Acceptance:* renders correctly for each WP-06 sample, including the
