@@ -1,0 +1,156 @@
+{
+  "$comment": "WP-06 fixture manifest. Each entry is one JSONL file, or a directory whose every *.jsonl (recursively) is a fixture. Ids are the path relative to fixtures/ without the extension; goldens live in fixtures/golden/<id with / as __>.json. The format-drift canary (PLAN §5) requires every analyzed fixture's Claude Code versions to sit inside VALIDATED_VERSION_RANGE unless canaryExempt is set — that one must instead produce the version-out-of-range warning.",
+  "fixtures": [
+    {
+      "path": "synthetic/dedup-content-blocks.jsonl",
+      "trap": "§6.1 one row per content block, full usage on each; F6 non-linear parentUuid; F1 last ai-title wins",
+      "expect": "3 requests from 9 assistant rows"
+    },
+    {
+      "path": "synthetic/synthetic-rows.jsonl",
+      "trap": "§6.2 <synthetic> placeholder rows",
+      "expect": "2 rows excluded, 3 requests"
+    },
+    {
+      "path": "synthetic/legacy-interleaved-sidechains.jsonl",
+      "trap": "§6.4 legacy layout: two parallel subagents' rows interleaved in the main file, threads recovered from parentUuid roots (v2.1.193)",
+      "expect": "main + subagent buckets; subagent bucket has 2 threads; B lapses after a 7m gap"
+    },
+    {
+      "path": "synthetic/modern-subagent-transcript.jsonl",
+      "trap": "F2 a subagents/agent-<id>.jsonl file uploaded alone",
+      "expect": "empty main bucket (no-verdict), one subagent thread at 5m"
+    },
+    {
+      "path": "synthetic/model-switch.jsonl",
+      "trap": "§6.6 hard reset on model change",
+      "expect": "1 hard reset in both scenarios, per-request pricing across two models"
+    },
+    {
+      "path": "synthetic/effort-change.jsonl",
+      "trap": "§6.6 hard reset on effort change",
+      "expect": "1 hard reset (high -> medium)"
+    },
+    {
+      "path": "synthetic/version-change.jsonl",
+      "trap": "§6.6 hard reset on Claude Code version change (both in range)",
+      "expect": "1 hard reset (2.1.247 -> 2.1.251); no version warning"
+    },
+    {
+      "path": "synthetic/gap-band-observed-1h.jsonl",
+      "trap": "§7 gaps in the 5m–1h band, observed 1h (shortening direction)",
+      "expect": "5m scenario adds expiries for the 6m/20m/59m gaps; the 61m gap lapsed in the log itself; 1h wins"
+    },
+    {
+      "path": "synthetic/gap-band-observed-5m.jsonl",
+      "trap": "§7 + WP-05 lengthening: observed 5m, the same gaps re-write the prefix",
+      "expect": "1h scenario restores the in-band re-writes as reads; 1h wins"
+    },
+    {
+      "path": "synthetic/tight-loop-observed-1h.jsonl",
+      "trap": "§5 break-even: a tight loop at 1h pays double for writes",
+      "expect": "5m wins, no expiries in either scenario"
+    },
+    {
+      "path": "synthetic/mixed-ttl-server-tools.jsonl",
+      "trap": "contract mixed-TTL policy: 1h-dominant bucket with server-tool 5m writes",
+      "expect": "server-tool-5m writes priced at 5m in both scenarios; only the 1h share is repriced"
+    },
+    {
+      "path": "synthetic/mixed-ttl-5m-dominant-flip.jsonl",
+      "trap": "WP-05 note: 5m-dominant bucket with a 1h residual (config flip)",
+      "expect": "every write user-controlled; observedTtl 5m"
+    },
+    {
+      "path": "synthetic/unknown-record-types.jsonl",
+      "trap": "§4 skip-and-count, system rows inside the parentUuid chain, >100 distinct types aggregate under <other>",
+      "expect": "request starts still resolve through the system rows"
+    },
+    {
+      "path": "synthetic/unknown-model-minor.jsonl",
+      "trap": "degradation policy below the 10% share",
+      "expect": "unknown-models warning, request excluded from dollars, verdict kept"
+    },
+    {
+      "path": "synthetic/unknown-model-major.jsonl",
+      "trap": "degradation policy above the 10% share",
+      "expect": "verdictSuppressed, no-verdict, priced share still costed"
+    },
+    {
+      "path": "synthetic/tier-and-speed.jsonl",
+      "trap": "§6.5 service_tier (batch 0.5×, priority 1×) and speed (fast 2×) per request",
+      "expect": "no hard reset; modifiers scale every bucket of the request"
+    },
+    {
+      "path": "synthetic/unattributed-writes.jsonl",
+      "trap": "usage without a cache_creation split (v2.1.193)",
+      "expect": "writes priced and classed as 5m; observedTtl 5m"
+    },
+    {
+      "path": "synthetic/version-out-of-range.jsonl",
+      "canaryExempt": true,
+      "trap": "§4 warn-don't-fail on an unvalidated version",
+      "expect": "version-out-of-range warning, analysis still produced"
+    },
+    {
+      "path": "synthetic/request-start-fallback.jsonl",
+      "trap": "F3 fallback when no user ancestor resolves (missing parent, cycle, null parent)",
+      "expect": "assistant-row-fallback starts; gaps measured from those"
+    },
+    {
+      "path": "synthetic/inference-geo-us.jsonl",
+      "trap": "inference_geo: us — priced at standard rates by stated assumption (no 1.1× modeled)",
+      "expect": "identical to a not_available session"
+    },
+    {
+      "path": "synthetic/content-poison.jsonl",
+      "trap": "§9 content shaped like the parsed fields (decoy usage/model/timestamps inside text)",
+      "expect": "no POISON anywhere in the output; decoy values never used"
+    },
+    {
+      "path": "synthetic/empty-and-whitespace-lines.jsonl",
+      "trap": "line handling: BOM, CRLF, blank and whitespace-only lines, no trailing newline",
+      "expect": "valid, 2 requests, blank lines not counted as malformed"
+    },
+    {
+      "path": "adversarial/not-a-session.jsonl",
+      "trap": "validation: well-formed JSONL that is not a session log",
+      "expect": "rejected: no-assistant-usage-rows"
+    },
+    {
+      "path": "adversarial/malformed-majority.jsonl",
+      "trap": "validation: malformed lines above MALFORMED_LINE_REJECT_RATIO",
+      "expect": "rejected: malformed-lines-exceed-threshold"
+    },
+    {
+      "path": "adversarial/malformed-minority.jsonl",
+      "trap": "validation: malformed lines at or below the ratio",
+      "expect": "valid-with-warnings"
+    },
+    {
+      "path": "adversarial/hostile-metadata.jsonl",
+      "trap": "security: control chars, ANSI, bidi, markup and 2000-char strings in every display field",
+      "expect": "sanitized and clamped metadata; the 2000-char model id is an unknown model (26% of tokens), so the verdict is suppressed; nothing rejected"
+    },
+    {
+      "path": "adversarial/prototype-pollution.jsonl",
+      "trap": "security: __proto__ / constructor / prototype keys at every level",
+      "expect": "parsed like ordinary keys — no pollution, no crash; the hand-written rows lack effort/version, so they register as hard resets"
+    },
+    {
+      "path": "adversarial/invalid-numerics.jsonl",
+      "trap": "numeric hygiene: negative, fractional, string, boolean, unsafe, NaN/Infinity literals",
+      "expect": "8 invalid-usage rows skipped, 2 malformed lines, valid rows kept"
+    },
+    {
+      "path": "captured/parallel-subagents",
+      "trap": "real v2.1.251 session with 27 parallel and nested subagents (separate files, F2), content scrubbed",
+      "expect": "main file: main bucket only at 1h; each agent file: subagent bucket only at 5m"
+    },
+    {
+      "path": "captured/scenarios",
+      "trap": "Claude-enacted scenario sessions recorded by scripts/capture-scenarios.sh (claude -p, one cwd each), content scrubbed; they double as public/samples/",
+      "expect": "tight-loop-5m: observed 5m, 5m wins, no expiries; gap-heavy-1h: observed 1h, the 5m scenario adds three expiries, 1h wins ($0.32 vs $0.70); gap-heavy-5m: observed 5m, one full lapse and two PARTIAL lapses (an ~11.8k stable prefix stayed warm) — the all-or-nothing model restores only the full one, so 5m wins narrowly ($0.562 vs $0.579); see fixtures/README.md; model-switch: observed 1h, two hard resets (model, effort)"
+    }
+  ]
+}

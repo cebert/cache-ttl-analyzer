@@ -1,0 +1,595 @@
+{
+  "$schema": "cache-ttl-analyzer/golden/v1",
+  "fixture": "captured/parallel-subagents/subagents/agent-a4a95ee4c31e52fff",
+  "outcome": "analysis",
+  "metadata": {
+    "sessionId": "0e7641fb-f23b-4b94-b939-28216127ef0f",
+    "cwd": "~/Code/cache-ttl-analyzer",
+    "gitBranch": "feat/wp-03-parser",
+    "models": [
+      "claude-fable-5"
+    ],
+    "versions": [
+      "2.1.251"
+    ],
+    "efforts": [
+      "high"
+    ],
+    "firstTimestamp": "2026-08-30T23:17:46.474Z",
+    "lastTimestamp": "2026-08-30T23:23:10.810Z"
+  },
+  "parseStats": {
+    "totalLines": 88,
+    "nonEmptyLines": 88,
+    "malformedLines": 0,
+    "skippedRecordTypes": {},
+    "assistantRows": 52,
+    "dedupedRequests": 13,
+    "syntheticRowsExcluded": 0,
+    "invalidUsageRowsSkipped": 0
+  },
+  "parseWarnings": [],
+  "buckets": [
+    {
+      "bucket": "main",
+      "threadCount": 0,
+      "requestCount": 0,
+      "actualCost": {
+        "baseInputUsd": 0.0,
+        "cacheReadUsd": 0.0,
+        "cacheWrite5mUsd": 0.0,
+        "cacheWrite1hUsd": 0.0,
+        "outputUsd": 0.0,
+        "totalUsd": 0.0
+      },
+      "observedWriteSplit": {
+        "fiveMinuteWriteTokens": 0,
+        "oneHourWriteTokens": 0
+      },
+      "observedTtl": null,
+      "configExplicitness": "unknown",
+      "scenarios": {
+        "fiveMinute": {
+          "ttl": "5m",
+          "cost": {
+            "baseInputUsd": 0.0,
+            "cacheReadUsd": 0.0,
+            "cacheWrite5mUsd": 0.0,
+            "cacheWrite1hUsd": 0.0,
+            "outputUsd": 0.0,
+            "totalUsd": 0.0
+          },
+          "events": [],
+          "cacheExpiries": 0,
+          "hardResets": 0,
+          "warmReadRequests": 0,
+          "wastedWriteTokens": 0
+        },
+        "oneHour": {
+          "ttl": "1h",
+          "cost": {
+            "baseInputUsd": 0.0,
+            "cacheReadUsd": 0.0,
+            "cacheWrite5mUsd": 0.0,
+            "cacheWrite1hUsd": 0.0,
+            "outputUsd": 0.0,
+            "totalUsd": 0.0
+          },
+          "events": [],
+          "cacheExpiries": 0,
+          "hardResets": 0,
+          "warmReadRequests": 0,
+          "wastedWriteTokens": 0
+        }
+      },
+      "recommendation": "no-verdict",
+      "savingsUsd": 0.0,
+      "verdictSuppressed": false,
+      "unpricedTokenShare": 0.0,
+      "shape": {
+        "requestCount": 0,
+        "spanMs": 0,
+        "largestGapMs": 0,
+        "gapsIn5mTo1hBand": 0
+      }
+    },
+    {
+      "bucket": "subagent",
+      "threadCount": 1,
+      "requestCount": 13,
+      "actualCost": {
+        "baseInputUsd": 0.03414999999999999,
+        "cacheReadUsd": 1.205627,
+        "cacheWrite5mUsd": 1.7228749999999997,
+        "cacheWrite1hUsd": 0.0,
+        "outputUsd": 0.0028499999999999992,
+        "totalUsd": 2.9655020000000003
+      },
+      "observedWriteSplit": {
+        "fiveMinuteWriteTokens": 137830,
+        "oneHourWriteTokens": 0
+      },
+      "observedTtl": "5m",
+      "configExplicitness": "unknown",
+      "scenarios": {
+        "fiveMinute": {
+          "ttl": "5m",
+          "cost": {
+            "baseInputUsd": 0.03414999999999999,
+            "cacheReadUsd": 1.205627,
+            "cacheWrite5mUsd": 1.7228749999999997,
+            "cacheWrite1hUsd": 0.0,
+            "outputUsd": 0.0028499999999999992,
+            "totalUsd": 2.9655020000000003
+          },
+          "events": [
+            {
+              "kind": "subagent-thread-start",
+              "timestamp": "2026-08-30T23:17:46.474Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnb3AgRQ8Z8AoF1afpp"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 15804,
+              "timestamp": "2026-08-30T23:17:46.474Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnb3AgRQ8Z8AoF1afpp"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 10646,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:17:46.474Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnb3AgRQ8Z8AoF1afpp"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 26450,
+              "timestamp": "2026-08-30T23:17:50.407Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnbKyE8FWGMi6Y5xkoA"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 8339,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:17:50.407Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnbKyE8FWGMi6Y5xkoA"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 34789,
+              "timestamp": "2026-08-30T23:17:59.364Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnc1F8AC29pDrcvmYQZ"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 6040,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:17:59.364Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnc1F8AC29pDrcvmYQZ"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 40829,
+              "timestamp": "2026-08-30T23:18:10.362Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZncoePw6jibJKPqR5oB"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 19567,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:18:10.362Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZncoePw6jibJKPqR5oB"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 60396,
+              "timestamp": "2026-08-30T23:18:22.032Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZndfMMQow94ZxBNCXvP"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 35353,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:18:22.032Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZndfMMQow94ZxBNCXvP"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 95749,
+              "timestamp": "2026-08-30T23:18:25.842Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZndwafW4sZcQnzHeAsP"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 16243,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:18:25.842Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZndwafW4sZcQnzHeAsP"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 111992,
+              "timestamp": "2026-08-30T23:19:27.381Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZniUojgxenY119PM6dF"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 9002,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:19:27.381Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZniUojgxenY119PM6dF"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 120994,
+              "timestamp": "2026-08-30T23:20:28.176Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnnxUjcN83qNfwtB3GN"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 8093,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:20:28.176Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnnxUjcN83qNfwtB3GN"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 129087,
+              "timestamp": "2026-08-30T23:20:41.672Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnoxKqnw5MceFdXcwqV"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 3196,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:20:41.672Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnoxKqnw5MceFdXcwqV"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 132283,
+              "timestamp": "2026-08-30T23:21:35.088Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnsu6V2fQu4QqowJgYX"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 10354,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:21:35.088Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnsu6V2fQu4QqowJgYX"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 142637,
+              "timestamp": "2026-08-30T23:21:54.676Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnuM7S4TgBAAjV144c3"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 2648,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:21:54.676Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnuM7S4TgBAAjV144c3"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 145285,
+              "timestamp": "2026-08-30T23:22:10.035Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnvUVDWP9bf9iNDvdoW"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 4047,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:22:10.035Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnvUVDWP9bf9iNDvdoW"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 149332,
+              "timestamp": "2026-08-30T23:22:47.403Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnyFYgdcQj8C94s1JuU"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 4302,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:22:47.403Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnyFYgdcQj8C94s1JuU"
+            }
+          ],
+          "cacheExpiries": 0,
+          "hardResets": 0,
+          "warmReadRequests": 13,
+          "wastedWriteTokens": 0
+        },
+        "oneHour": {
+          "ttl": "1h",
+          "cost": {
+            "baseInputUsd": 0.03414999999999999,
+            "cacheReadUsd": 1.205627,
+            "cacheWrite5mUsd": 0.0,
+            "cacheWrite1hUsd": 2.7566,
+            "outputUsd": 0.0028499999999999992,
+            "totalUsd": 3.9992269999999994
+          },
+          "events": [
+            {
+              "kind": "subagent-thread-start",
+              "timestamp": "2026-08-30T23:17:46.474Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnb3AgRQ8Z8AoF1afpp"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 15804,
+              "timestamp": "2026-08-30T23:17:46.474Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnb3AgRQ8Z8AoF1afpp"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 10646,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:17:46.474Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnb3AgRQ8Z8AoF1afpp"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 26450,
+              "timestamp": "2026-08-30T23:17:50.407Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnbKyE8FWGMi6Y5xkoA"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 8339,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:17:50.407Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnbKyE8FWGMi6Y5xkoA"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 34789,
+              "timestamp": "2026-08-30T23:17:59.364Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnc1F8AC29pDrcvmYQZ"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 6040,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:17:59.364Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnc1F8AC29pDrcvmYQZ"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 40829,
+              "timestamp": "2026-08-30T23:18:10.362Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZncoePw6jibJKPqR5oB"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 19567,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:18:10.362Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZncoePw6jibJKPqR5oB"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 60396,
+              "timestamp": "2026-08-30T23:18:22.032Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZndfMMQow94ZxBNCXvP"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 35353,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:18:22.032Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZndfMMQow94ZxBNCXvP"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 95749,
+              "timestamp": "2026-08-30T23:18:25.842Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZndwafW4sZcQnzHeAsP"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 16243,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:18:25.842Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZndwafW4sZcQnzHeAsP"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 111992,
+              "timestamp": "2026-08-30T23:19:27.381Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZniUojgxenY119PM6dF"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 9002,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:19:27.381Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZniUojgxenY119PM6dF"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 120994,
+              "timestamp": "2026-08-30T23:20:28.176Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnnxUjcN83qNfwtB3GN"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 8093,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:20:28.176Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnnxUjcN83qNfwtB3GN"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 129087,
+              "timestamp": "2026-08-30T23:20:41.672Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnoxKqnw5MceFdXcwqV"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 3196,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:20:41.672Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnoxKqnw5MceFdXcwqV"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 132283,
+              "timestamp": "2026-08-30T23:21:35.088Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnsu6V2fQu4QqowJgYX"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 10354,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:21:35.088Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnsu6V2fQu4QqowJgYX"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 142637,
+              "timestamp": "2026-08-30T23:21:54.676Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnuM7S4TgBAAjV144c3"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 2648,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:21:54.676Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnuM7S4TgBAAjV144c3"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 145285,
+              "timestamp": "2026-08-30T23:22:10.035Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnvUVDWP9bf9iNDvdoW"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 4047,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:22:10.035Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnvUVDWP9bf9iNDvdoW"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 149332,
+              "timestamp": "2026-08-30T23:22:47.403Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnyFYgdcQj8C94s1JuU"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 4302,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T23:22:47.403Z",
+              "threadId": "a4a95ee4c31e52fff",
+              "messageId": "msg_011CeZnyFYgdcQj8C94s1JuU"
+            }
+          ],
+          "cacheExpiries": 0,
+          "hardResets": 0,
+          "warmReadRequests": 13,
+          "wastedWriteTokens": 0
+        }
+      },
+      "recommendation": "5m",
+      "savingsUsd": 1.0337249999999991,
+      "verdictSuppressed": false,
+      "unpricedTokenShare": 0.0,
+      "shape": {
+        "requestCount": 13,
+        "spanMs": 324336,
+        "largestGapMs": 61539,
+        "gapsIn5mTo1hBand": 0
+      }
+    }
+  ],
+  "unknownModels": {
+    "models": [],
+    "excludedRequests": 0,
+    "excludedTotalTokens": 0
+  }
+}

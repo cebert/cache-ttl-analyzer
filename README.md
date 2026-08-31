@@ -50,6 +50,8 @@ A secondary goal of this tool is to increase developer awareness of cost drivers
 ## Development
 
 Prerequisites: [Node.js](https://nodejs.org/) 22+ (developed on 26) and npm.
+Python 3.10+ (standard library only) for the reference simulator and golden
+fixtures — not needed to build or run the app.
 
 ```sh
 npm  install
@@ -64,6 +66,9 @@ npm  run  dev  # Vite dev server with HMR
 | `npm run lint` | [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) |
 | `npm run format` | Prettier, write mode (`format:check` in CI) |
 | `npm run typecheck` | `tsc -b` only |
+| `npm run test:refsim` | Hand-computed unit tests for the Python reference simulator (`tools/refsim/`) |
+| `npm run golden:emit` / `golden:check` | Regenerate / verify the golden fixtures the engine is cross-validated against (see [fixtures/README.md](fixtures/README.md)) |
+| `npm run fixtures:build` | Regenerate the synthetic fixture sessions from `scripts/build-synthetic-fixtures.ts` |
 | `npm run preview` | Serve the production build via Vite |
 | `npx wrangler dev` | Serve the production build the way Cloudflare Workers will (build first) |
 | `npm run deploy` | Build and deploy to Cloudflare Workers (manual escape hatch; CI deploys `main` automatically) |
@@ -77,6 +82,15 @@ The engine consists of parsing, cost calculation, and cache simulation component
 ### Testing and debugging
 
 `npm test` runs the full test suite, including a generated ~100 MB synthetic session used to exercise large-file processing.
+
+The engine is also cross-validated against **golden fixtures**: every
+session under `fixtures/` (crafted traps, adversarial inputs, and scrubbed
+real captures) is priced by an independently written Python reference
+simulator, and `src/engine/golden.test.ts` diffs the engine's output against
+those goldens — with the format-drift canary and content-poison checks on
+top. CI runs the sim's own tests and `golden:check`, so a committed golden
+can never drift from the sim. [fixtures/README.md](fixtures/README.md) has
+the details and the add-a-fixture recipe.
 
 Application logging goes through `src/lib/logger.ts` and is console-only. Production defaults to `warn`. Enable verbose logging with either:
 

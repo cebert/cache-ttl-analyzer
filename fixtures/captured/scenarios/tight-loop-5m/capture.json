@@ -1,0 +1,27 @@
+{
+  "source": {
+    "sessionId": "5157a050-81f0-4ca7-98f5-3f98f7c0b582",
+    "claudeCodeVersions": [
+      "2.1.251"
+    ]
+  },
+  "description": "Claude-enacted scenario: eight back-to-back prompts against a toy project with the main cache TTL set to 5m (CLAUDE_CODE_PROMPT_CACHE_TTL=5m). Every gap is well under five minutes, so the doubled 1h write price would buy nothing.",
+  "title": "Tight agent loop at 5m",
+  "scrubRulesVersion": 1,
+  "scrubbedValues": 351,
+  "files": [
+    {
+      "file": "session.jsonl",
+      "lines": 94,
+      "recordTypes": {
+        "queue-operation": 16,
+        "user": 16,
+        "attachment": 21,
+        "atis-latch": 4,
+        "assistant": 26,
+        "last-prompt": 9,
+        "mode": 2
+      }
+    }
+  ]
+}

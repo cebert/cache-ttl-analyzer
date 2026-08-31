@@ -1,0 +1,277 @@
+{
+  "source": {
+    "sessionId": "0e7641fb-f23b-4b94-b939-28216127ef0f",
+    "claudeCodeVersions": [
+      "2.1.251"
+    ]
+  },
+  "description": "Real v2.1.251 session from building this repo: the main conversation spawned 27 subagents (parallel and nested to depth 2), each a separate transcript under subagents/. Main thread ran at 1h, subagents at 5m.",
+  "title": "Parallel subagents capture (scrubbed)",
+  "scrubRulesVersion": 1,
+  "scrubbedValues": 12403,
+  "files": [
+    {
+      "file": "session.jsonl",
+      "lines": 1304,
+      "recordTypes": {
+        "mode": 61,
+        "permission-mode": 61,
+        "bridge-session": 61,
+        "file-history-snapshot": 8,
+        "user": 143,
+        "atis-latch": 61,
+        "attachment": 336,
+        "last-prompt": 60,
+        "ai-title": 60,
+        "assistant": 310,
+        "queue-operation": 72,
+        "file-history-delta": 11,
+        "system": 22,
+        "pr-link": 38
+      }
+    },
+    {
+      "file": "subagents/agent-a01d87944318de984.jsonl",
+      "lines": 42,
+      "recordTypes": {
+        "user": 13,
+        "attachment": 4,
+        "assistant": 25
+      }
+    },
+    {
+      "file": "subagents/agent-a0b7addb025892c04.jsonl",
+      "lines": 17,
+      "recordTypes": {
+        "user": 5,
+        "attachment": 4,
+        "assistant": 8
+      }
+    },
+    {
+      "file": "subagents/agent-a1da4ced83627dbe9.jsonl",
+      "lines": 33,
+      "recordTypes": {
+        "user": 11,
+        "attachment": 4,
+        "assistant": 18
+      }
+    },
+    {
+      "file": "subagents/agent-a20c13333d3d1bd11.jsonl",
+      "lines": 84,
+      "recordTypes": {
+        "user": 28,
+        "attachment": 4,
+        "assistant": 52
+      }
+    },
+    {
+      "file": "subagents/agent-a2adf42a28496dcc4.jsonl",
+      "lines": 26,
+      "recordTypes": {
+        "user": 9,
+        "attachment": 4,
+        "assistant": 13
+      }
+    },
+    {
+      "file": "subagents/agent-a3aaf87d6feeb3709.jsonl",
+      "lines": 20,
+      "recordTypes": {
+        "user": 6,
+        "attachment": 4,
+        "assistant": 10
+      }
+    },
+    {
+      "file": "subagents/agent-a3f0aff838142f532.jsonl",
+      "lines": 21,
+      "recordTypes": {
+        "user": 7,
+        "attachment": 4,
+        "assistant": 10
+      }
+    },
+    {
+      "file": "subagents/agent-a4a95ee4c31e52fff.jsonl",
+      "lines": 88,
+      "recordTypes": {
+        "user": 32,
+        "attachment": 4,
+        "assistant": 52
+      }
+    },
+    {
+      "file": "subagents/agent-a62edfd84bd6a62e7.jsonl",
+      "lines": 20,
+      "recordTypes": {
+        "user": 6,
+        "attachment": 4,
+        "assistant": 10
+      }
+    },
+    {
+      "file": "subagents/agent-a63d208fed2c58b33.jsonl",
+      "lines": 131,
+      "recordTypes": {
+        "user": 52,
+        "attachment": 4,
+        "assistant": 75
+      }
+    },
+    {
+      "file": "subagents/agent-a7ed517d3ebeed820.jsonl",
+      "lines": 21,
+      "recordTypes": {
+        "user": 7,
+        "attachment": 4,
+        "assistant": 10
+      }
+    },
+    {
+      "file": "subagents/agent-a7f9962a2e86b9b27.jsonl",
+      "lines": 55,
+      "recordTypes": {
+        "user": 18,
+        "attachment": 5,
+        "assistant": 32
+      }
+    },
+    {
+      "file": "subagents/agent-a8a32d9c0e971b387.jsonl",
+      "lines": 19,
+      "recordTypes": {
+        "user": 6,
+        "attachment": 4,
+        "assistant": 9
+      }
+    },
+    {
+      "file": "subagents/agent-a8b2c40e436e3863a.jsonl",
+      "lines": 78,
+      "recordTypes": {
+        "user": 31,
+        "attachment": 4,
+        "assistant": 43
+      }
+    },
+    {
+      "file": "subagents/agent-aaa85719cec673da4.jsonl",
+      "lines": 21,
+      "recordTypes": {
+        "user": 7,
+        "attachment": 4,
+        "assistant": 10
+      }
+    },
+    {
+      "file": "subagents/agent-aadf3c653ff625b82.jsonl",
+      "lines": 39,
+      "recordTypes": {
+        "user": 14,
+        "attachment": 4,
+        "assistant": 21
+      }
+    },
+    {
+      "file": "subagents/agent-ab0bde525dcecbe55.jsonl",
+      "lines": 31,
+      "recordTypes": {
+        "user": 10,
+        "attachment": 4,
+        "assistant": 17
+      }
+    },
+    {
+      "file": "subagents/agent-abec8882d31a3f60b.jsonl",
+      "lines": 43,
+      "recordTypes": {
+        "user": 16,
+        "attachment": 4,
+        "assistant": 23
+      }
+    },
+    {
+      "file": "subagents/agent-aca3d955bc2023457.jsonl",
+      "lines": 16,
+      "recordTypes": {
+        "user": 5,
+        "attachment": 4,
+        "assistant": 7
+      }
+    },
+    {
+      "file": "subagents/agent-ad46b0ef5b2d6f8b9.jsonl",
+      "lines": 16,
+      "recordTypes": {
+        "user": 5,
+        "attachment": 4,
+        "assistant": 7
+      }
+    },
+    {
+      "file": "subagents/agent-adae7aaefe3c9dbf8.jsonl",
+      "lines": 34,
+      "recordTypes": {
+        "user": 13,
+        "attachment": 4,
+        "assistant": 17
+      }
+    },
+    {
+      "file": "subagents/agent-ae2aeac9912cb5661.jsonl",
+      "lines": 13,
+      "recordTypes": {
+        "user": 4,
+        "attachment": 4,
+        "assistant": 5
+      }
+    },
+    {
+      "file": "subagents/agent-ae53a7d0819509f57.jsonl",
+      "lines": 33,
+      "recordTypes": {
+        "user": 11,
+        "attachment": 4,
+        "assistant": 18
+      }
+    },
+    {
+      "file": "subagents/agent-aed21cbd9c35d30af.jsonl",
+      "lines": 22,
+      "recordTypes": {
+        "user": 8,
+        "attachment": 4,
+        "assistant": 10
+      }
+    },
+    {
+      "file": "subagents/agent-aee9c97e41159d44f.jsonl",
+      "lines": 38,
+      "recordTypes": {
+        "user": 13,
+        "attachment": 4,
+        "assistant": 21
+      }
+    },
+    {
+      "file": "subagents/agent-af448a00508c89633.jsonl",
+      "lines": 29,
+      "recordTypes": {
+        "user": 10,
+        "attachment": 4,
+        "assistant": 15
+      }
+    },
+    {
+      "file": "subagents/agent-afcff069f4eb36bc8.jsonl",
+      "lines": 39,
+      "recordTypes": {
+        "user": 12,
+        "attachment": 4,
+        "assistant": 23
+      }
+    }
+  ]
+}

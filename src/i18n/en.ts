@@ -70,6 +70,7 @@ export const en = {
     // a sample it adds under a new id adds its name here too.
     // Consumed by `SampleSession.nameKey`; WP-06 adds the sessions these name.
     names: {
+      realSession: 'A real 85-minute session',
       tightLoop: 'Tight agent loop',
       gapHeavy: 'Long and gap-heavy',
       modelSwitch: 'Model switched',

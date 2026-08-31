@@ -1,0 +1,128 @@
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":null,"type":"user","uuid":"u-0","timestamp":"2026-08-30T12:00:00.000Z","message":{"role":"user","content":"POISON: user prompt 0 — never read by the parser"}}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"u-0","type":"attachment","uuid":"at-0","timestamp":"2026-08-30T12:00:01.000Z","attachment":{"type":"hook_success","content":"POISON: attachment 0 — never read by the parser"}}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"at-0","message":{"model":"claude-opus-5","id":"msg_000","type":"message","role":"assistant","content":[{"type":"text","text":"POISON: assistant text 0/0 — never read by the parser"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":4,"cache_creation_input_tokens":12000,"cache_read_input_tokens":0,"output_tokens":120,"output_tokens_details":{"thinking_tokens":30},"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":12000},"inference_geo":"not_available","speed":"standard"}},"requestId":"req_000","type":"assistant","uuid":"a-0-0","timestamp":"2026-08-30T12:00:03.000Z","effort":"high"}
+{"type":"mode","mode":"default","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"permission-mode","permissionMode":"default","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"last-prompt","lastPrompt":"POISON: last prompt — never read by the parser","leafUuid":"a-0-0","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"frame-link","frameId":"frame-0","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"file-history-snapshot","messageId":"u-0","snapshot":{"files":"POISON: snapshot — never read by the parser"}}
+{"type":"experimental-record-0","payload":"POISON: x0 — never read by the parser"}
+{"type":"experimental-record-1","payload":"POISON: x1 — never read by the parser"}
+{"type":"experimental-record-2","payload":"POISON: x2 — never read by the parser"}
+{"type":"experimental-record-3","payload":"POISON: x3 — never read by the parser"}
+{"type":"experimental-record-4","payload":"POISON: x4 — never read by the parser"}
+{"type":"experimental-record-5","payload":"POISON: x5 — never read by the parser"}
+{"type":"experimental-record-6","payload":"POISON: x6 — never read by the parser"}
+{"type":"experimental-record-7","payload":"POISON: x7 — never read by the parser"}
+{"type":"experimental-record-8","payload":"POISON: x8 — never read by the parser"}
+{"type":"experimental-record-9","payload":"POISON: x9 — never read by the parser"}
+{"type":"experimental-record-10","payload":"POISON: x10 — never read by the parser"}
+{"type":"experimental-record-11","payload":"POISON: x11 — never read by the parser"}
+{"type":"experimental-record-12","payload":"POISON: x12 — never read by the parser"}
+{"type":"experimental-record-13","payload":"POISON: x13 — never read by the parser"}
+{"type":"experimental-record-14","payload":"POISON: x14 — never read by the parser"}
+{"type":"experimental-record-15","payload":"POISON: x15 — never read by the parser"}
+{"type":"experimental-record-16","payload":"POISON: x16 — never read by the parser"}
+{"type":"experimental-record-17","payload":"POISON: x17 — never read by the parser"}
+{"type":"experimental-record-18","payload":"POISON: x18 — never read by the parser"}
+{"type":"experimental-record-19","payload":"POISON: x19 — never read by the parser"}
+{"type":"experimental-record-20","payload":"POISON: x20 — never read by the parser"}
+{"type":"experimental-record-21","payload":"POISON: x21 — never read by the parser"}
+{"type":"experimental-record-22","payload":"POISON: x22 — never read by the parser"}
+{"type":"experimental-record-23","payload":"POISON: x23 — never read by the parser"}
+{"type":"experimental-record-24","payload":"POISON: x24 — never read by the parser"}
+{"type":"experimental-record-25","payload":"POISON: x25 — never read by the parser"}
+{"type":"experimental-record-26","payload":"POISON: x26 — never read by the parser"}
+{"type":"experimental-record-27","payload":"POISON: x27 — never read by the parser"}
+{"type":"experimental-record-28","payload":"POISON: x28 — never read by the parser"}
+{"type":"experimental-record-29","payload":"POISON: x29 — never read by the parser"}
+{"type":"experimental-record-30","payload":"POISON: x30 — never read by the parser"}
+{"type":"experimental-record-31","payload":"POISON: x31 — never read by the parser"}
+{"type":"experimental-record-32","payload":"POISON: x32 — never read by the parser"}
+{"type":"experimental-record-33","payload":"POISON: x33 — never read by the parser"}
+{"type":"experimental-record-34","payload":"POISON: x34 — never read by the parser"}
+{"type":"experimental-record-35","payload":"POISON: x35 — never read by the parser"}
+{"type":"experimental-record-36","payload":"POISON: x36 — never read by the parser"}
+{"type":"experimental-record-37","payload":"POISON: x37 — never read by the parser"}
+{"type":"experimental-record-38","payload":"POISON: x38 — never read by the parser"}
+{"type":"experimental-record-39","payload":"POISON: x39 — never read by the parser"}
+{"type":"experimental-record-40","payload":"POISON: x40 — never read by the parser"}
+{"type":"experimental-record-41","payload":"POISON: x41 — never read by the parser"}
+{"type":"experimental-record-42","payload":"POISON: x42 — never read by the parser"}
+{"type":"experimental-record-43","payload":"POISON: x43 — never read by the parser"}
+{"type":"experimental-record-44","payload":"POISON: x44 — never read by the parser"}
+{"type":"experimental-record-45","payload":"POISON: x45 — never read by the parser"}
+{"type":"experimental-record-46","payload":"POISON: x46 — never read by the parser"}
+{"type":"experimental-record-47","payload":"POISON: x47 — never read by the parser"}
+{"type":"experimental-record-48","payload":"POISON: x48 — never read by the parser"}
+{"type":"experimental-record-49","payload":"POISON: x49 — never read by the parser"}
+{"type":"experimental-record-50","payload":"POISON: x50 — never read by the parser"}
+{"type":"experimental-record-51","payload":"POISON: x51 — never read by the parser"}
+{"type":"experimental-record-52","payload":"POISON: x52 — never read by the parser"}
+{"type":"experimental-record-53","payload":"POISON: x53 — never read by the parser"}
+{"type":"experimental-record-54","payload":"POISON: x54 — never read by the parser"}
+{"type":"experimental-record-55","payload":"POISON: x55 — never read by the parser"}
+{"type":"experimental-record-56","payload":"POISON: x56 — never read by the parser"}
+{"type":"experimental-record-57","payload":"POISON: x57 — never read by the parser"}
+{"type":"experimental-record-58","payload":"POISON: x58 — never read by the parser"}
+{"type":"experimental-record-59","payload":"POISON: x59 — never read by the parser"}
+{"type":"experimental-record-60","payload":"POISON: x60 — never read by the parser"}
+{"type":"experimental-record-61","payload":"POISON: x61 — never read by the parser"}
+{"type":"experimental-record-62","payload":"POISON: x62 — never read by the parser"}
+{"type":"experimental-record-63","payload":"POISON: x63 — never read by the parser"}
+{"type":"experimental-record-64","payload":"POISON: x64 — never read by the parser"}
+{"type":"experimental-record-65","payload":"POISON: x65 — never read by the parser"}
+{"type":"experimental-record-66","payload":"POISON: x66 — never read by the parser"}
+{"type":"experimental-record-67","payload":"POISON: x67 — never read by the parser"}
+{"type":"experimental-record-68","payload":"POISON: x68 — never read by the parser"}
+{"type":"experimental-record-69","payload":"POISON: x69 — never read by the parser"}
+{"type":"experimental-record-70","payload":"POISON: x70 — never read by the parser"}
+{"type":"experimental-record-71","payload":"POISON: x71 — never read by the parser"}
+{"type":"experimental-record-72","payload":"POISON: x72 — never read by the parser"}
+{"type":"experimental-record-73","payload":"POISON: x73 — never read by the parser"}
+{"type":"experimental-record-74","payload":"POISON: x74 — never read by the parser"}
+{"type":"experimental-record-75","payload":"POISON: x75 — never read by the parser"}
+{"type":"experimental-record-76","payload":"POISON: x76 — never read by the parser"}
+{"type":"experimental-record-77","payload":"POISON: x77 — never read by the parser"}
+{"type":"experimental-record-78","payload":"POISON: x78 — never read by the parser"}
+{"type":"experimental-record-79","payload":"POISON: x79 — never read by the parser"}
+{"type":"experimental-record-80","payload":"POISON: x80 — never read by the parser"}
+{"type":"experimental-record-81","payload":"POISON: x81 — never read by the parser"}
+{"type":"experimental-record-82","payload":"POISON: x82 — never read by the parser"}
+{"type":"experimental-record-83","payload":"POISON: x83 — never read by the parser"}
+{"type":"experimental-record-84","payload":"POISON: x84 — never read by the parser"}
+{"type":"experimental-record-85","payload":"POISON: x85 — never read by the parser"}
+{"type":"experimental-record-86","payload":"POISON: x86 — never read by the parser"}
+{"type":"experimental-record-87","payload":"POISON: x87 — never read by the parser"}
+{"type":"experimental-record-88","payload":"POISON: x88 — never read by the parser"}
+{"type":"experimental-record-89","payload":"POISON: x89 — never read by the parser"}
+{"type":"experimental-record-90","payload":"POISON: x90 — never read by the parser"}
+{"type":"experimental-record-91","payload":"POISON: x91 — never read by the parser"}
+{"type":"experimental-record-92","payload":"POISON: x92 — never read by the parser"}
+{"type":"experimental-record-93","payload":"POISON: x93 — never read by the parser"}
+{"type":"experimental-record-94","payload":"POISON: x94 — never read by the parser"}
+{"type":"experimental-record-95","payload":"POISON: x95 — never read by the parser"}
+{"type":"experimental-record-96","payload":"POISON: x96 — never read by the parser"}
+{"type":"experimental-record-97","payload":"POISON: x97 — never read by the parser"}
+{"type":"experimental-record-98","payload":"POISON: x98 — never read by the parser"}
+{"type":"experimental-record-99","payload":"POISON: x99 — never read by the parser"}
+{"type":"experimental-record-100","payload":"POISON: x100 — never read by the parser"}
+{"type":"experimental-record-101","payload":"POISON: x101 — never read by the parser"}
+{"type":"experimental-record-102","payload":"POISON: x102 — never read by the parser"}
+{"type":"experimental-record-103","payload":"POISON: x103 — never read by the parser"}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"at-1","type":"system","uuid":"sys-1","timestamp":"2026-08-30T12:00:31.000Z","content":"POISON: hook output — never read by the parser","subtype":"hook"}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"a-0-0","type":"user","uuid":"u-1","timestamp":"2026-08-30T12:00:30.000Z","message":{"role":"user","content":"POISON: user prompt 1 — never read by the parser"}}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"u-1","type":"attachment","uuid":"at-1","timestamp":"2026-08-30T12:00:31.000Z","attachment":{"type":"hook_success","content":"POISON: attachment 1 — never read by the parser"}}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"sys-1","message":{"model":"claude-opus-5","id":"msg_001","type":"message","role":"assistant","content":[{"type":"text","text":"POISON: assistant text 1/0 — never read by the parser"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":4,"cache_creation_input_tokens":400,"cache_read_input_tokens":12000,"output_tokens":120,"output_tokens_details":{"thinking_tokens":30},"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":400},"inference_geo":"not_available","speed":"standard"}},"requestId":"req_001","type":"assistant","uuid":"a-1-0","timestamp":"2026-08-30T12:00:33.000Z","effort":"high"}
+{"type":"mode","mode":"default","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"permission-mode","permissionMode":"default","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"last-prompt","lastPrompt":"POISON: last prompt — never read by the parser","leafUuid":"a-1-0","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"frame-link","frameId":"frame-1","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"at-2","type":"system","uuid":"sys-2","timestamp":"2026-08-30T12:01:01.000Z","content":"POISON: hook output — never read by the parser","subtype":"hook"}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"a-1-0","type":"user","uuid":"u-2","timestamp":"2026-08-30T12:01:00.000Z","message":{"role":"user","content":"POISON: user prompt 2 — never read by the parser"}}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"u-2","type":"attachment","uuid":"at-2","timestamp":"2026-08-30T12:01:01.000Z","attachment":{"type":"hook_success","content":"POISON: attachment 2 — never read by the parser"}}
+{"isSidechain":false,"userType":"external","entrypoint":"cli","cwd":"/home/user/projects/fixture-project","sessionId":"f1c7a000-0000-4000-8000-000000000001","version":"2.1.251","gitBranch":"main","parentUuid":"sys-2","message":{"model":"claude-opus-5","id":"msg_002","type":"message","role":"assistant","content":[{"type":"text","text":"POISON: assistant text 2/0 — never read by the parser"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":4,"cache_creation_input_tokens":350,"cache_read_input_tokens":12400,"output_tokens":120,"output_tokens_details":{"thinking_tokens":30},"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":350},"inference_geo":"not_available","speed":"standard"}},"requestId":"req_002","type":"assistant","uuid":"a-2-0","timestamp":"2026-08-30T12:01:03.000Z","effort":"high"}
+{"type":"mode","mode":"default","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"permission-mode","permissionMode":"default","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"last-prompt","lastPrompt":"POISON: last prompt — never read by the parser","leafUuid":"a-2-0","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
+{"type":"frame-link","frameId":"frame-2","sessionId":"f1c7a000-0000-4000-8000-000000000001"}
