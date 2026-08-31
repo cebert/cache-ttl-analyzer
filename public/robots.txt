@@ -1,0 +1,10 @@
+# cacheanalyzer.com — a static, client-side tool. Everything here is public
+# and safe to index; there is no user content to keep out of search results.
+#
+# Preview and workers.dev deployments serve X-Robots-Tag: noindex instead
+# (see public/_headers), so this file does not need to exclude them.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://cacheanalyzer.com/sitemap.xml

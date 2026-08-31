@@ -172,7 +172,9 @@ export function CacheTimeline({
                 </div>
               ))}
               {resetTokens !== null && (
-                <Micro>{t('results.resetsWaste', { tokens: counted('tokens', resetTokens) })}</Micro>
+                <Micro>
+                  {t('results.resetsWaste', { tokens: counted('tokens', resetTokens) })}
+                </Micro>
               )}
             </>
           )}

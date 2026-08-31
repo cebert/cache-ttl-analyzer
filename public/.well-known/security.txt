@@ -1,0 +1,8 @@
+# https://securitytxt.org/ — where to report a problem with this site.
+# The app is static and client-side: it has no backend, no accounts and no
+# stored data, so the realistic surface is the page itself and the parser.
+Contact: https://github.com/cebert/cache-ttl-analyzer/security/advisories/new
+Expires: 2027-08-30T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://cacheanalyzer.com/.well-known/security.txt
+Policy: https://github.com/cebert/cache-ttl-analyzer/blob/main/README.md
