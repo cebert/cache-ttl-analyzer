@@ -368,6 +368,33 @@ export const en = {
     monitorBody:
       'Claude Code 2.1.251 and later report live cache statistics with the /usage command, which is the right tool for day-to-day monitoring. This one is for deciding the setting in the first place.',
     sourceLink: 'Source on GitHub',
+
+    // Vendor references. The divergences are the point of this section: this
+    // tool models Anthropic's first-party 5m/1h choice, and the same choice is
+    // not offered identically everywhere, so a reader on Bedrock or Google
+    // Cloud needs to know before acting on a verdict.
+    referencesTitle: 'Where this comes from',
+    referencesBody:
+      'The behaviour modelled here is documented by each vendor. Links checked 30 August 2026.',
+    refClaudeCode: 'Claude Code — how it uses prompt caching',
+    refClaudeCodeNote:
+      'Which TTL you get by default: one hour for the main conversation on a subscription within plan usage, five minutes on credits, an API key or a cloud provider. Subagents and compaction get five minutes unless overridden.',
+    refAnthropic: 'Anthropic API — prompt caching',
+    refAnthropicNote:
+      'The five-minute default, refreshed free on each hit, and the one-hour opt-in.',
+    refAnthropicPricing: 'Anthropic — pricing',
+    refAnthropicPricingNote:
+      'The multipliers this tool prices with: 1.25× to write for five minutes, 2× for an hour, 0.1× to read.',
+    refBedrock: 'Amazon Bedrock — prompt caching',
+    refBedrockNote:
+      'Five minutes by default, one hour available on current Claude models. Older ones — Claude 3.7 Sonnet and 3.5 Sonnet v2 — are five-minute only, so a one-hour verdict is not actionable there.',
+    refGoogle: 'Google Cloud — prompt caching for Claude',
+    refGoogleNote:
+      'The same five-minute default and one-hour opt-in, with the same pricing shape. The one-hour TTL is not supported for Claude 3.7 Sonnet, 3.5 Sonnet v2, 3.5 Sonnet or 3 Opus.',
+    refOpenai: 'OpenAI — prompt caching',
+    refOpenaiNote:
+      'For contrast: no five-minute-or-an-hour choice to make. Current models cache for thirty minutes, and that is the only supported value.',
+
     authorTitle: 'Who made this',
     authorBody:
       'Chris Ebert, a software engineer in Michigan with over fifteen years of experience building cloud applications. He works on govtech at Tyler Technologies, and has previously built software at Lockheed Martin and GE Healthcare — across space, signals intelligence, manufacturing, finance and public safety. He has a computer science degree from the University of Michigan and an MBA from Wayne State.',
