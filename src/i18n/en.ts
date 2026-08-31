@@ -343,7 +343,7 @@ export const en = {
     // was not true for a real visitor even though the CSP stopped it dead.
     // Stating the enforcement is both accurate and the stronger claim.
     analyticsBody:
-      'We ship no analytics script, no tag manager, no error-reporting service and no third-party embed. Nor could one run if it were added: the Content-Security-Policy above permits scripts from this origin only, so anything injected downstream — by a CDN or anyone else — is refused by the browser before it executes. Logs go to your own browser console and nowhere else.',
+      'We ship no analytics script, no tag manager, no error-reporting service and no third-party embed. Nor could a third-party one run if it were added: the Content-Security-Policy above allows scripts only from this origin and permits no inline script at all, so a beacon injected from another domain — by a CDN or anyone else — is refused by the browser before it executes. Logs go to your own browser console and nowhere else.',
     futureTitle: 'If that ever changes',
     futureBody:
       'A richer analysis using the Anthropic API is a possible future feature. If it ships, it will be opt-in, off by default, and will state exactly which fields would be sent before you turn it on. Nothing will start leaving your browser silently.',
