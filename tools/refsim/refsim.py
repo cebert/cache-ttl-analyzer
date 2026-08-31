@@ -929,19 +929,41 @@ def session_shape(requests: list[dict], threads: dict[str, list[dict]]) -> dict:
         last_end = max(parse_timestamp_ms(r["timestamp"]) for r in requests)
         span = max(0, last_end - first_start)
     largest = 0
-    in_band = 0
+    under = in_band = over = 0
     for thread in threads.values():
         for i in range(1, len(thread)):
             gap = gap_ms(thread[i - 1], thread[i])
             largest = max(largest, gap)
-            if TTL_MS["5m"] < gap <= TTL_MS["1h"]:
+            # Bands are the TTL windows themselves: alive at 5m, alive only
+            # at 1h, dead at both.  Both bounds inclusive, as replay is.
+            if gap <= TTL_MS["5m"]:
+                under += 1
+            elif gap <= TTL_MS["1h"]:
                 in_band += 1
+            else:
+                over += 1
     return {
         "requestCount": len(requests),
         "spanMs": span,
         "largestGapMs": largest,
         "gapsIn5mTo1hBand": in_band,
+        "gapsUnder5m": under,
+        "gapsOver1h": over,
     }
+
+
+def token_totals(requests: list[dict]) -> dict:
+    """Observed token totals for a bucket, priced models and unpriced alike."""
+    totals = {"inputTokens": 0, "cacheReadTokens": 0, "cacheWriteTokens": 0, "outputTokens": 0}
+    for r in requests:
+        usage = r["usage"]
+        totals["inputTokens"] += usage["inputTokens"]
+        totals["cacheReadTokens"] += usage["cacheReadInputTokens"]
+        totals["cacheWriteTokens"] += (
+            usage["cacheCreation5mTokens"] + usage["cacheCreation1hTokens"] + unattributed_write_tokens(usage)
+        )
+        totals["outputTokens"] += usage["outputTokens"]
+    return totals
 
 
 def analyze_bucket(bucket: str, requests: list[dict], pricing: dict) -> dict:
@@ -989,6 +1011,7 @@ def analyze_bucket(bucket: str, requests: list[dict], pricing: dict) -> dict:
         "verdictSuppressed": suppressed,
         "unpricedTokenShare": unpriced_share,
         "shape": session_shape(requests, threads),
+        "tokenTotals": token_totals(requests),
     }
     if suppressed:
         analysis["suppressionReason"] = "unknown-model-share-exceeded"
@@ -1044,6 +1067,7 @@ def golden_bucket(b: dict) -> dict:
         "verdictSuppressed": b["verdictSuppressed"],
         "unpricedTokenShare": b["unpricedTokenShare"],
         "shape": b["shape"],
+        "tokenTotals": b["tokenTotals"],
     }
     if "suppressionReason" in b:
         out["suppressionReason"] = b["suppressionReason"]

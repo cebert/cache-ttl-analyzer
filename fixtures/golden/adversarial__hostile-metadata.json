@@ -278,7 +278,15 @@
         "requestCount": 4,
         "spanMs": 63000,
         "largestGapMs": 20000,
-        "gapsIn5mTo1hBand": 0
+        "gapsIn5mTo1hBand": 0,
+        "gapsUnder5m": 3,
+        "gapsOver1h": 0
+      },
+      "tokenTotals": {
+        "inputTokens": 16,
+        "cacheReadTokens": 18600,
+        "cacheWriteTokens": 6600,
+        "outputTokens": 480
       },
       "suppressionReason": "unknown-model-share-exceeded"
     }

@@ -163,13 +163,105 @@ export const en = {
   },
 
   results: {
-    pendingTitle: 'Analysis complete',
-    pendingBody:
-      'The results view lands in WP-08. The engine has already produced the full result for this session.',
     recommendation5m: 'Use the 5-minute cache',
     recommendation1h: 'Use the 1-hour cache',
     recommendationNone: 'No verdict for this session',
     pricesAsOf: 'Prices as of {{date}}',
+
+    // Verdict band.
+    recommendationLabel: 'Recommendation',
+    savedLabel: 'You would have saved',
+    savedComparison: '{{percent}} less than {{other}}',
+    ttl5m: '5 minutes',
+    ttl1h: '1 hour',
+    noVerdictBody:
+      'Too much of this session ran on models with no published rate, so there is no honest cost to compare.',
+    noVerdictEmpty: 'This file recorded no billable requests for this cache.',
+    bandSentence_one:
+      '{{count}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+    bandSentence_other:
+      '{{count}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+    bandSentenceNone:
+      'No gap fell between 5 minutes and 1 hour, the only band where the setting changes anything.',
+    notional: 'Notional, at published API rates · {{date}}',
+    whyLink: 'why?',
+
+    // Headline metrics.
+    metricHitRate: 'Cache hit rate',
+    metricHitRateNote: '{{reads}} of {{requests}} read warm',
+    metricReads: 'Cache reads',
+    metricReadsNote: '0.1× rate',
+    metricWrites: 'Cache writes',
+    metricWritesNote5m: '1.25× rate, all 5 minutes',
+    metricWritesNote1h: '2.0× rate, all 1 hour',
+    metricWritesNoteMixed: 'mixed 5 minute and 1 hour writes',
+    metricWritesNoteNone: 'no cache writes',
+    metricInput: 'Input tokens',
+    metricInputNote: 'uncached',
+    metricOutput: 'Output tokens',
+    metricOutputNote: 'thinking included',
+    metricErrors: 'Error rate',
+    metricErrorsNote_one: '{{count}} failed row',
+    metricErrorsNote_other: '{{count}} failed rows',
+
+    // Session identification.
+    detailDirectory: 'Directory',
+    detailBranch: 'Branch',
+    detailSpan: 'Span',
+    detailObservedTtl: 'Observed TTL',
+    detailModel: 'Model',
+    detailEffort: 'Effort',
+    detailVersion: 'Claude Code',
+    detailRequests: 'Requests',
+    detailSubagents: 'Subagents',
+    detailChanged: 'CHANGED',
+    detailUnknown: 'not recorded',
+    detailNone: 'none',
+    observedTtlUniform: '{{ttl}}, every write',
+    observedTtlMixed: '{{ttl}} for most writes',
+    observedTtlNone: 'no cache writes',
+    requestsCount: '{{priced}} priced · {{skipped}} skipped',
+    // `count` picks the plural form; `formattedCount` is the same number
+    // written by the locale's formatter, which is what gets displayed.
+    requestsCountNoSkips_one: '{{formattedCount}} request',
+    requestsCountNoSkips_other: '{{formattedCount}} requests',
+    subagentThreads_one: '{{count}} thread, {{requests}} requests',
+    subagentThreads_other: '{{count}} threads, {{requests}} requests',
+
+    // Cache behaviour.
+    timelineTitle: 'Cache timeline',
+    legendWarmRead: 'warm read',
+    legendExpiry: 'cache expired',
+    legendWrite: 'wrote, read nothing',
+    legendReset: 'reset',
+    timelineEmpty: 'This cache recorded no requests to plot.',
+    resetsTitle: 'Cache resets',
+    resetRequest: '{{time}} · req {{number}}',
+    resetModel: 'model',
+    resetEffort: 'effort',
+    resetVersion: 'version',
+    resetsWaste: '{{tokens}} tokens rewritten — the same under either TTL.',
+    resetsNone: 'No model, effort or version change reset this cache.',
+    gapsTitle: 'Gaps between requests',
+    gapsUnder5m: 'under 5 minutes',
+    gapsBand: '5 minutes – 1 hour',
+    gapsOver1h: 'over 1 hour',
+
+    // Limits.
+    limitsTitle: 'Limits of this analysis',
+    limitNoSidechains:
+      'No sidechain traffic in this file — subagentPromptCacheTtl was not evaluated. Subagent transcripts are separate files, beside the session log in its subagents folder.',
+    limitSubagentsPresent:
+      'This file carries {{requests}} sidechain requests across {{threads}} threads. Version 1 analyzes the main conversation only; subagent caches are on the roadmap.',
+    limitObservedOnly:
+      'The log records the observed TTL, never whether it was configured or defaulted.',
+    limitApproximation:
+      'A cache entry is modelled as expiring whole, or as far as the log shows it lapsed — which overstates the 5-minute cost rather than understating it.',
+    limitUnknownModels:
+      'No published rate for {{models}}, so {{requests}} requests are excluded from every dollar figure.',
+    footerPrivacy: 'Read in this browser, never uploaded.',
+    footerHowTo: 'How to set promptCacheTtl',
+    footerSource: 'Source on GitHub',
   },
 
   dataPolicy: {

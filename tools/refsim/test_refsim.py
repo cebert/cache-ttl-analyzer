@@ -313,6 +313,47 @@ class MixedTtlTests(unittest.TestCase):
         self.assertAlmostEqual(one["cost"]["totalUsd"], 0.011175, places=12)
 
 
+class ShapeAndTotalsTests(unittest.TestCase):
+    """WP-08 amendment: the gap histogram and the observed token totals."""
+
+    def setUp(self):
+        # Gaps: 60s (under), 300s exactly (under, inclusive bound), 1200s
+        # (in band), 3900s (over).
+        self.requests = [
+            req("r1", 0, w1h=1000),
+            req("r2", 60, read=1000, w1h=100),
+            req("r3", 360, read=1100, w1h=100),
+            req("r4", 1560, read=1200, w1h=100),
+            req("r5", 5460, w1h=1500),
+        ]
+
+    def test_every_gap_lands_in_exactly_one_band(self):
+        shape = refsim.analyze_bucket("main", self.requests, PRICING)["shape"]
+        self.assertEqual(shape["gapsUnder5m"], 2)
+        self.assertEqual(shape["gapsIn5mTo1hBand"], 1)
+        self.assertEqual(shape["gapsOver1h"], 1)
+        self.assertEqual(shape["largestGapMs"], 3_900_000)
+        self.assertEqual(
+            shape["gapsUnder5m"] + shape["gapsIn5mTo1hBand"] + shape["gapsOver1h"],
+            shape["requestCount"] - 1,
+        )
+
+    def test_token_totals(self):
+        # input 5×10 = 50; reads 1000 + 1100 + 1200 = 3300;
+        # writes 1000 + 100 + 100 + 100 + 1500 = 2800; output 5×5 = 25.
+        self.assertEqual(
+            refsim.analyze_bucket("main", self.requests, PRICING)["tokenTotals"],
+            {"inputTokens": 50, "cacheReadTokens": 3300, "cacheWriteTokens": 2800, "outputTokens": 25},
+        )
+
+    def test_unattributed_writes_are_counted(self):
+        # cacheCreationInputTokens 900 against a 400/100 split leaves 400
+        # unattributed; pricing folds it into the 5m side, and so does this.
+        orphan = req("r1", 0, w5m=400, w1h=100)
+        orphan["usage"]["cacheCreationInputTokens"] = 900
+        self.assertEqual(refsim.analyze_bucket("main", [orphan], PRICING)["tokenTotals"]["cacheWriteTokens"], 900)
+
+
 class VerdictTests(unittest.TestCase):
     def test_unknown_model_share_above_threshold_suppresses(self):
         # r1 priced 1015 tokens; r2 unpriced 1015 tokens → share 0.5 > 0.1
@@ -345,7 +386,8 @@ class VerdictTests(unittest.TestCase):
     def test_empty_bucket_has_no_verdict(self):
         bucket = refsim.analyze_bucket("main", [], PRICING)
         self.assertEqual(bucket["recommendation"], "no-verdict")
-        self.assertEqual(bucket["shape"], {"requestCount": 0, "spanMs": 0, "largestGapMs": 0, "gapsIn5mTo1hBand": 0})
+        self.assertEqual(bucket["shape"], {"requestCount": 0, "spanMs": 0, "largestGapMs": 0, "gapsIn5mTo1hBand": 0, "gapsUnder5m": 0, "gapsOver1h": 0})
+        self.assertEqual(bucket["tokenTotals"], {"inputTokens": 0, "cacheReadTokens": 0, "cacheWriteTokens": 0, "outputTokens": 0})
 
     def test_config_explicitness_table(self):
         self.assertEqual(refsim.config_explicitness("1h", "1h"), "provably-explicit")

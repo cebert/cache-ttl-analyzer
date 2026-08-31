@@ -186,6 +186,8 @@ describe('shortening: observed 1h, scenario 5m (feasibility §7 rule)', () => {
       spanMs: 603_000,
       largestGapMs: 600_000,
       gapsIn5mTo1hBand: 1,
+      gapsUnder5m: 0,
+      gapsOver1h: 0,
     })
     expect(bucket.threadCount).toBe(1)
   })
@@ -297,6 +299,63 @@ describe('partial lapse: observed 5m, a stable prefix stayed warm', () => {
     close(oneHour.cost.totalUsd, 0.0256)
     expect(oneHour.warmReadRequests).toBe(1)
     expect(wide.scenarios.fiveMinute.cacheExpiries).toBe(0)
+  })
+})
+
+describe('session shape and token totals (WP-08 amendment)', () => {
+  // Four same-thread gaps, one per band and one on each inclusive bound:
+  // 0→60s (under), 60→360s (300s exactly, still under), 360→1560s (20m, in
+  // band), 1560→5460s (65m, over).
+  const requests = [
+    req({ id: 'r1', start: 0, w1h: 1000, input: 10, output: 5 }),
+    req({ id: 'r2', start: 60, read: 1000, w1h: 100 }),
+    req({ id: 'r3', start: 360, read: 1100, w1h: 100 }),
+    req({ id: 'r4', start: 1560, read: 1200, w1h: 100 }),
+    req({ id: 'r5', start: 5460, w1h: 1500 }),
+  ]
+
+  it('buckets every gap into exactly one band', () => {
+    const { shape } = analyzeBucket('main', requests, PRICING)
+    expect(shape).toMatchObject({
+      requestCount: 5,
+      gapsUnder5m: 2,
+      gapsIn5mTo1hBand: 1,
+      gapsOver1h: 1,
+      largestGapMs: 3_900_000,
+    })
+    expect(shape.gapsUnder5m + shape.gapsIn5mTo1hBand + shape.gapsOver1h).toBe(
+      shape.requestCount - 1,
+    )
+  })
+
+  it('totals the observed tokens, unattributed writes included', () => {
+    // input 5×10 = 50; reads 1000 + 1100 + 1200 = 3300;
+    // writes 1000 + 100 + 100 + 100 + 1500 = 2800; output 5×5 = 25.
+    expect(analyzeBucket('main', requests, PRICING).tokenTotals).toEqual({
+      inputTokens: 50,
+      cacheReadTokens: 3300,
+      cacheWriteTokens: 2800,
+      outputTokens: 25,
+    })
+  })
+
+  it('counts a write the split did not attribute', () => {
+    // `cacheCreationInputTokens` 900 with a 400/100 split leaves 400
+    // unattributed; pricing folds it into the 5m side, and so does this.
+    const orphan = req({ id: 'r1', start: 0, w5m: 400, w1h: 100 })
+    orphan.usage.cacheCreationInputTokens = 900
+    expect(analyzeBucket('main', [orphan], PRICING).tokenTotals.cacheWriteTokens).toBe(900)
+  })
+
+  it('an empty bucket totals to zero rather than to nothing', () => {
+    const empty = analyzeBucket('main', [], PRICING)
+    expect(empty.tokenTotals).toEqual({
+      inputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      outputTokens: 0,
+    })
+    expect(empty.shape).toMatchObject({ gapsUnder5m: 0, gapsIn5mTo1hBand: 0, gapsOver1h: 0 })
   })
 })
 
@@ -662,7 +721,15 @@ describe('buckets and threads (F2, D4)', () => {
       [req({ id: 'a', start: 10 }), req({ id: 'b', start: 4, end: 6 })],
       groupByThread([req({ id: 'a', start: 10 }), req({ id: 'b', start: 4, end: 6 })]),
     )
-    expect(shape).toEqual({ requestCount: 2, spanMs: 9_000, largestGapMs: 0, gapsIn5mTo1hBand: 0 })
+    // A clamped gap is zero, so it lands in the under-5m band.
+    expect(shape).toEqual({
+      requestCount: 2,
+      spanMs: 9_000,
+      largestGapMs: 0,
+      gapsIn5mTo1hBand: 0,
+      gapsUnder5m: 1,
+      gapsOver1h: 0,
+    })
   })
 })
 

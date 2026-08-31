@@ -398,7 +398,15 @@
         "requestCount": 10,
         "spanMs": 183000,
         "largestGapMs": 20000,
-        "gapsIn5mTo1hBand": 0
+        "gapsIn5mTo1hBand": 0,
+        "gapsUnder5m": 9,
+        "gapsOver1h": 0
+      },
+      "tokenTotals": {
+        "inputTokens": 40,
+        "cacheReadTokens": 313200,
+        "cacheWriteTokens": 40800,
+        "outputTokens": 1200
       }
     }
   ],

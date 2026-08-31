@@ -14,8 +14,8 @@ import { useSessions } from '../../state/sessions-context'
 import { MainPane, TopBar } from '../Shell'
 import { AnalyzingPanel } from '../analysis/AnalyzingPanel'
 import { RejectionPanel } from '../analysis/RejectionPanel'
-import { ResultPlaceholder } from '../analysis/ResultPlaceholder'
 import { CancelledPanel, FailurePanel } from '../analysis/StatusPanel'
+import { ResultsView } from '../results/ResultsView'
 import { ROUTES } from '../routes'
 import { sessionTitle, shortSessionId } from '../session-display'
 import { UploadScreen } from './UploadScreen'
@@ -56,9 +56,7 @@ export function AnalyzePage() {
         {selected.status.phase === 'rejected' && <RejectionPanel entry={selected} />}
         {selected.status.phase === 'cancelled' && <CancelledPanel />}
         {selected.status.phase === 'failed' && <FailurePanel code={selected.status.code} />}
-        {selected.status.phase === 'complete' && (
-          <ResultPlaceholder result={selected.status.result} />
-        )}
+        {selected.status.phase === 'complete' && <ResultsView result={selected.status.result} />}
       </MainPane>
     </>
   )

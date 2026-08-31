@@ -42,6 +42,15 @@
  * F6. `parentUuid` is not linear across a message's content-block rows
  *     (56/122 continuation rows chained). Dedup by `message.id` only.
  * F7. `message.id` <-> `requestId` stayed 1:1 (79:79) — dedup key holds.
+ *
+ * POST-FREEZE AMENDMENTS (each recorded in docs/PLAN.md, as the freeze
+ * requires)
+ * A1. `MAX_FILE_SIZE_BYTES` 500 MB -> 100 MB (WP-07, D19).
+ * A2. `SessionShape.gapsUnder5m` / `gapsOver1h` and
+ *     `BucketAnalysis.tokenTotals` added for the results view (WP-08): the
+ *     screen shows a three-band gap histogram and token-share metrics, and
+ *     `AnalysisResult` carries neither request records to recount from nor
+ *     costs that could yield token counts.
  */
 
 /** A cache TTL the user can configure per bucket. */
@@ -270,6 +279,31 @@ export interface SessionShape {
   largestGapMs: number
   /** Gaps where the 5m-vs-1h choice can matter at all (feasibility §7). */
   gapsIn5mTo1hBand: number
+  /**
+   * The rest of the same-thread gap histogram, so the three bands the
+   * results view draws sum to the gaps the session actually had.
+   * (WP-08 amendment, 2026-08-30: `gapsIn5mTo1hBand` alone cannot say what
+   * share of gaps it is, and `AnalysisResult` carries no request records
+   * for the UI to recount from.)
+   */
+  gapsUnder5m: number
+  gapsOver1h: number
+}
+
+/**
+ * Observed token totals for a bucket, summed over its deduped requests and
+ * across every model, priced or not. The headline metrics (cache hit rate,
+ * reads, writes, input, output) are shares of these.
+ *
+ * WP-08 amendment, 2026-08-30: costs alone cannot produce them — a dollar
+ * figure mixes rates across models, and unpriced requests contribute none.
+ */
+export interface TokenTotals {
+  inputTokens: number
+  cacheReadTokens: number
+  /** Cache writes at either TTL; the split is `observedWriteSplit`. */
+  cacheWriteTokens: number
+  outputTokens: number
 }
 
 export interface BucketAnalysis {
@@ -300,6 +334,8 @@ export interface BucketAnalysis {
   /** Unpriced share of total tokens (see UNKNOWN_MODEL_SUPPRESSION_RATIO). */
   unpricedTokenShare: number
   shape: SessionShape
+  /** What the log actually recorded for this bucket (WP-08 amendment). */
+  tokenTotals: TokenTotals
 }
 
 export interface UnknownModelReport {

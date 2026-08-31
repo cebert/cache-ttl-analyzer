@@ -61,6 +61,7 @@ import {
   type RequestRecord,
   type ScenarioCost,
   type SessionShape,
+  type TokenTotals,
   type TtlTokenSplit,
 } from './contract'
 import {
@@ -397,12 +398,18 @@ export function sessionShape(
     lastEnd = Math.max(lastEnd, Date.parse(request.timestamp))
   }
   let largestGapMs = 0
+  let gapsUnder5m = 0
   let gapsIn5mTo1hBand = 0
+  let gapsOver1h = 0
   for (const thread of threads.values()) {
     for (let i = 1; i < thread.length; i++) {
       const gap = gapMs(thread[i - 1], thread[i])
       largestGapMs = Math.max(largestGapMs, gap)
-      if (gap > CACHE_TTL_5M_MS && gap <= CACHE_TTL_1H_MS) gapsIn5mTo1hBand++
+      // Bands match the TTL windows exactly: alive at 5m, alive only at
+      // 1h, dead at both. Both bounds are inclusive, as `replayThread` is.
+      if (gap <= CACHE_TTL_5M_MS) gapsUnder5m++
+      else if (gap <= CACHE_TTL_1H_MS) gapsIn5mTo1hBand++
+      else gapsOver1h++
     }
   }
   return {
@@ -410,7 +417,29 @@ export function sessionShape(
     spanMs: requests.length === 0 ? 0 : Math.max(0, lastEnd - firstStart),
     largestGapMs,
     gapsIn5mTo1hBand,
+    gapsUnder5m,
+    gapsOver1h,
   }
+}
+
+/** Observed token totals for a bucket, priced models and unpriced alike. */
+export function tokenTotals(requests: readonly RequestRecord[]): TokenTotals {
+  const totals: TokenTotals = {
+    inputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    outputTokens: 0,
+  }
+  for (const { usage } of requests) {
+    totals.inputTokens += usage.inputTokens
+    totals.cacheReadTokens += usage.cacheReadInputTokens
+    // The split's two sides plus anything the split did not attribute,
+    // which `requestWriteSplit` folds into the 5m side for pricing.
+    totals.cacheWriteTokens +=
+      usage.cacheCreation5mTokens + usage.cacheCreation1hTokens + unattributedWriteTokens(usage)
+    totals.outputTokens += usage.outputTokens
+  }
+  return totals
 }
 
 /* ---------------------------------------------------------------------------
@@ -471,6 +500,7 @@ export function analyzeBucket(
     verdictSuppressed,
     unpricedTokenShare,
     shape: sessionShape(requests, threads),
+    tokenTotals: tokenTotals(requests),
   }
   if (verdictSuppressed) analysis.suppressionReason = 'unknown-model-share-exceeded'
   return analysis

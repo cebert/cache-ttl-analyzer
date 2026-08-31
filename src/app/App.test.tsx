@@ -137,8 +137,8 @@ describe('the app shell', () => {
     expect(await screen.findByText(en.analyzing.workerNote)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: en.analyzing.cancel })).toBeInTheDocument()
 
-    expect(await screen.findByText(en.results.pendingTitle)).toBeInTheDocument()
-    expect(screen.getByText(en.results.recommendation1h)).toBeInTheDocument()
+    expect(await screen.findByText(en.results.recommendation1h)).toBeInTheDocument()
+    expect(screen.getByText(en.results.limitsTitle)).toBeInTheDocument()
 
     // The sidebar is the history (WP-D): the finished run is in it.
     const list = screen.getByRole('list', { name: en.nav.sessionList })
@@ -168,7 +168,7 @@ describe('the app shell', () => {
     expect(await main().findByText(en.status.cancelled)).toBeInTheDocument()
     expect(workers).toHaveLength(1)
     await waitFor(() => expect(workers[0].terminated()).toBe(true))
-    expect(screen.queryByText(en.results.pendingTitle)).not.toBeInTheDocument()
+    expect(screen.queryByText(en.results.limitsTitle)).not.toBeInTheDocument()
   })
 
   it('rejects a file that is not a session log in plain language, not with a broken analysis', async () => {
@@ -182,7 +182,7 @@ describe('the app shell', () => {
 
     expect(await main().findByText(en.rejected.title)).toBeInTheDocument()
     expect(main().getByText(en.rejected.malformedLines)).toBeInTheDocument()
-    expect(screen.queryByText(en.results.pendingTitle)).not.toBeInTheDocument()
+    expect(screen.queryByText(en.results.limitsTitle)).not.toBeInTheDocument()
 
     // And there is a way back to the upload screen.
     await user.click(screen.getByRole('button', { name: en.rejected.tryAnother }))
@@ -206,7 +206,7 @@ describe('the app shell', () => {
 
     drop(new File(['{"type":"user"}\n'], 'dropped.jsonl'))
 
-    expect(await main().findByText(en.results.pendingTitle)).toBeInTheDocument()
+    expect(await main().findByText(en.results.limitsTitle)).toBeInTheDocument()
     expect(workers).toHaveLength(1)
   })
 
@@ -220,7 +220,7 @@ describe('the app shell', () => {
     expect(workers).toHaveLength(0)
 
     await user.click(screen.getByRole('button', { name: en.uploadError.addAnyway }))
-    expect(await main().findByText(en.results.pendingTitle)).toBeInTheDocument()
+    expect(await main().findByText(en.results.limitsTitle)).toBeInTheDocument()
     expect(workers).toHaveLength(1)
   })
 

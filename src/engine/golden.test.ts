@@ -148,6 +148,7 @@ function projectBucket(b: BucketAnalysis): Json {
     verdictSuppressed: b.verdictSuppressed,
     unpricedTokenShare: b.unpricedTokenShare,
     shape: b.shape as unknown as Json,
+    tokenTotals: b.tokenTotals as unknown as Json,
   }
   if (b.suppressionReason !== undefined) out.suppressionReason = b.suppressionReason
   return out

@@ -519,7 +519,7 @@ through the module worker to a rendered verdict with zero console errors, at
 1280px and at 390px.
 
 
-### WP-08 — Results and insights UI
+### WP-08 — Results and insights UI ✅ complete (2026-08-30)
 **Depends on:** WP-05, WP-07, WP-D.
 Session identification card (title/`cwd`/branch/span/models, with
 metadata-only fallback when `ai-title` is absent), recommendation card (with
@@ -534,6 +534,42 @@ already yields an empty subagent bucket / `isSidechain` per request to
 derive this from).
 *Acceptance:* renders correctly for each WP-06 sample, including the
 no-sidechain and unknown-model cases.
+
+**Implementation notes (2026-08-30):** the view is `src/app/results/` — one
+sheet in WP-D's order (verdict band → six totals → identification →
+cache behaviour → limits) over `results-model.ts`, which holds every
+derivation as a pure function so the components stay presentational and the
+arithmetic is unit-tested.
+
+- **Contract amendment (WP-08):** `SessionShape` gained `gapsUnder5m` and
+  `gapsOver1h` (the three-band histogram the design draws; `AnalysisResult`
+  carries no request records for the UI to recount from) and `BucketAnalysis`
+  gained `tokenTotals` (the headline metrics are token shares, and costs
+  cannot yield them — a dollar figure mixes rates across models and unpriced
+  requests contribute none). Both are computed in the simulator and the
+  reference sim, and every golden was re-emitted.
+- **Derived without amending:** the model/effort segment strip reads its
+  starting configuration off the first hard-reset event's `from` value rather
+  than a new field, since a reset already records what it changed *from*.
+- **Subagents (D22):** version 1 evaluates `promptCacheTtl` only. When a file
+  has no sidechain traffic — every modern main-session upload (F2) — the
+  limits panel says so and names where subagent transcripts live; when it does
+  carry some, the panel reports how much and says subagent caches are on the
+  roadmap. The two-bucket layout WP-D left undesigned stays undesigned. A
+  subagent transcript uploaded on its own still gets a full verdict: the
+  headline falls back to the bucket that has the traffic.
+- **Honest counts:** the identification card's "skipped" figure excludes
+  `NON_BILLING_RECORD_TYPES`, the same line the warnings banner draws. Counting
+  Claude Code's bookkeeping rows (`mode`, `queue-operation`, …) made a clean
+  126-request session report "456 skipped", which reads as data loss.
+- **i18n:** `formatters.ts` gained `timeOfDay` and `dateTimeRange` (a span
+  inside one day states its date once). A rendering test asserts no unresolved
+  catalog key or `{{variable}}` ever reaches the DOM — a missing plural form
+  renders the key itself, which looks like copy until read closely.
+*Verified in a real browser* at 1280px and 390px against all five bundled
+samples, with zero console errors: the segment strip drops to a legend on
+mobile, and `gap-heavy-5m` shows the partial-lapse verdict (1h, $0.31 vs
+$0.56) end to end.
 
 ### WP-09 — CI/CD ✅ complete (PR #13, 2026-08-30)
 **Depends on:** WP-01. **Parallel with:** WP-03, WP-04, WP-06.
@@ -667,6 +703,7 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D18 | **Tailwind v4** for styling, with WP-D's palette as `@theme` variables | WP-D's palette sheet was already written as a Tailwind mapping (five stock accents, six extended neutrals), so this is the design as specified rather than a translation of it. Accents are aliased by meaning, not hue, so a component names what a color means. (User, 2026-08-30) |
 | D19 | File-size cap **100 MB**, amending the frozen `MAX_FILE_SIZE_BYTES` down from 500 MB | WP-07 is the first code to enforce the cap, and 500 MB predated anyone measuring a session log. Measured over a real `~/.claude/projects` tree (49 logs, the 30-day retention window): 0.15 MB median, 1.8 MB p90, 3.36 MB max; this repo's own committed transcripts, which are long dense engineering sessions, top out at 3.25 MB. 100 MB is ~30x the largest log observed and matches the copy WP-D wrote, so the UI states and enforces one number. Contract amended in place with the measurements recorded. (User, 2026-08-30) |
 | D20 | Public captures are scrubbed to metadata, not redacted: every conversation payload is replaced by a placeholder, keeping only the row structure and the fields the engine reads | The analyzer never reads content, so a fixture never needs it; wholesale replacement is auditable at a glance (list the surviving strings), shrinks the files, and makes the privacy story trivially checkable. Redaction-by-pattern was the alternative and was judged too easy to get wrong for files that ship publicly. (User, 2026-08-30) |
+| D22 | Version 1 ships the main-conversation verdict only; the subagent bucket is stated, not sectioned | WP-D deliberately left the two-bucket layout undesigned until real subagent data existed, and on current Claude Code versions a main-session upload carries no sidechain traffic at all (F2), so the section would be absent for nearly every user. The results view says explicitly that `subagentPromptCacheTtl` was not evaluated and where those transcripts live, which is the honesty requirement; rolling both buckets into one verdict needs multi-file upload and is on the README roadmap. (User, 2026-08-30) |
 | D21 | `inference_geo` is not modeled; requests with `inference_geo: "us"` price at the standard published rate | The frozen contract has no field for it and no corpus session used it (every capture shows `not_available`). Stated as an assumption in fixtures/README.md and pinned by a fixture rather than left silent; amend the contract if it starts appearing in real logs. (User, 2026-08-30) |
 
 ## 7. Risks

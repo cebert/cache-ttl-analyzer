@@ -37,6 +37,13 @@ export interface Formatters {
   date: (iso: string) => string
   /** An ISO timestamp as date and time of day. */
   dateTime: (iso: string) => string
+  /** An ISO timestamp as time of day alone, e.g. "6:20 PM". */
+  timeOfDay: (iso: string) => string
+  /**
+   * A span as the results card shows it: "Aug 30, 2026 · 6:20 – 7:45 PM"
+   * within one day, and both dates in full when it crosses one.
+   */
+  dateTimeRange: (fromIso: string, toIso: string) => string
   /** A list joined the way the locale joins lists, e.g. "a, b, and c". */
   list: (items: readonly string[]) => string
 }
@@ -60,6 +67,7 @@ export function createFormatters(locale: string): Formatters {
   })
   const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' })
   const dateTime = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' })
+  const timeOfDay = new Intl.DateTimeFormat(locale, { timeStyle: 'short' })
   const list = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' })
   const seconds = unitFormat(locale, 'second', 0)
   const minutes = unitFormat(locale, 'minute', 0)
@@ -106,6 +114,18 @@ export function createFormatters(locale: string): Formatters {
     duration,
     date: (iso) => formatInstant(iso, date),
     dateTime: (iso) => formatInstant(iso, dateTime),
+    timeOfDay: (iso) => formatInstant(iso, timeOfDay),
+    dateTimeRange: (fromIso, toIso) => {
+      const from = new Date(fromIso)
+      const to = new Date(toIso)
+      if (Number.isNaN(from.getTime())) return ''
+      if (Number.isNaN(to.getTime())) return formatInstant(fromIso, dateTime)
+      // Repeating the date for a session that ran inside one day is noise,
+      // and it is the part that wraps the identification card.
+      const sameDay = date.format(from) === date.format(to)
+      if (!sameDay) return `${dateTime.format(from)} – ${dateTime.format(to)}`
+      return `${date.format(from)} · ${timeOfDay.format(from)} – ${timeOfDay.format(to)}`
+    },
     list: (items) => list.format(items),
   }
 }
