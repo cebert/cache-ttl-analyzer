@@ -53,6 +53,7 @@ export function CacheTimeline({
   const segments = configSegments(result, bucket)
   const resets = orderedResets(bucket)
   const resetRules = resetPositions(bucket)
+  const resetTokens = resetWastedTokens(bucket)
   const first = markers.at(0)
   const last = markers.at(-1)
 
@@ -161,9 +162,9 @@ export function CacheTimeline({
                   </span>
                 </div>
               ))}
-              <Micro>
-                {t('results.resetsWaste', { tokens: fmt.integer(resetWastedTokens(bucket)) })}
-              </Micro>
+              {resetTokens !== null && (
+                <Micro>{t('results.resetsWaste', { tokens: fmt.integer(resetTokens) })}</Micro>
+              )}
             </>
           )}
         </div>

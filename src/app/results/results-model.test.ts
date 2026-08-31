@@ -225,12 +225,26 @@ describe('resets', () => {
   })
 
   it('reports rewritten tokens only when a reset actually happened', async () => {
+    // model-switch resets twice and expires never, so the whole waste figure
+    // is reset-driven and the claim "the same under either TTL" holds.
     const withResets = await analyzeFixture(FIXTURES.modelSwitch)
-    expect(resetWastedTokens(mainBucket(withResets)!)).toBeGreaterThan(0)
+    const main = mainBucket(withResets)!
+    expect(observedScenario(main).cacheExpiries).toBe(0)
+    expect(resetWastedTokens(main)).toBeGreaterThan(0)
 
     const without = await analyzeFixture(FIXTURES.tightLoop)
     expect(orderedResets(mainBucket(without)!)).toEqual([])
-    expect(resetWastedTokens(mainBucket(without)!)).toBe(0)
+    expect(resetWastedTokens(mainBucket(without)!)).toBeNull()
+  })
+
+  it('makes no reset-waste claim it cannot separate from expiry waste', async () => {
+    // `wastedWriteTokens` sums both causes and the contract does not split
+    // them, so a bucket that also expired gets no figure rather than a
+    // wrong one.
+    const gapHeavy = await analyzeFixture(FIXTURES.gapHeavy5m)
+    const bucket = mainBucket(gapHeavy)!
+    expect(observedScenario(bucket).cacheExpiries).toBeGreaterThan(0)
+    expect(resetWastedTokens(bucket)).toBeNull()
   })
 })
 

@@ -137,14 +137,17 @@ export function orderedResets(bucket: BucketAnalysis): ResetRow[] {
 /**
  * Tokens rewritten because of a hard reset — the same under either TTL,
  * which is the point the designs make next to the reset list.
+ *
+ * `wastedWriteTokens` counts waste from expiries as well as from resets, and
+ * the contract does not separate them, so this claim is only exact for a
+ * bucket whose observed run had no expiry. Where it is not, the number is
+ * null and the view says nothing rather than attributing an expiry's waste
+ * to a reset.
  */
-export function resetWastedTokens(bucket: BucketAnalysis): number {
-  // Resets waste identically in both scenarios; expiries do not. Taking the
-  // difference against a scenario with no expiries would be wrong when both
-  // have some, so read it from the scenario at the observed TTL, where every
-  // expiry is one the log itself shows.
+export function resetWastedTokens(bucket: BucketAnalysis): number | null {
   const observed = observedScenario(bucket)
-  return observed.hardResets === 0 ? 0 : observed.wastedWriteTokens
+  if (observed.hardResets === 0) return null
+  return observed.cacheExpiries === 0 ? observed.wastedWriteTokens : null
 }
 
 /* ---------------------------------------------------------------------------
@@ -243,7 +246,16 @@ export function scenarioFor(bucket: BucketAnalysis, ttl: CacheTtl) {
   return ttl === '1h' ? bucket.scenarios.oneHour : bucket.scenarios.fiveMinute
 }
 
-/** Request index by message id, in the order the events first mention them. */
+/**
+ * Request index by message id, in the order the events first mention them.
+ *
+ * Events are the only per-request record `AnalysisResult` carries, so a
+ * request that touched the cache in no way at all — no read, no write, no
+ * expiry — is invisible here and the numbering after it is short by one.
+ * Every request in the corpus writes or reads something, so this is a
+ * theoretical gap; it is the reason the reset row leads with a time, which
+ * is always exact, rather than with the request number.
+ */
 function requestOrder(bucket: BucketAnalysis): Map<string, number> {
   const order = new Map<string, number>()
   for (const event of bucket.scenarios.oneHour.events) {
