@@ -182,11 +182,20 @@ Add a row to the table in `transcripts/README.md`:
 
 | Date | Session | Covers | Share link | Notes |
 |---|---|---|---|---|
-| 2026-08-30 | [001-transcript-skill](001-transcript-skill/) | Built the transcript publishing skill | | 3 emails redacted |
+| 2026-08-30 | [001-transcript-skill](001-transcript-skill/) | Built the transcript publishing skill | [open](https://cebert.github.io/cache-ttl-analyzer/001-transcript-skill/) | 3 emails redacted |
 
 Keep rows in date order. Put a short, honest note about what was redacted in the
-Notes column — that is the reader's signal that gaps are deliberate. Leave the
-share link blank unless the user has published one.
+Notes column — that is the reader's signal that gaps are deliberate.
+
+The share link is the GitHub Pages copy —
+`https://cebert.github.io/cache-ttl-analyzer/<slug>/`, live once the commit
+reaches `main`. This table is also the source for that site's landing page, so
+a missing or misspelled row fails the `Transcripts site` workflow rather than
+publishing a broken index. Check the table still matches the folders with:
+
+```bash
+npm run build:transcripts
+```
 
 **Ask the user what the session covers — don't just write it yourself.** Propose
 a one-line summary drawn from reading the transcript, and ask them to confirm or
