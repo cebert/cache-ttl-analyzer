@@ -35,6 +35,8 @@ From my experience, many developers are still unaware of the cost impact their b
 ## Development
 
 Prerequisites: [Node.js](https://nodejs.org/) 22+ (developed on 26) and npm.
+Python 3.10+ (standard library only) for the reference simulator and golden
+fixtures — not needed to build or run the app.
 
 ```sh
 npm install
@@ -49,6 +51,9 @@ npm run dev        # Vite dev server with HMR
 | `npm run lint` | [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) |
 | `npm run format` | Prettier, write mode (`format:check` in CI) |
 | `npm run typecheck` | `tsc -b` only |
+| `npm run test:refsim` | Hand-computed unit tests for the Python reference simulator (`tools/refsim/`) |
+| `npm run golden:emit` / `golden:check` | Regenerate / verify the golden fixtures the engine is cross-validated against (see [fixtures/README.md](fixtures/README.md)) |
+| `npm run fixtures:build` | Regenerate the synthetic fixture sessions from `scripts/build-synthetic-fixtures.ts` |
 | `npm run preview` | Serve the production build via Vite |
 | `npx wrangler dev` | Serve the production build the way Cloudflare Workers will (build first) |
 | `npm run deploy` | Build and deploy to Cloudflare Workers (manual escape hatch; CI deploys `main` automatically) |
@@ -74,6 +79,15 @@ placeholder until WP-07/08.
 `fixtures/generated/` on first run (about a second) and reuses afterwards.
 Test files and `scripts/` type-check under `tsconfig.test.json` (Node
 types); production code under `tsconfig.app.json` never sees them.
+
+The engine is also cross-validated against **golden fixtures**: every
+session under `fixtures/` (crafted traps, adversarial inputs, and scrubbed
+real captures) is priced by an independently written Python reference
+simulator, and `src/engine/golden.test.ts` diffs the engine's output against
+those goldens — with the format-drift canary and content-poison checks on
+top. CI runs the sim's own tests and `golden:check`, so a committed golden
+can never drift from the sim. [fixtures/README.md](fixtures/README.md) has
+the details and the add-a-fixture recipe.
 
 ### Debug logging
 
