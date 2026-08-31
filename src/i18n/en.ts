@@ -93,6 +93,8 @@ export const en = {
     macosPath: '~/.claude/projects/<project>/<id>.jsonl',
     windowsPath: '%USERPROFILE%\\.claude\\projects\\<project>\\<id>.jsonl',
     projectNote: 'Project folder = working directory, non-alphanumerics replaced by dashes.',
+    macosHiddenNote:
+      'On macOS the .claude folder is hidden in Finder. In the file picker, press ⌘ + Shift + G and paste the path to jump straight to it.',
     configDirNote:
       'CLAUDE_CONFIG_DIR moves the root. Transcripts are deleted after 30 days by default.',
     subagentsTitle: 'Subagent transcripts',

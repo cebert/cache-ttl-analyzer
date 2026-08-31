@@ -39,6 +39,7 @@ export function FindLogsPanel({
 
       <div className="flex flex-col gap-1">
         <Micro className="text-[11px]">{t('findLogs.projectNote')}</Micro>
+        <Micro className="text-[11px]">{t('findLogs.macosHiddenNote')}</Micro>
         <Micro className="text-[11px]">{t('findLogs.configDirNote')}</Micro>
       </div>
 
