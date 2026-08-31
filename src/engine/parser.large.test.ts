@@ -53,10 +53,10 @@ describe('parseSession on a 100MB synthetic file', () => {
       invalidUsageRowsSkipped: 0,
     })
     expect(parsed.requests).toHaveLength(manifest.requests)
-    expect(parsed.verdict).toBe('valid-with-warnings')
-    expect(parsed.warnings).toEqual([
-      { kind: 'skipped-record-types', types: manifest.skippedRecordTypes },
-    ])
+    // The fixture's skipped rows are all classified bookkeeping types, so they
+    // are counted in the stats above without raising a warning.
+    expect(parsed.verdict).toBe('valid')
+    expect(parsed.warnings).toEqual([])
     expect(parsed.metadata.title).toBe(manifest.lastTitle)
     expect(parsed.metadata.models).toEqual(['claude-fable-5'])
     expect(parsed.metadata.fileSizeBytes).toBe(manifest.bytes)

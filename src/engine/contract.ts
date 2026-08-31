@@ -175,7 +175,11 @@ export interface ParseStats {
   totalLines: number
   nonEmptyLines: number
   malformedLines: number
-  /** Unrecognized record `type` -> count (skip-and-count, F4). */
+  /**
+   * Skipped record `type` -> count (skip-and-count, F4). Counts every skipped
+   * type, classified or not; the `skipped-record-types` warning carries only
+   * the unclassified ones (see `NON_BILLING_RECORD_TYPES` in `parser.ts`).
+   */
   skippedRecordTypes: Record<string, number>
   assistantRows: number
   dedupedRequests: number
@@ -186,6 +190,7 @@ export interface ParseStats {
 
 export type ParseWarning =
   | { kind: 'malformed-lines'; count: number }
+  /** Unclassified types only — a subset of `ParseStats.skippedRecordTypes`. */
   | { kind: 'skipped-record-types'; types: Record<string, number> }
   | { kind: 'version-out-of-range'; versions: string[] }
   | { kind: 'unknown-models'; models: string[] }

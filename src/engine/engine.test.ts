@@ -16,6 +16,7 @@ const SESSION = [
   '{"type":"user","uuid":"u1","parentUuid":"a0","timestamp":"2026-08-30T12:10:00.000Z"}',
   '{"type":"assistant","uuid":"a1","parentUuid":"u1","timestamp":"2026-08-30T12:10:04.000Z","version":"2.1.251","effort":"high","message":{"id":"msg_1","model":"claude-opus-5","content":"secret","usage":{"input_tokens":10,"cache_creation_input_tokens":200,"cache_read_input_tokens":1000,"output_tokens":5,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":200}}}}',
   '{"type":"pr-link","prNumber":1}',
+  '{"type":"never-seen-before"}',
 ].join('\n')
 
 function fileOf(text: string, name = 'session.jsonl'): WorkerFileInput {
@@ -56,12 +57,14 @@ describe('createEngine', () => {
     expect(result.buckets[0].actualCost.totalUsd).toBeCloseTo(0.01285, 10)
     expect(result.buckets[0].recommendation).toBe('1h')
     expect(result.buckets[0].savingsUsd).toBeCloseTo(0.00125, 10)
+    // Both skipped rows are counted, but only the unclassified one warrants a
+    // warning on the way out through the engine surface.
     expect(result.parseStats).toMatchObject({
       dedupedRequests: 2,
-      skippedRecordTypes: { 'pr-link': 1 },
+      skippedRecordTypes: { 'pr-link': 1, 'never-seen-before': 1 },
     })
     expect(result.parseWarnings).toEqual([
-      { kind: 'skipped-record-types', types: { 'pr-link': 1 } },
+      { kind: 'skipped-record-types', types: { 'never-seen-before': 1 } },
     ])
     expect(result.metadata).toMatchObject({
       sessionId: 's1',

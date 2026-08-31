@@ -45,6 +45,41 @@ export const SYNTHETIC_MODEL_ID = '<synthetic>'
 export const DEFAULT_SERVICE_TIER = 'standard'
 export const DEFAULT_SPEED = 'standard'
 /**
+ * Record types that are known to carry no billing payload, so skipping them
+ * is routine bookkeeping rather than something to warn a user about.
+ *
+ * Every Claude Code session contains several of these, so warning on them
+ * fired on effectively every upload and read as data loss (see the
+ * `skipped-record-types` note in `buildWarnings`). Grounded in a survey of
+ * 56 local session and subagent transcripts (2026-08-30): 21 distinct record
+ * types, 11,738 rows, and `message.usage` present on `assistant` rows only.
+ *
+ * This list is expected to grow — `relocated`, `worktree-state`,
+ * `cost-state` and `custom-title` all post-date the feasibility doc's §1
+ * catalogue and F4's four additions. A type NOT listed here is exactly the
+ * format drift F4 says to watch for, so it still raises the warning.
+ */
+export const NON_BILLING_RECORD_TYPES: ReadonlySet<string> = new Set([
+  'artifact-autoreact-ledger',
+  'artifact-comment-monitor',
+  'atis-latch',
+  'bridge-session',
+  'cost-state',
+  'custom-title',
+  'file-history-delta',
+  'file-history-snapshot',
+  'frame-link',
+  'last-prompt',
+  'mode',
+  'permission-mode',
+  'pr-link',
+  'queue-operation',
+  'relocated',
+  'system',
+  'worktree-state',
+])
+
+/**
  * A hostile file can invent unlimited record types; past this many distinct
  * ones the rest aggregate under `OTHER_SKIPPED_TYPES_KEY`.
  */
@@ -402,8 +437,17 @@ export class SessionParser {
     if (this.cappedLines > 0) {
       warnings.push({ kind: 'line-length-cap-exceeded', count: this.cappedLines })
     }
-    if (this.skipped.size > 0) {
-      warnings.push({ kind: 'skipped-record-types', types: stats.skippedRecordTypes })
+    // Only types we have never classified are worth surfacing: the known
+    // bookkeeping ones (NON_BILLING_RECORD_TYPES) appear in every session and
+    // cost the user nothing. `stats.skippedRecordTypes` still counts them all.
+    // `<other>` is the hostile-file overflow bucket, so it is never inert.
+    const unrecognized = Object.fromEntries(
+      Object.entries(stats.skippedRecordTypes).filter(
+        ([type]) => !NON_BILLING_RECORD_TYPES.has(type),
+      ),
+    )
+    if (Object.keys(unrecognized).length > 0) {
+      warnings.push({ kind: 'skipped-record-types', types: unrecognized })
     }
     const outOfRange = this.versions.filter((v) => !isVersionInValidatedRange(v))
     if (outOfRange.length > 0) {
