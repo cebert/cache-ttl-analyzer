@@ -90,6 +90,35 @@ source Claude Code version, counts, and scrub-rule version.
 | Capture | What it is | Why it matters |
 |---|---|---|
 | `captured/parallel-subagents/` | A v2.1.251 session from building this repo: 126 main-thread requests plus **27 subagent transcripts** under `subagents/` (parallel, and nested to spawn depth 2). Main ran at 1h, subagents at 5m. | The modern separate-file layout (contract F2): the main file yields only a `main` bucket; each agent file yields only a `subagent` bucket. 1h wins the main bucket ($68.91 vs $90.31 at 5m, 4 expiries). |
+| `captured/scenarios/tight-loop-5m/` | Claude-enacted: eight back-to-back prompts on a toy project with `CLAUDE_CODE_PROMPT_CACHE_TTL=5m` (13 requests, largest gap 18s). | The 5m-configured capture the plan asked for. 5m wins ($0.406 vs $0.473); no expiries in either scenario. |
+| `captured/scenarios/gap-heavy-1h/` | Four prompts at 1h separated by 6m / 8m / 12m of idle time (9 requests). | The shortening direction on real data: the 5m scenario adds three expiries; 1h wins ($0.32 vs $0.70). |
+| `captured/scenarios/gap-heavy-5m/` | The same prompts and gaps with the TTL set to 5m (8 requests). | The lapse-heavy path on real data — and a **partial-invalidation** finding, below. 5m wins narrowly ($0.562 vs $0.579). |
+| `captured/scenarios/model-switch/` | Two turns on Opus 5, `/model` to Sonnet 5, then effort high → medium, all at 1h (10 requests). | Two hard resets (`model-change`, `effort-change`) that no elapsed time explains; per-request pricing across two models. |
+
+The scenarios were recorded by `scripts/capture-scenarios.sh`, which drives
+`claude -p` in one throwaway directory per scenario (the cache is scoped to
+machine + directory, so scenarios must not share one) with read-only tools,
+then scrubbed like any other capture. They double as the app's bundled
+samples: `scripts/sync-samples.ts` copies them to `public/samples/` and
+derives `index.json` (title, description, expected verdict) from each
+capture's `capture.json` and golden, and the harness asserts the copies are
+byte-identical.
+
+### Finding: partial invalidation, live
+
+`gap-heavy-5m` shows what feasibility §7 predicted but no corpus session had
+exhibited. After the first long gap (364s) the log has `read 0` and a full
+re-write (25,469 tokens) — the all-or-nothing lapse. After the next two gaps
+(487s, 730s) it has `read 11,808` *and* a ~14k re-write: a stable prefix
+breakpoint stayed warm while the conversation tail lapsed. The WP-05
+lengthening rule only restores a re-write when the request read nothing, so
+the 1h counterfactual recovers the full lapse but not the two partial ones —
+and 1h loses a session that, by the 1h run's numbers, it should win. That is
+a modeling limit to revisit in the simulator (restore `min(write, warm −
+read)` on partial lapses, or similar); until then the tool under-sells 1h on
+5m-configured sessions with partial lapses, which is the opposite direction
+from the §7 conservatism disclosed in the UI. The golden pins today's
+behavior so the change, when made, is visible.
 
 ### Scrubbing
 

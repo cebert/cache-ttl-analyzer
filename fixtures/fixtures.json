@@ -146,6 +146,11 @@
       "path": "captured/parallel-subagents",
       "trap": "real v2.1.251 session with 27 parallel and nested subagents (separate files, F2), content scrubbed",
       "expect": "main file: main bucket only at 1h; each agent file: subagent bucket only at 5m"
+    },
+    {
+      "path": "captured/scenarios",
+      "trap": "Claude-enacted scenario sessions recorded by scripts/capture-scenarios.sh (claude -p, one cwd each), content scrubbed; they double as public/samples/",
+      "expect": "tight-loop-5m: observed 5m, 5m wins, no expiries; gap-heavy-1h: observed 1h, the 5m scenario adds three expiries, 1h wins ($0.32 vs $0.70); gap-heavy-5m: observed 5m, one full lapse and two PARTIAL lapses (an ~11.8k stable prefix stayed warm) — the all-or-nothing model restores only the full one, so 5m wins narrowly ($0.562 vs $0.579); see fixtures/README.md; model-switch: observed 1h, two hard resets (model, effort)"
     }
   ]
 }

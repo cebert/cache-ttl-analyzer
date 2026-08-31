@@ -28,6 +28,12 @@ import { VALIDATED_VERSION_RANGE, type AnalysisResult, type BucketAnalysis } fro
 import { knownModelIds } from './cost'
 import { isVersionInValidatedRange, parseSession, rejectionReason } from './parser'
 import { analyzeSession } from './simulator'
+import {
+  buildSamplesIndex,
+  renderIndex,
+  SAMPLES_DIR,
+  SAMPLES_INDEX,
+} from '../../scripts/sync-samples.ts'
 
 const FIXTURES_ROOT = 'fixtures'
 const MANIFEST_PATH = join(FIXTURES_ROOT, 'fixtures.json')
@@ -295,5 +301,22 @@ describe.each(fixtures.map((f) => [f.id, f] as const))('%s', (id, fixture) => {
         bucket.observedTtl === '5m' ? bucket.scenarios.fiveMinute : bucket.scenarios.oneHour
       expect(observed.cost.totalUsd).toBeCloseTo(bucket.actualCost.totalUsd, 9)
     }
+  })
+})
+
+describe('bundled samples (public/samples)', () => {
+  // The scenario captures double as the app's samples (PLAN WP-06). They are
+  // copies, so prove they cannot drift from the fixtures the goldens cover.
+  it('are byte-identical copies of their scenario fixtures, with a current index', () => {
+    const index = buildSamplesIndex()
+    expect(index.samples.length).toBeGreaterThan(0)
+    expect(readFileSync(SAMPLES_INDEX, 'utf8')).toBe(renderIndex(index))
+    for (const sample of index.samples) {
+      expect(readFileSync(join(SAMPLES_DIR, sample.file))).toEqual(readFileSync(sample.source))
+    }
+    const shipped = readdirSync(SAMPLES_DIR)
+      .filter((name) => name.endsWith('.jsonl'))
+      .sort()
+    expect(shipped).toEqual(index.samples.map((s) => s.file).sort())
   })
 })

@@ -15,7 +15,9 @@ else with placeholders:
 - `message.content` becomes a single placeholder block; the row-per-block
   layout (one assistant row per content block) is what exercises dedup, and
   that survives because rows are never merged or dropped.
-- `cwd` is rewritten to `~/…` and `ai-title` gets the title you pass.
+- `cwd` is rewritten to `~/…` (or replaced outright with `--cwd`) and
+  `ai-title` gets the title you pass.
+- Finally the output is grepped for the local username; a hit fails the run.
 - The `agent-<id>.meta.json` sidecars are copied with their description
   blanked.
 
@@ -73,7 +75,7 @@ def scrub_value(value, key: str | None, ctx: dict):
                 ctx["scrubbed"] += 1
                 continue
             if k == "cwd" and isinstance(v, str):
-                out[k] = HOME_RE.sub("~", v)
+                out[k] = ctx["cwd"] if ctx["cwd"] is not None else HOME_RE.sub("~", v)
                 continue
             if k == "aiTitle" and isinstance(v, str):
                 out[k] = ctx["title"]
@@ -131,13 +133,14 @@ def main(argv=None) -> int:
     ap.add_argument("out_dir")
     ap.add_argument("--title", required=True, help="replacement ai-title")
     ap.add_argument("--name", default="session.jsonl", help="output file name for the main log")
+    ap.add_argument("--cwd", default=None, help="replace every cwd with this value (e.g. ~/projects/tinycache)")
     ap.add_argument("--description", default="", help="what this capture is (recorded in capture.json)")
     args = ap.parse_args(argv)
 
     src = Path(args.session).expanduser().resolve()
     out_dir = Path(args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
-    ctx = {"title": args.title, "scrubbed": 0, "out_dir": out_dir}
+    ctx = {"title": args.title, "scrubbed": 0, "out_dir": out_dir, "cwd": args.cwd}
 
     files = [scrub_file(src, out_dir / args.name, ctx)]
     subagent_dir = src.with_suffix("") / "subagents"
@@ -165,6 +168,15 @@ def main(argv=None) -> int:
         "files": files,
     }
     (out_dir / "capture.json").write_text(json.dumps(capture, indent=2) + "\n", encoding="utf-8")
+
+    # Belt and braces: the local username must not survive anywhere (paths
+    # inside ids, slugs, or fields the allowlist did not anticipate).
+    username = os.environ.get("USER") or os.environ.get("USERNAME") or ""
+    if len(username) >= 3:
+        for path in out_dir.rglob("*"):
+            if path.is_file() and username in path.read_text(encoding="utf-8", errors="replace"):
+                print(f"error: username survives in {path}; pass --cwd or extend the scrub rules", file=sys.stderr)
+                return 1
     print(f"scrubbed {len(files)} file(s), {ctx['scrubbed']} values → {out_dir}")
     return 0
 
