@@ -4,7 +4,8 @@
 Upload local Claude Code session logs (JSONL files), and this tool will analyze whether you could save money by paying for a longer cache window duration or whether this would end up costing even more.
 
 **Status:** in progress, see [docs/PLAN.md](docs/PLAN.md) for more details.
-**Live URL:** [cacheanalyzer.com](https://cacheanalyzer.com) 
+
+**Live URL:** [cacheanalyzer.com](https://cacheanalyzer.com)
 
 ## What it does
 
