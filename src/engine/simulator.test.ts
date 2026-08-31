@@ -230,6 +230,76 @@ describe('lengthening: observed 5m, scenario 1h', () => {
   })
 })
 
+describe('partial lapse: observed 5m, a stable prefix stayed warm', () => {
+  // The shape `fixtures/captured/scenarios/gap-heavy-5m` exhibits: after a
+  // >5m gap the log shows a read AND a re-write, so only part of the entry
+  // lapsed. r1 @0s: 5m write 2000 (warm = 2000). r2 @600s: read 800, 5m
+  // write 1500 — 1200 of the warm prefix lapsed and was re-written, 300 is
+  // new content.
+  const bucket = analyzeBucket(
+    'main',
+    [req({ id: 'r1', start: 0, w5m: 2000 }), req({ id: 'r2', start: 600, read: 800, w5m: 1500 })],
+    PRICING,
+  )
+
+  it('the 5m scenario equals actual and names the partial expiry', () => {
+    // r1: 10×$5 = 0.00005 + 2000×$6.25 = 0.0125 + 5×$25 = 0.000125 → 0.012675
+    // r2: 0.00005 + 800×$0.50 = 0.0004 + 1500×$6.25 = 0.009375 + 0.000125 → 0.00995
+    close(bucket.actualCost.totalUsd, 0.022625)
+    expect(bucket.scenarios.fiveMinute.cost).toEqual(bucket.actualCost)
+    const fiveMinute = bucket.scenarios.fiveMinute
+    // The request both read and expired, so it is a warm read as well.
+    expect(fiveMinute).toMatchObject({ cacheExpiries: 1, warmReadRequests: 1 })
+    expect(fiveMinute.events.find((e) => e.kind === 'expiry')).toMatchObject({
+      gapMs: 600_000,
+      expiryClass: 'user-controlled',
+      // Only the lapsed share, min(write 1500, warm 2000 − read 800) = 1200.
+      rewrittenTokens: 1200,
+      messageId: 'r2',
+    })
+    // …and only that share of r1's write was wasted: 800 of it was read.
+    expect(fiveMinute.wastedWriteTokens).toBe(1200)
+  })
+
+  it('under 1h the lapsed share is restored as a read, the new content is not', () => {
+    // r1: 0.00005 + 2000×$10 = 0.02 + 0.000125 → 0.020175
+    // r2: 0.00005 + read (800 + 1200)×$0.50 = 0.001 + write 300×$10 = 0.003
+    //     + 0.000125 → 0.004175
+    const oneHour = bucket.scenarios.oneHour
+    close(oneHour.cost.totalUsd, 0.02435)
+    close(oneHour.cost.cacheReadUsd, 0.001)
+    close(oneHour.cost.cacheWrite1hUsd, 0.023)
+    expect(oneHour).toMatchObject({ cacheExpiries: 0, warmReadRequests: 1, wastedWriteTokens: 0 })
+    expect(
+      oneHour.events.find((e) => e.kind === 'warm-read' && e.messageId === 'r2'),
+    ).toMatchObject({ tokens: 2000 })
+    expect(
+      oneHour.events.find((e) => e.kind === 'cache-write' && e.messageId === 'r2'),
+    ).toMatchObject({ tokens: 300, ttl: '1h' })
+    // Before partial lapses were modeled the 1h scenario re-wrote all 1500
+    // (0.00005 + 0.0004 + 0.015 + 0.000125 → r2 0.015575, total 0.03575);
+    // 5m still wins this two-request case, but by $0.001725, not $0.013125.
+    expect(bucket.recommendation).toBe('5m')
+    close(bucket.savingsUsd, 0.001725)
+  })
+
+  it('a read larger than the tracked warm entry restores nothing', () => {
+    // r2 reads 2500 of a 2000-token entry (the first request of a thread can
+    // read a cache this file never wrote). warm − read is negative, so there
+    // is no lapsed share to restore and the write stands.
+    const wide = analyzeBucket(
+      'main',
+      [req({ id: 'r1', start: 0, w5m: 2000 }), req({ id: 'r2', start: 600, read: 2500, w5m: 400 })],
+      PRICING,
+    )
+    const oneHour = wide.scenarios.oneHour
+    // r2: 0.00005 + 2500×$0.50 = 0.00125 + 400×$10 = 0.004 + 0.000125 → 0.005425
+    close(oneHour.cost.totalUsd, 0.0256)
+    expect(oneHour.warmReadRequests).toBe(1)
+    expect(wide.scenarios.fiveMinute.cacheExpiries).toBe(0)
+  })
+})
+
 describe('tight loop: gaps under 5m, observed 1h', () => {
   it('only the write price differs, so 5m wins', () => {
     // actual/1h: r1 0.010175; r2 0.00005 + 0.0005 + 100×$10 = 0.001 + 0.000125 → 0.001675 → 0.01185

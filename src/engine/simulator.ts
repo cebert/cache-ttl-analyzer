@@ -13,13 +13,17 @@
  *
  * The scenario at the OBSERVED TTL reproduces the log exactly (the
  * reconciliation property, PLAN §5). A counterfactual only edits the
- * requests where the two TTL windows disagree, all-or-nothing (§7):
+ * requests where the two TTL windows disagree (§7 — all-or-nothing for a
+ * whole entry, but a partially lapsed entry is split at what it read):
  *  - shortening (observed 1h, scenario 5m): where 5m < gap and the log shows
  *    a cache read, that read lapses and becomes a fresh write at the 5m
  *    rate ("expiry");
  *  - lengthening (observed 5m, scenario 1h): where 5m < gap <= 1h and the
- *    log shows no read but a write, the lapsed prefix (bounded by what was
- *    cached after the previous request) would have been read instead.
+ *    log shows a write, the share of the entry that lapsed — what was
+ *    cached after the previous request minus what the request still read —
+ *    would have been read instead. A log that read nothing lapsed wholly;
+ *    a log that read part of the entry (a stable prefix outlived the tail,
+ *    as `gap-heavy-5m` shows) lapsed partially and restores only that part.
  * A change of model, effort, or version between consecutive same-thread
  * requests is a hard reset in every scenario (§6.6): the cache is emptied,
  * no expiry is attributed to that gap, and the observed usage stands.
@@ -232,6 +236,11 @@ function replayThread(
         const observedMs = TTL_MS[userTtl]
         const aliveObserved = gap <= observedMs
         const aliveScenario = gap <= scenarioMs
+        // The share of the warm entry the log did NOT read back: zero on a
+        // full hit, the whole entry on a total lapse, and something in
+        // between on a partial lapse (a stable prefix survives while the
+        // conversation tail expires — observed in `gap-heavy-5m`).
+        const lapsedTokens = Math.max(0, warmTokens - reads)
         if (aliveObserved && !aliveScenario) {
           // Shortening: the entry the log read from would have lapsed.
           if (reads > 0) {
@@ -243,30 +252,34 @@ function replayThread(
               ...base,
             })
             cacheExpiries++
-            wastedWriteTokens += previousUserWrite
+            // Waste is bounded by what lapsed; here the whole entry goes,
+            // and the previous write is never larger than the entry.
+            wastedWriteTokens += Math.min(previousUserWrite, warmTokens)
             userWrite += reads
             reads = 0
           }
         } else if (!aliveObserved && aliveScenario) {
           // Lengthening: the prefix the log re-wrote would still be warm.
-          if (reads === 0 && userWrite > 0 && warmTokens > 0) {
-            const restored = Math.min(userWrite, warmTokens)
-            reads = restored
+          // A partial lapse restores only the share that actually expired.
+          if (userWrite > 0 && lapsedTokens > 0) {
+            const restored = Math.min(userWrite, lapsedTokens)
+            reads += restored
             userWrite -= restored
           }
         } else if (!aliveObserved && !aliveScenario) {
           // Lapsed in the log and in the scenario alike: name the observed
           // expiry so the timeline explains the write.
-          if (reads === 0 && userWrite > 0 && warmTokens > 0) {
+          if (userWrite > 0 && lapsedTokens > 0) {
+            const rewrittenTokens = Math.min(userWrite, lapsedTokens)
             events.push({
               kind: 'expiry',
               gapMs: gap,
               expiryClass: 'user-controlled',
-              rewrittenTokens: Math.min(userWrite, warmTokens),
+              rewrittenTokens,
               ...base,
             })
             cacheExpiries++
-            wastedWriteTokens += previousUserWrite
+            wastedWriteTokens += Math.min(previousUserWrite, lapsedTokens)
           }
         }
       }

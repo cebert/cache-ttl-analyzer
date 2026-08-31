@@ -722,8 +722,10 @@ def replay_thread(thread: list[dict], scenario: str, bucket_ttl: str | None, pri
     The entry written at request r-1 is alive at request r iff the gap
     between the two request STARTS is within the TTL. The observed TTL of a
     warm entry is the bucket's dominant (user-controlled) TTL. Only the
-    requests where the observed and scenario windows disagree are edited,
-    all-or-nothing (feasibility §7 + the WP-05 lengthening rule).
+    requests where the observed and scenario windows disagree are edited
+    (feasibility §7 + the WP-05 lengthening rule): all-or-nothing for a
+    whole entry, but an entry the log only partly read back lapsed only
+    partly, and the counterfactual splits it at what was read.
     """
     scenario_ms = TTL_MS[scenario]
     events: list[dict] = []
@@ -766,6 +768,11 @@ def replay_thread(thread: list[dict], scenario: str, bucket_ttl: str | None, pri
                 gap = gap_ms(previous, request)
                 alive_observed = gap <= TTL_MS[user_ttl]
                 alive_scenario = gap <= scenario_ms
+                # The share of the warm entry the log did not read back:
+                # zero on a full hit, the whole entry on a total lapse, and
+                # something in between on a partial lapse (a stable prefix
+                # survives while the tail expires — see `gap-heavy-5m`).
+                lapsed = max(0, warm_tokens - reads)
                 if alive_observed and not alive_scenario:
                     # Shortening: the read the log shows would have lapsed.
                     if reads > 0:
@@ -779,29 +786,32 @@ def replay_thread(thread: list[dict], scenario: str, bucket_ttl: str | None, pri
                             }
                         )
                         expiries += 1
-                        wasted += previous_user_write
+                        # Waste is bounded by what lapsed; here the whole
+                        # entry goes, and the previous write is never larger.
+                        wasted += min(previous_user_write, warm_tokens)
                         user_write += reads
                         reads = 0
                 elif not alive_observed and alive_scenario:
-                    # Lengthening: the prefix the log re-wrote was still warm.
-                    if reads == 0 and user_write > 0 and warm_tokens > 0:
-                        restored = min(user_write, warm_tokens)
-                        reads = restored
+                    # Lengthening: the share the log re-wrote was still warm.
+                    # A partial lapse restores only the share that expired.
+                    if user_write > 0 and lapsed > 0:
+                        restored = min(user_write, lapsed)
+                        reads += restored
                         user_write -= restored
                 elif not alive_observed and not alive_scenario:
                     # Lapsed in the log and the scenario alike: name it.
-                    if reads == 0 and user_write > 0 and warm_tokens > 0:
+                    if user_write > 0 and lapsed > 0:
                         events.append(
                             {
                                 "kind": "expiry",
                                 "gapMs": gap,
                                 "expiryClass": "user-controlled",
-                                "rewrittenTokens": min(user_write, warm_tokens),
+                                "rewrittenTokens": min(user_write, lapsed),
                                 **base,
                             }
                         )
                         expiries += 1
-                        wasted += previous_user_write
+                        wasted += min(previous_user_write, lapsed)
 
         if reads > 0:
             warm_reads += 1

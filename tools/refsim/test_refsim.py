@@ -201,6 +201,55 @@ class LengtheningTests(unittest.TestCase):
         self.assertEqual(one["events"][2]["tokens"], 500)
 
 
+class PartialLapseTests(unittest.TestCase):
+    """The shape `fixtures/captured/scenarios/gap-heavy-5m` exhibits: after a
+    >5m gap the log shows a read AND a re-write, so only part of the entry
+    lapsed.  r1 @0s: 5m write 2000 (warm = 2000).  r2 @600s: read 800, 5m
+    write 1500 — 1200 of the warm prefix lapsed, 300 is new content."""
+
+    def setUp(self):
+        self.bucket = refsim.analyze_bucket("main", [req("r1", 0, w5m=2000), req("r2", 600, read=800, w5m=1500)], PRICING)
+
+    def test_five_minute_scenario_names_the_partial_expiry(self):
+        # r1: 0.00005 + 2000×$6.25 = 0.0125 + 0.000125 = 0.012675
+        # r2: 0.00005 + 800×$0.50 = 0.0004 + 1500×$6.25 = 0.009375 + 0.000125 = 0.00995
+        five = self.bucket["scenarios"]["fiveMinute"]
+        self.assertAlmostEqual(self.bucket["actualCost"]["totalUsd"], 0.022625, places=12)
+        self.assertEqual(five["cost"], self.bucket["actualCost"])
+        self.assertEqual(kinds(five["events"]), ["cache-write", "expiry", "warm-read", "cache-write"])
+        self.assertEqual(five["cacheExpiries"], 1)
+        self.assertEqual(five["warmReadRequests"], 1)
+        # Only the lapsed share: min(write 1500, warm 2000 − read 800) = 1200,
+        # and only that share of r1's write was wasted — 800 of it was read.
+        self.assertEqual(five["events"][1]["rewrittenTokens"], 1200)
+        self.assertEqual(five["wastedWriteTokens"], 1200)
+
+    def test_one_hour_restores_only_the_lapsed_share(self):
+        # r1: 0.00005 + 2000×$10 = 0.02 + 0.000125 = 0.020175
+        # r2: 0.00005 + (800 + 1200)×$0.50 = 0.001 + 300×$10 = 0.003 + 0.000125 = 0.004175
+        one = self.bucket["scenarios"]["oneHour"]
+        self.assertAlmostEqual(one["cost"]["totalUsd"], 0.02435, places=12)
+        self.assertEqual(kinds(one["events"]), ["cache-write", "warm-read", "cache-write"])
+        self.assertEqual(one["events"][1]["tokens"], 2000)
+        self.assertEqual(one["events"][2]["tokens"], 300)
+        self.assertEqual(one["cacheExpiries"], 0)
+        self.assertEqual(one["wastedWriteTokens"], 0)
+        # Before partial lapses were modeled r2 re-wrote all 1500 at 1h
+        # (total 0.03575); 5m still wins here, by $0.001725 not $0.013125.
+        self.assertEqual(self.bucket["recommendation"], "5m")
+        self.assertAlmostEqual(self.bucket["savingsUsd"], 0.001725, places=12)
+
+    def test_a_read_wider_than_the_tracked_entry_restores_nothing(self):
+        # r2 reads 2500 of a 2000-token entry: warm − read is negative, so
+        # there is no lapsed share, no expiry, and the write stands.
+        bucket = refsim.analyze_bucket("main", [req("r1", 0, w5m=2000), req("r2", 600, read=2500, w5m=400)], PRICING)
+        one = bucket["scenarios"]["oneHour"]
+        # r2 at 1h: 0.00005 + 2500×$0.50 = 0.00125 + 400×$10 = 0.004 + 0.000125 = 0.005425
+        self.assertAlmostEqual(one["cost"]["totalUsd"], 0.0256, places=12)
+        self.assertEqual(one["events"][2]["tokens"], 400)
+        self.assertEqual(bucket["scenarios"]["fiveMinute"]["cacheExpiries"], 0)
+
+
 class HardResetTests(unittest.TestCase):
     def test_model_change_empties_the_cache_and_attributes_no_expiry(self):
         # gap 600s would be an expiry under 5m, but the model changed: a reset in every scenario.

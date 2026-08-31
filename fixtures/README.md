@@ -92,38 +92,42 @@ source Claude Code version, counts, and scrub-rule version.
 | `captured/parallel-subagents/` | A v2.1.251 session from building this repo: 126 main-thread requests plus **27 subagent transcripts** under `subagents/` (parallel, and nested to spawn depth 2). Main ran at 1h, subagents at 5m. | The modern separate-file layout (contract F2): the main file yields only a `main` bucket; each agent file yields only a `subagent` bucket. 1h wins the main bucket ($68.91 vs $90.31 at 5m, 4 expiries). |
 | `captured/scenarios/tight-loop-5m/` | Claude-enacted: eight back-to-back prompts on a toy project with `CLAUDE_CODE_PROMPT_CACHE_TTL=5m` (13 requests, largest gap 18s). | The 5m-configured capture the plan asked for. 5m wins ($0.406 vs $0.473); no expiries in either scenario. |
 | `captured/scenarios/gap-heavy-1h/` | Four prompts at 1h separated by 6m / 8m / 12m of idle time (9 requests). | The shortening direction on real data: the 5m scenario adds three expiries; 1h wins ($0.32 vs $0.70). |
-| `captured/scenarios/gap-heavy-5m/` | The same prompts and gaps with the TTL set to 5m (8 requests). | The lapse-heavy path on real data — and a **partial-invalidation** finding, below. 5m wins narrowly ($0.562 vs $0.579). |
+| `captured/scenarios/gap-heavy-5m/` | The same prompts and gaps with the TTL set to 5m (8 requests). | The lapse-heavy path on real data, and the session that motivated **partial-lapse** modeling (below). 1h wins ($0.311 vs $0.562), three expiries — two of them partial. |
 | `captured/scenarios/model-switch/` | Two turns on Opus 5, `/model` to Sonnet 5, then effort high → medium, all at 1h (10 requests). | Two hard resets (`model-change`, `effort-change`) that no elapsed time explains; per-request pricing across two models. |
 
 The scenarios were recorded by `scripts/capture-scenarios.sh`, which drives
 `claude -p` in one throwaway directory per scenario (the cache is scoped to
 machine + directory, so scenarios must not share one) with read-only tools,
-then scrubbed like any other capture. Three of them double as bundled
-samples — one per lesson the landing page teaches (`SAMPLES` in
-`src/config/samples.ts`: tight loop → 5 min wins, gap-heavy at 1h → 1 hour
-wins, model switch → resets) — alongside the default sample, the real
-85-minute `parallel-subagents` main session (126 requests at ordinary human
-pacing; 1h wins by $21). `scripts/sync-samples.ts` copies them to
-`public/samples/`, and the harness asserts the copies are byte-identical and
-every number on a card matches the fixture. `gap-heavy-5m` stays a fixture
-only until the simulator handles partial lapses (the finding below): today
-its verdict would teach the wrong lesson.
+then scrubbed like any other capture. All four double as bundled samples
+(`SAMPLES` in `src/config/samples.ts`: tight loop → 5 min wins, both
+gap-heavy captures → 1 hour wins, model switch → resets) — alongside the
+default sample, the real 85-minute `parallel-subagents` main session (126
+requests at ordinary human pacing; 1h wins by $21).
+`scripts/sync-samples.ts` copies them to `public/samples/`, and the harness
+asserts the copies are byte-identical and every number on a card matches the
+fixture. `gap-heavy-5m` joined them once the simulator learned partial
+lapses; before that its verdict taught the wrong lesson.
 
-### Finding: partial invalidation, live
+### Finding: partial invalidation, live — and now modeled
 
 `gap-heavy-5m` shows what feasibility §7 predicted but no corpus session had
 exhibited. After the first long gap (364s) the log has `read 0` and a full
 re-write (25,469 tokens) — the all-or-nothing lapse. After the next two gaps
 (487s, 730s) it has `read 11,808` *and* a ~14k re-write: a stable prefix
-breakpoint stayed warm while the conversation tail lapsed. The WP-05
-lengthening rule only restores a re-write when the request read nothing, so
-the 1h counterfactual recovers the full lapse but not the two partial ones —
-and 1h loses a session that, by the 1h run's numbers, it should win. That is
-a modeling limit to revisit in the simulator (restore `min(write, warm −
-read)` on partial lapses, or similar); until then the tool under-sells 1h on
-5m-configured sessions with partial lapses, which is the opposite direction
-from the §7 conservatism disclosed in the UI. The golden pins today's
-behavior so the change, when made, is visible.
+breakpoint stayed warm while the conversation tail lapsed.
+
+As first written, the WP-05 lengthening rule only restored a re-write when
+the request read *nothing*, so the 1h counterfactual recovered the full lapse
+but neither partial one, and 1h lost a session that by the 1h run's own
+numbers it should win ($0.579 against $0.562). The simulator now splits a
+partially lapsed entry at what the log read back: the lapsed share is
+`warm − read`, and lengthening restores `min(write, warm − read)` as a read
+(both directions in `src/engine/simulator.ts` and `tools/refsim/refsim.py`,
+hand-computed cases in each test suite). On this capture that turns two
+re-writes of ~14k tokens into reads and flips the verdict to 1h, $0.311
+against $0.562 — in line with what `gap-heavy-1h`, the same prompts recorded
+at 1h, actually cost. The observed timeline also names all three expiries
+now, not just the total one.
 
 ### Scrubbing
 
