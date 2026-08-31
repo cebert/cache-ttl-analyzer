@@ -105,9 +105,13 @@ function main() {
   return within(screen.getByRole('main'))
 }
 
-/** Likewise the standing nav links, which also appear inside page copy. */
+/**
+ * Likewise the standing nav links, which also appear inside page copy. The
+ * sidebar exposes two navigation landmarks — the guides and the session list —
+ * so this names the one it means.
+ */
 function nav() {
-  return within(screen.getByRole('navigation'))
+  return within(screen.getByRole('navigation', { name: en.nav.guides }))
 }
 
 describe('the app shell', () => {
@@ -231,7 +235,7 @@ describe('the app shell', () => {
     expect(await screen.findByRole('heading', { name: en.dataPolicy.title })).toBeInTheDocument()
     expect(screen.getByText(en.dataPolicy.cspBody)).toBeInTheDocument()
 
-    await user.click(nav().getByRole('button', { name: en.nav.addSession }))
+    await user.click(screen.getByRole('button', { name: en.nav.addSession }))
     expect(await screen.findByText(en.upload.dropTitle)).toBeInTheDocument()
   })
 

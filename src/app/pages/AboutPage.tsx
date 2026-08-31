@@ -6,13 +6,8 @@
 
 import { useTranslation } from 'react-i18next'
 
-import {
-  AUTHOR_BLOG_URL,
-  AUTHOR_X_URL,
-  ExternalLink,
-  REPO_URL,
-  VENDOR_DOCS,
-} from '../../ui/ExternalLink'
+import { ExternalLink } from '../../ui/ExternalLink'
+import { AUTHOR_BLOG_URL, AUTHOR_X_URL, REPO_URL, VENDOR_DOCS } from '../../ui/links'
 import { ContentPage, Prose } from './ContentPage'
 
 export function AboutPage() {

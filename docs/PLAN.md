@@ -664,8 +664,11 @@ and approximation disclosures.
   GitHub advisories rather than publishing an email, plus link-preview
   metadata and a canonical URL. The og:image is self-hosted like every other
   asset — an external card host would weaken the claim the CSP exists to
-  prove. **security.txt carries an `Expires` of 2027-08-30 and needs renewing
-  before then.**
+  prove. `canonical` and `og:url` are updated per route by
+  `use-canonical-url.ts`: the SPA fallback serves one `index.html`, so a
+  static canonical told a crawler all four routes were the homepage while
+  `sitemap.xml` listed them separately. **security.txt carries an `Expires`
+  of 2027-08-30 and needs renewing before then.**
 - **Vendor references on About.** The divergences are why the section exists:
   Bedrock is five-minute-only on Claude 3.7 Sonnet and 3.5 Sonnet v2, and
   Google Cloud does not support the 1h TTL on four older Claude models, so a
@@ -679,9 +682,9 @@ Workers runtime with the production `_headers`), not just locally:
 |---|---|
 | All four samples load and render | Each clicked through to its verdict; `gap-heavy-5m` 1h $0.31 vs $0.56, `real-session` 1h saving $21.41 over 126 requests, `tight-loop-5m` 5m, `model-switch` 5m with 2 resets |
 | Deep links resolve | `/find-your-logs`, `/data-policy`, `/about` each served the SPA shell and rendered distinct content |
-| CSP and security headers intact | All eight served, full `connect-src 'self'` CSP |
+| CSP and security headers intact | All eight served, full `connect-src 'self'` CSP. This is a one-off manual check, not the automated deploy gate D16 declined — that decision stands |
 | No console errors | Zero errors or warnings across every run, all three engines |
-| 100MB fixture in a real browser | 99.9 MB accepted, **~1s to a rendered verdict**, 9,976 requests, $329.13 (5m) vs $366.54 (1h). Page stayed responsive throughout: rAF p50 20.0ms, p95 20.9ms, 3 frames over 100ms, one 515ms spike at the final results render |
+| 100MB fixture in a real browser | 99.9 MB accepted, **~1s to a rendered verdict**, 9,976 requests, $329.13 (5m) vs $366.54 (1h). Responsive while streaming — rAF p50 20.0ms, p95 20.9ms — with 3 frames over 100ms and a single 515ms stall when the finished results sheet renders |
 | Cancel actually terminates | Instrumented `Worker.terminate`: 1 created, 1 terminated; worker messages stopped 447ms after the click and nothing arrived in the following 12s; UI showed "Analysis cancelled" and no verdict |
 | Cross-browser | **Chromium, Firefox and WebKit** all passed the full flow — sample → 100MB upload → cancel — against the https preview, with zero console errors. `File.stream()` in a module worker, the stated risk, works in all three |
 
@@ -788,5 +791,5 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | Pricing goes stale | `pricesAsOf` shown to users; single-file update path; periodic check noted in README |
 | Counterfactual is approximate (all-or-nothing expiry, feasibility §7) | Conservative direction (understates 1h's downside cases toward 5m) disclosed in the UI |
 | ~~Subagent path untested against real data~~ | Done in WP-06: `fixtures/captured/parallel-subagents` (27 real subagent transcripts) is in the golden harness |
-| ~~Huge session files stall the browser~~ | Closed in WP-10: 99.9 MB analyzed in ~1s in Chromium, Firefox and WebKit on the deployed preview, page responsive throughout (rAF p95 20.9ms), and cancel verified to really terminate the worker |
+| ~~Huge session files stall the browser~~ | Closed in WP-10: 99.9 MB analyzed in ~1s in Chromium, Firefox and WebKit on the deployed preview, page responsive during the parse (rAF p95 20.9ms), and cancel verified to really terminate the worker. One exception, accepted: the final results render for a 9,976-request session blocks for ~515ms — a visible stall once, at the end, not during streaming |
 | Malicious or corrupted uploads (hostile strings, pollution keys, giant lines, non-session files) | Validation verdicts; text-node-only rendering; typed-record copying; size/line caps; adversarial fixtures in WP-03/WP-06; strict CSP |

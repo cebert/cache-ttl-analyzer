@@ -33,6 +33,7 @@ export const en = {
     closeMenu: 'Close navigation',
     skipToContent: 'Skip to main content',
     sessionList: 'Analyzed sessions',
+    guides: 'Guides and policies',
     home: 'Go to the start page',
     backToUpload: 'All sessions',
   },
@@ -393,7 +394,7 @@ export const en = {
       'The same five-minute default and one-hour opt-in, with the same pricing shape. The one-hour TTL is not supported for Claude 3.7 Sonnet, 3.5 Sonnet v2, 3.5 Sonnet or 3 Opus.',
     refOpenai: 'OpenAI — prompt caching',
     refOpenaiNote:
-      'For contrast: no five-minute-or-an-hour choice to make. Current models cache for thirty minutes, and that is the only supported value.',
+      'For contrast: no five-minute-or-an-hour choice to make. GPT-5.6 and later cache for thirty minutes, the only value that setting accepts; earlier families use a different retention setting instead.',
 
     authorTitle: 'Who made this',
     authorBody:

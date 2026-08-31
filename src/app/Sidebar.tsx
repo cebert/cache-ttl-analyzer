@@ -76,10 +76,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </Button>
       </div>
 
-      {/* Not its own <nav>: the sidebar is already a navigation landmark, and
-          a second one for three links only adds noise to a screen reader's
-          landmark list. */}
-      <div className="flex flex-col gap-0.5 px-3 pb-1">
+      {/* Labelled here rather than by the container, because `Sidebar` renders
+          both in the desktop column and inside the mobile drawer — labelling
+          it outside gave the drawer copy no landmark at all. */}
+      <nav className="flex flex-col gap-0.5 px-3 pb-1" aria-label={t('nav.guides')}>
         <NavItem to={ROUTES.findLogs} onNavigate={onNavigate}>
           {t('nav.findLogs')}
         </NavItem>
@@ -89,9 +89,12 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <NavItem to={ROUTES.about} onNavigate={onNavigate}>
           {t('nav.about')}
         </NavItem>
-      </div>
+      </nav>
 
-      <div className="mt-2 flex min-h-0 flex-1 flex-col border-t border-line-soft px-3">
+      <nav
+        aria-label={t('nav.sessionList')}
+        className="mt-2 flex min-h-0 flex-1 flex-col border-t border-line-soft px-3"
+      >
         <div className="flex items-center justify-between px-[10px] pt-3 pb-2">
           <Eyebrow>{t('nav.sessions')}</Eyebrow>
           <span className="font-mono text-[11.5px] text-slate-400">{state.sessions.length}</span>
@@ -116,7 +119,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             ))}
           </ul>
         )}
-      </div>
+      </nav>
 
       <div className="mt-auto border-t border-line-soft p-3">
         <p className="flex items-center gap-[7px] px-[10px] text-[12px] leading-[1.5] text-slate-500">

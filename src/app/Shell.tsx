@@ -13,10 +13,12 @@ import { Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { Sidebar, SidebarBrand } from './Sidebar'
+import { useCanonicalUrl } from './use-canonical-url'
 import { ChevronLeftIcon, CloseIcon, MenuIcon } from '../ui/Icon'
 
 export function Shell() {
   const { t } = useTranslation()
+  useCanonicalUrl()
   // The drawer closes from the interaction that navigates (every control
   // inside it calls `onNavigate`), not from an effect watching the location:
   // setting state in an effect costs an extra render for no benefit here.
@@ -79,12 +81,12 @@ export function Shell() {
         </>
       )}
 
-      <nav
-        aria-label={t('nav.sessionList')}
-        className="hidden w-[236px] shrink-0 border-r border-line md:block"
-      >
+      {/* A plain container: `Sidebar` owns its own landmarks, so that the
+          drawer and this column expose the same structure to a screen reader
+          rather than the drawer having none. */}
+      <div className="hidden w-[236px] shrink-0 border-r border-line md:block">
         <Sidebar />
-      </nav>
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Outlet />
