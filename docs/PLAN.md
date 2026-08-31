@@ -57,7 +57,10 @@ Two cross-cutting requirements, cheap now and expensive to retrofit:
   richer analysis). Deferred until MVP proves useful. When picked up, the
   BYO-API-key vs. our-key-plus-rate-limiting decision gets made then.
 - Multi-file / folder upload and cross-session rollups (requires global dedup
-  and cross-session cache modeling — feasibility doc §6.3, §7).
+  and cross-session cache modeling — feasibility doc §6.3, §7). This is also
+  what reunites a session with its subagent transcripts (contract F2): they
+  are separate files, so subagent traffic can only be analyzed on its own
+  today. Summarized for users under Roadmap in the README.
 - Provider-specific rate tables (Bedrock, Vertex). MVP uses Anthropic
   published API rates only — see decision log.
 - Claude Code **web JSON export** input. Unverified that it carries `usage`

@@ -36,6 +36,23 @@ The organization I work for is moving from a legacy Claude Code Enterprise plan 
 
 A secondary goal of this tool is to increase developer awareness of cost drivers. From my experience, many developers are still unaware of the cost impact their behaviors have on caching. or example, changing effort or models mid-session can invalidate the cache, while resuming long-lived sessions can result in expensive cache misses. This tool can help surface those behaviors and enable better-informed decisions.
 
+## Roadmap
+
+Not in the MVP, in rough priority order. See
+[docs/PLAN.md](docs/PLAN.md) §1 for the full deferred list.
+
+- **Subagent-aware analysis.** A session that spawned subagents keeps each
+  one in its own file — `~/.claude/projects/<project>/<session-id>/subagents/agent-<agentId>.jsonl`
+  — and a main-session log contains none of their traffic. Today those files
+  can be uploaded and analyzed individually, but nothing reunites them with
+  the session that spawned them. Doing so means multi-file upload plus
+  cross-file dedup, and subagents cache independently of the main
+  conversation, so their TTL verdict can differ from the parent's.
+- Multi-file / folder upload and cross-session rollups.
+- Provider-specific rate tables (Bedrock, Vertex); the MVP prices at
+  Anthropic's published API rates only.
+- Optional API-powered deep analysis, opt-in and itemized.
+
 ## Repo map
 
 | Path | What's in it |
