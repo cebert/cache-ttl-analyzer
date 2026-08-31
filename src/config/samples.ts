@@ -34,8 +34,19 @@ export interface SampleSession {
 }
 
 export const SAMPLES: readonly SampleSession[] = [
-  // Scenario captures from fixtures/captured/scenarios/ (WP-06). The numbers
-  // are checked against the fixture and its golden by src/engine/golden.test.ts.
+  // Captures from fixtures/captured/ (WP-06). The numbers are checked against
+  // the fixture and its golden by src/engine/golden.test.ts.
+  {
+    // The default: a real 85-minute build session at ordinary human pacing,
+    // not a scenario enacted to make a point.
+    id: 'parallel-subagents',
+    file: 'real-session.jsonl',
+    nameKey: 'samples.names.realSession',
+    lesson: 'one-hour-wins',
+    requestCount: 126,
+    spanMs: 5_080_750,
+    cacheHitRate: 0.9865,
+  },
   {
     id: 'tight-loop-5m',
     file: 'tight-loop-5m.jsonl',

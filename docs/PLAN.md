@@ -418,9 +418,11 @@ depth 2; main at 1h, subagents at 5m; 1h wins the main bucket $68.91 vs
 $90.31) and the Claude-enacted scenarios under `captured/scenarios/`,
 recorded by `scripts/capture-scenarios.sh` (`claude -p` with
 `CLAUDE_CODE_PROMPT_CACHE_TTL`, one throwaway cwd per scenario so caches
-never cross): `tight-loop-5m` (13 requests at 5m — the 5m-configured capture; 5m wins), `gap-heavy-1h` (6m/8m/12m gaps at 1h; the 5m scenario adds three expiries, 1h wins $0.32 vs $0.70), `gap-heavy-5m` (same gaps at 5m: one full lapse and two *partial* lapses — a stable ~11.8k prefix stayed warm — so the all-or-nothing lengthening rule, which needs `reads == 0`, restores only the full one and 5m wins narrowly $0.562 vs $0.579: a WP-05 modeling limit now pinned by real data, under-selling 1h on 5m sessions with partial lapses; see fixtures/README.md), and `model-switch` (Opus 5 → Sonnet 5, then effort high → medium: two hard resets) The scenarios double as `public/samples/`
-via `scripts/sync-samples.ts`, whose `index.json` takes each sample's
-expected verdict from its golden. Not committed: the multi-hundred-MB
+never cross): `tight-loop-5m` (13 requests at 5m — the 5m-configured capture; 5m wins), `gap-heavy-1h` (6m/8m/12m gaps at 1h; the 5m scenario adds three expiries, 1h wins $0.32 vs $0.70), `gap-heavy-5m` (same gaps at 5m: one full lapse and two *partial* lapses — a stable ~11.8k prefix stayed warm — so the all-or-nothing lengthening rule, which needs `reads == 0`, restores only the full one and 5m wins narrowly $0.562 vs $0.579: a WP-05 modeling limit now pinned by real data, under-selling 1h on 5m sessions with partial lapses; see fixtures/README.md), and `model-switch` (Opus 5 → Sonnet 5, then effort high → medium: two hard resets) Three scenarios plus the real `parallel-subagents` main session (the
+default) ship as `public/samples/` via `scripts/sync-samples.ts`; the UI's
+`SAMPLES` list is the source of truth and the harness checks every card
+number against the fixture. `gap-heavy-5m` joins them once the simulator
+handles partial lapses. Not committed: the multi-hundred-MB
 single-line case, which stays a runtime parser test.
 
 ### WP-D — UX design (Claude Design session)

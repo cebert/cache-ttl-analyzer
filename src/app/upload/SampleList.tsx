@@ -50,7 +50,7 @@ export function SampleList() {
       <SheetRule />
       <SheetSection className="flex flex-col gap-3">
         <SectionTitle>{t('samples.title')}</SectionTitle>
-        <ul className="grid gap-0 sm:grid-cols-3">
+        <ul className="grid gap-0 sm:grid-cols-4">
           {SAMPLES.map((sample, index) => (
             <li
               key={sample.id}

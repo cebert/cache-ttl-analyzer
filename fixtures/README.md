@@ -98,13 +98,16 @@ source Claude Code version, counts, and scrub-rule version.
 The scenarios were recorded by `scripts/capture-scenarios.sh`, which drives
 `claude -p` in one throwaway directory per scenario (the cache is scoped to
 machine + directory, so scenarios must not share one) with read-only tools,
-then scrubbed like any other capture. Three of them double as the app's
-bundled samples — one per lesson the landing page teaches (`SAMPLES` in
+then scrubbed like any other capture. Three of them double as bundled
+samples — one per lesson the landing page teaches (`SAMPLES` in
 `src/config/samples.ts`: tight loop → 5 min wins, gap-heavy at 1h → 1 hour
-wins, model switch → resets); `scripts/sync-samples.ts` copies them to
+wins, model switch → resets) — alongside the default sample, the real
+85-minute `parallel-subagents` main session (126 requests at ordinary human
+pacing; 1h wins by $21). `scripts/sync-samples.ts` copies them to
 `public/samples/`, and the harness asserts the copies are byte-identical and
 every number on a card matches the fixture. `gap-heavy-5m` stays a fixture
-only: its verdict is the modeling finding below, not a lesson to teach yet.
+only until the simulator handles partial lapses (the finding below): today
+its verdict would teach the wrong lesson.
 
 ### Finding: partial invalidation, live
 
