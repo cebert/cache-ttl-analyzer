@@ -40,7 +40,7 @@ export function ContentPage({
             <h1 className="text-[28px] leading-[1.15] font-semibold tracking-[-0.03em] text-balance">
               {title}
             </h1>
-            {lead && <p className="text-[15px] leading-[1.55] text-ink-2">{lead}</p>}
+            {lead && <p className="text-[16px] leading-[1.55] text-ink-2">{lead}</p>}
           </div>
           <Sheet>{children}</Sheet>
         </div>
@@ -63,8 +63,8 @@ export function Prose({
     <>
       {!first && <SheetRule />}
       <section className="flex flex-col gap-1.5 p-5 sm:px-6">
-        <h2 className="text-[13px] font-semibold text-ink">{heading}</h2>
-        <div className="flex flex-col gap-2 text-[13.5px] leading-[1.6] text-ink-2">{children}</div>
+        <h2 className="text-[14px] font-semibold text-ink">{heading}</h2>
+        <div className="flex flex-col gap-2 text-[14.5px] leading-[1.6] text-ink-2">{children}</div>
       </section>
     </>
   )

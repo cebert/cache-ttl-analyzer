@@ -17,9 +17,9 @@ const VARIANTS: Record<ButtonVariant, string> = {
 }
 
 const SIZES: Record<ButtonSize, string> = {
-  sm: 'h-[30px] px-[13px] text-[12.5px]',
-  md: 'h-[34px] px-[15px] text-[13px]',
-  lg: 'h-[46px] px-5 text-[15px]',
+  sm: 'h-[30px] px-[13px] text-[13.5px]',
+  md: 'h-[34px] px-[15px] text-[14px]',
+  lg: 'h-[46px] px-5 text-[16px]',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

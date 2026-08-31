@@ -66,8 +66,8 @@ export function ResultsView({ result }: { result: AnalysisResult }) {
       </Sheet>
 
       <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 px-0.5">
-        <p className="text-[11.5px] leading-[1.5] text-slate-500">{t('results.footerPrivacy')}</p>
-        <div className="flex flex-wrap items-center gap-4 text-[12px]">
+        <p className="text-[12.5px] leading-[1.5] text-slate-500">{t('results.footerPrivacy')}</p>
+        <div className="flex flex-wrap items-center gap-4 text-[13px]">
           <ExternalLink href={PROMPT_CACHE_TTL_DOCS}>{t('results.footerHowTo')}</ExternalLink>
           <ExternalLink href={REPO_URL}>{t('results.footerSource')}</ExternalLink>
         </div>

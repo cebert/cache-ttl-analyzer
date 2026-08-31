@@ -57,7 +57,7 @@ export function Dropzone({ onWhereAreLogs }: { onWhereAreLogs: () => void }) {
         <FileUpIcon size={30} className="text-primary" strokeWidth={1.4} />
 
         <div className="flex flex-col items-center gap-1">
-          <p className="text-[16px] font-semibold tracking-[-0.015em] sm:text-[17px]">
+          <p className="text-[17px] font-semibold tracking-[-0.015em] sm:text-[18px]">
             {busy
               ? t('upload.busyTitle')
               : dragging
@@ -75,7 +75,7 @@ export function Dropzone({ onWhereAreLogs }: { onWhereAreLogs: () => void }) {
           <Button
             variant="primary"
             size="lg"
-            className="sm:h-[36px] sm:px-[17px] sm:text-[13.5px]"
+            className="sm:h-[36px] sm:px-[17px] sm:text-[14.5px]"
             disabled={busy}
             onClick={() => inputRef.current?.click()}
           >
@@ -83,7 +83,7 @@ export function Dropzone({ onWhereAreLogs }: { onWhereAreLogs: () => void }) {
           </Button>
           <Button
             size="lg"
-            className="sm:h-[36px] sm:px-[15px] sm:text-[13.5px]"
+            className="sm:h-[36px] sm:px-[15px] sm:text-[14.5px]"
             onClick={onWhereAreLogs}
           >
             {t('upload.whereAreLogs')}

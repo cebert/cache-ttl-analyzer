@@ -25,7 +25,7 @@ export function PrivacyPanel() {
         <Micro>{t('privacy.metadataOnly')}</Micro>
         <Micro>{t('privacy.csp')}</Micro>
       </div>
-      <div className="flex flex-wrap items-center gap-x-[18px] gap-y-1 text-[12px]">
+      <div className="flex flex-wrap items-center gap-x-[18px] gap-y-1 text-[13px]">
         <Link to={ROUTES.dataPolicy} className="text-primary hover:underline">
           {t('nav.dataPolicy')}
         </Link>

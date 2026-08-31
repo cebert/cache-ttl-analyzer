@@ -75,8 +75,8 @@ export function FindLogsPanel({
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1.5 border-t border-line-soft pt-3.5">
-        <Micro className="text-[11px]">{t('findLogs.retentionNote')}</Micro>
-        <p className="text-[12px]">
+        <Micro className="text-[12px]">{t('findLogs.retentionNote')}</Micro>
+        <p className="text-[13px]">
           <ExternalLink href={CLAUDE_CODE_DOCS_URL}>{t('findLogs.docs')}</ExternalLink>
         </p>
       </div>
@@ -88,7 +88,7 @@ function Note({ title, children }: { title: string; children: string }) {
   return (
     <div className="flex flex-col gap-1">
       <SectionTitle>{title}</SectionTitle>
-      <Micro className="text-[12px]">{children}</Micro>
+      <Micro className="text-[13px]">{children}</Micro>
     </div>
   )
 }
@@ -103,10 +103,10 @@ function PlatformBlock({ platform }: { platform: Platform }) {
 
       <ol className="flex flex-col gap-1.5">
         {(['step1', 'step2'] as const).map((step, index) => (
-          <li key={step} className="flex gap-2 text-[12.5px] leading-[1.8] text-ink-2">
+          <li key={step} className="flex gap-2 text-[13.5px] leading-[1.8] text-ink-2">
             <span
               aria-hidden="true"
-              className="mt-[3px] flex size-[17px] shrink-0 items-center justify-center rounded-full bg-line-soft font-mono text-[10px] font-semibold text-slate-500"
+              className="mt-[3px] flex size-[17px] shrink-0 items-center justify-center rounded-full bg-line-soft font-mono text-[11px] font-semibold text-slate-500"
             >
               {index + 1}
             </span>
@@ -117,7 +117,7 @@ function PlatformBlock({ platform }: { platform: Platform }) {
         ))}
       </ol>
 
-      <Micro className="mt-auto pt-0.5 text-[11px] leading-[1.8]">
+      <Micro className="mt-auto pt-0.5 text-[12px] leading-[1.8]">
         <Trans i18nKey={`findLogs.${platform}.note`} components={KBD_COMPONENTS} />
       </Micro>
     </div>
@@ -144,7 +144,7 @@ function PathRow({ path }: { path: string }) {
     <div className="flex flex-col gap-1">
       <Eyebrow>{t('findLogs.pathEyebrow')}</Eyebrow>
       <div className="flex items-center gap-1.5 rounded-[6px] border border-line-soft bg-ground px-2.5 py-[7px]">
-        <code className="min-w-0 flex-1 overflow-x-auto font-mono text-[11.5px] whitespace-nowrap text-ink">
+        <code className="min-w-0 flex-1 overflow-x-auto font-mono text-[12.5px] whitespace-nowrap text-ink">
           {path}
         </code>
         <button

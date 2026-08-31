@@ -34,7 +34,7 @@ export function SidebarBrand({ onNavigate }: { onNavigate?: () => void } = {}) {
       className="flex min-w-0 items-center gap-[9px] rounded-[6px] py-1 transition-opacity hover:opacity-70"
     >
       <ClockIcon size={18} className="shrink-0 text-primary" />
-      <span className="truncate text-[14px] font-semibold tracking-[-0.02em]">{t('app.name')}</span>
+      <span className="truncate text-[15px] font-semibold tracking-[-0.02em]">{t('app.name')}</span>
       <span className="sr-only">{t('nav.home')}</span>
     </button>
   )
@@ -73,11 +73,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex min-h-0 flex-1 flex-col px-3">
         <div className="flex items-center justify-between px-[10px] pt-1.5 pb-2">
           <Eyebrow>{t('nav.sessions')}</Eyebrow>
-          <span className="font-mono text-[10.5px] text-slate-400">{state.sessions.length}</span>
+          <span className="font-mono text-[11.5px] text-slate-400">{state.sessions.length}</span>
         </div>
 
         {state.sessions.length === 0 ? (
-          <p className="rounded-[6px] border border-dashed border-[#E1E8F0] px-[10px] py-4 text-center text-[11px] leading-[1.5] text-slate-500">
+          <p className="rounded-[6px] border border-dashed border-[#E1E8F0] px-[10px] py-4 text-center text-[12px] leading-[1.5] text-slate-500">
             {t('nav.sessionsEmpty')}
           </p>
         ) : (
@@ -98,7 +98,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="mt-auto flex flex-col gap-0.5 border-t border-line-soft p-3">
-        <p className="flex items-center gap-[7px] px-[10px] pb-2 text-[11px] leading-[1.5] text-slate-500">
+        <p className="flex items-center gap-[7px] px-[10px] pb-2 text-[12px] leading-[1.5] text-slate-500">
           <ShieldCheckIcon size={13} className="shrink-0 text-green" />
           {t('nav.memoryOnly')}
         </p>
@@ -130,7 +130,7 @@ function NavItem({
       to={to}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex h-[30px] items-center rounded-[6px] px-[10px] text-[12.5px] transition-colors ${
+        `flex h-[30px] items-center rounded-[6px] px-[10px] text-[13.5px] transition-colors ${
           isActive ? 'bg-primary-tint font-medium text-primary' : 'text-ink-2 hover:bg-ground'
         }`
       }

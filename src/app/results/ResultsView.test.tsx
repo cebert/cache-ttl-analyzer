@@ -175,7 +175,7 @@ describe('unknown models', () => {
     expect(screen.queryByText(en.results.savedLabel)).not.toBeInTheDocument()
     // Stated in the limits panel, and again in the warnings banner above it.
     expect(
-      screen.getAllByText(en.results.limitUnknownModels.split('{{')[0], { exact: false }).length,
+      screen.getAllByText(en.results.limitUnknownModels_other.split('{{')[0], { exact: false }).length,
     ).toBeGreaterThan(0)
   })
 
@@ -188,7 +188,7 @@ describe('unknown models', () => {
     expect(screen.getByText(en.results.savedLabel)).toBeInTheDocument()
     // …and the exclusion is still disclosed.
     expect(
-      screen.getAllByText(en.results.limitUnknownModels.split('{{')[0], { exact: false }).length,
+      screen.getAllByText(en.results.limitUnknownModels_other.split('{{')[0], { exact: false }).length,
     ).toBeGreaterThan(0)
   })
 })

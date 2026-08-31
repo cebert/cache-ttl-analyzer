@@ -63,10 +63,14 @@ export const en = {
 
   samples: {
     title: 'Or try one of these',
-    meta: '{{requests}} requests over {{span}} · {{hitRate}} from cache',
+    // `requests` arrives already pluralized (counts.requests).
+    meta: '{{requests}} over {{span}} · {{hitRate}} from cache',
     badge5m: '5 minutes wins',
     badge1h: '1 hour wins',
-    badgeResets: '{{count}} resets',
+    // `count` picks the form; `formattedCount` is the locale-written number
+    // that actually renders (the house pattern — see results.requestsCountNoSkips).
+    badgeResets_one: '{{formattedCount}} reset',
+    badgeResets_other: '{{formattedCount}} resets',
     loadFailed: 'That one would not load. Reload the page and try again.',
     // Sample names are our copy, not log-derived, so they are translatable
     // strings like everything else. WP-06 captures the sessions these name;
@@ -123,7 +127,7 @@ export const en = {
       step2: 'Paste the path above and press <keys><kbd>Enter</kbd></keys>.',
       note: 'Paste it exactly as written — Explorer fills in %USERPROFILE% for you.',
     },
-    fileNameTitle: 'Which file is which',
+    fileNameTitle: 'Which file is which?',
     fileNameBody:
       'Inside is one folder per project, named for its working directory with every non-alphanumeric character replaced by a dash. Each session is a file named for its id, so sort by date modified to find the one you just ran.',
     retentionNote:
@@ -207,10 +211,12 @@ export const en = {
     noVerdictBody:
       'Too much of this session ran on models with no published rate, so there is no honest cost to compare.',
     noVerdictEmpty: 'This file recorded no billable requests for this cache.',
+    // Pluralized on the in-band count; `total` is the second count and
+    // arrives already pluralized (counts.gaps), so "1 of 1 gap" reads right.
     bandSentence_one:
-      '{{count}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+      '{{count}} of {{total}} fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
     bandSentence_other:
-      '{{count}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+      '{{count}} of {{total}} fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
     bandSentenceNone:
       'No gap fell between 5 minutes and 1 hour, the only band where the setting changes anything.',
     notional: 'Notional, at published API rates · {{date}}',
@@ -255,8 +261,11 @@ export const en = {
     // written by the locale's formatter, which is what gets displayed.
     requestsCountNoSkips_one: '{{formattedCount}} request',
     requestsCountNoSkips_other: '{{formattedCount}} requests',
-    subagentThreads_one: '{{count}} thread, {{requests}} requests',
-    subagentThreads_other: '{{count}} threads, {{requests}} requests',
+    // Two independent counts, and i18next can only pluralize on one (`count`)
+    // per key. So each count becomes its own pluralized fragment and the
+    // outer key just joins them — the pattern every multi-count string here
+    // follows. A translator reorders the fragments freely.
+    subagentThreads: '{{threads}}, {{requests}}',
 
     // Cache behaviour.
     timelineTitle: 'Cache timeline',
@@ -270,7 +279,8 @@ export const en = {
     resetModel: 'model',
     resetEffort: 'effort',
     resetVersion: 'version',
-    resetsWaste: '{{tokens}} tokens rewritten — the same under either TTL.',
+    // `tokens` arrives already pluralized (counts.tokens).
+    resetsWaste: '{{tokens}} rewritten — the same under either TTL.',
     resetsNone: 'No model, effort or version change reset this cache.',
     gapsTitle: 'Gaps between requests',
     gapsUnder5m: 'under 5 minutes',
@@ -285,16 +295,22 @@ export const en = {
     // differs: a subagent transcript on its own is fully analyzed (its bucket
     // is the headline), while a legacy log carrying both gets a main-only
     // verdict.
+    // `requests` and `threads` arrive as already-pluralized fragments
+    // (countSidechainRequests / countThreads), because one key cannot
+    // pluralize on two counts.
     limitSubagentsOnly:
-      'This file is a subagent transcript: {{requests}} sidechain requests across {{threads}} threads, analyzed here in full. Its verdict governs subagentPromptCacheTtl, not promptCacheTtl.',
+      'This file is a subagent transcript: {{requests}} across {{threads}}, analyzed here in full. Its verdict governs subagentPromptCacheTtl, not promptCacheTtl.',
     limitSubagentsPresent:
-      'This file also carries {{requests}} sidechain requests across {{threads}} threads. Version 1 reports the main conversation only; analyzing both caches together is on the roadmap.',
+      'This file also carries {{requests}} across {{threads}}. Version 1 reports the main conversation only; analyzing both caches together is on the roadmap.',
     limitObservedOnly:
       'The log records the observed TTL, never whether it was configured or defaulted.',
     limitApproximation:
       'A cache entry is modelled as expiring whole, or as far as the log shows it lapsed — which overstates the 5-minute cost rather than understating it.',
-    limitUnknownModels:
-      'No published rate for {{models}}, so {{requests}} requests are excluded from every dollar figure.',
+    // Pluralized on the excluded-request count because the verb has to agree.
+    limitUnknownModels_one:
+      'No published rate for {{models}}, so {{formattedCount}} request is excluded from every dollar figure.',
+    limitUnknownModels_other:
+      'No published rate for {{models}}, so {{formattedCount}} requests are excluded from every dollar figure.',
     footerPrivacy: 'Read in this browser, never uploaded.',
     footerHowTo: 'How to set promptCacheTtl',
     footerSource: 'Source on GitHub',
@@ -353,6 +369,29 @@ export const en = {
       'Chris Ebert, a software engineer in Michigan with over fifteen years of experience building cloud applications. He works on govtech at Tyler Technologies, and has previously built software at Lockheed Martin and GE Healthcare — across space, signals intelligence, manufacturing, finance and public safety. He has a computer science degree from the University of Michigan and an MBA from Wayne State.',
     authorBlog: 'chrisebert.net',
     authorX: '@realchrisebert',
+  },
+
+  /**
+   * Reusable "number + noun" fragments, pluralized on `count` and written by
+   * the locale's formatter through `formattedCount`.
+   *
+   * They exist because i18next selects a plural form from exactly one
+   * variable per key (`count`), so a sentence carrying two independent counts
+   * — "3 threads, 45 requests" — cannot be pluralized as a single string.
+   * Each count becomes a fragment, and the sentence interpolates the finished
+   * fragments. Resolve them with `useCounted` (./counted.ts).
+   */
+  counts: {
+    requests_one: '{{formattedCount}} request',
+    requests_other: '{{formattedCount}} requests',
+    sidechainRequests_one: '{{formattedCount}} sidechain request',
+    sidechainRequests_other: '{{formattedCount}} sidechain requests',
+    threads_one: '{{formattedCount}} thread',
+    threads_other: '{{formattedCount}} threads',
+    gaps_one: '{{formattedCount}} gap',
+    gaps_other: '{{formattedCount}} gaps',
+    tokens_one: '{{formattedCount}} token',
+    tokens_other: '{{formattedCount}} tokens',
   },
 
   common: {

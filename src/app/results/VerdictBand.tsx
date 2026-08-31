@@ -10,6 +10,7 @@
 import { useTranslation } from 'react-i18next'
 
 import type { BucketAnalysis, CacheTtl } from '../../engine/contract'
+import { useCounted } from '../../i18n/counted'
 import { useFormatters } from '../../i18n/formatters'
 import { Eyebrow, Micro } from '../../ui/Sheet'
 
@@ -29,6 +30,7 @@ export function VerdictBand({
 }) {
   const { t } = useTranslation()
   const fmt = useFormatters()
+  const counted = useCounted()
 
   const decided = !bucket.verdictSuppressed && bucket.recommendation !== 'no-verdict'
   const fiveMinuteUsd = bucket.scenarios.fiveMinute.cost.totalUsd
@@ -42,7 +44,7 @@ export function VerdictBand({
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2.5">
               <Eyebrow>{t('results.recommendationLabel')}</Eyebrow>
-              <span className="inline-flex h-[19px] items-center rounded-[4px] bg-[#e3ecfd] px-1.5 font-mono text-[10.5px] text-primary">
+              <span className="inline-flex h-[19px] items-center rounded-[4px] bg-[#e3ecfd] px-1.5 font-mono text-[11.5px] text-primary">
                 {bucket.bucket === 'subagent' ? 'subagentPromptCacheTtl' : 'promptCacheTtl'}
               </span>
             </div>
@@ -62,7 +64,7 @@ export function VerdictBand({
                 {fmt.currency(bucket.savingsUsd)}
               </span>
               {worst > 0 && (
-                <span className="text-[12.5px] text-ink-2">
+                <span className="text-[13.5px] text-ink-2">
                   {t('results.savedComparison', {
                     percent: fmt.percent(bucket.savingsUsd / worst),
                     other: t(
@@ -97,12 +99,12 @@ export function VerdictBand({
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
-          <p className="text-[13px] text-ink-2">
+          <p className="text-[14px] text-ink-2">
             {bucket.shape.gapsIn5mTo1hBand === 0
               ? t('results.bandSentenceNone')
               : t('results.bandSentence', {
                   count: bucket.shape.gapsIn5mTo1hBand,
-                  total: totalGaps(bucket),
+                  total: counted('gaps', totalGaps(bucket)),
                 })}
           </p>
           <Micro>
@@ -156,7 +158,7 @@ function CostBar({
   return (
     <div className="flex items-center gap-3.5">
       <span
-        className={`w-[86px] shrink-0 text-[12.5px] ${highlighted ? 'font-semibold text-ink' : 'text-slate-500'}`}
+        className={`w-[93px] shrink-0 text-[13.5px] ${highlighted ? 'font-semibold text-ink' : 'text-slate-500'}`}
       >
         {label}
       </span>
@@ -167,7 +169,7 @@ function CostBar({
         />
       </div>
       <span
-        className={`w-[68px] shrink-0 text-right font-mono text-[14px] ${highlighted ? 'font-semibold text-ink' : 'text-ink-2'}`}
+        className={`w-[74px] shrink-0 text-right font-mono text-[15px] ${highlighted ? 'font-semibold text-ink' : 'text-ink-2'}`}
       >
         {fmt.currency(usd)}
       </span>

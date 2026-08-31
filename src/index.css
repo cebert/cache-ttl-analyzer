@@ -72,7 +72,7 @@
     background: var(--color-ground);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }

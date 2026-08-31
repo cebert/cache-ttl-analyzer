@@ -53,7 +53,7 @@ export function AnalyzingPanel({ entry }: { entry: SessionEntry }) {
                 style={{ width: `${(ratio ?? 0) * 100}%` }}
               />
             </div>
-            <div className="flex items-baseline justify-between gap-4 font-mono text-[11px] text-slate-400">
+            <div className="flex items-baseline justify-between gap-4 font-mono text-[12px] text-slate-400">
               <span>
                 {progress
                   ? t('analyzing.bytesProgress', {
@@ -81,7 +81,7 @@ export function AnalyzingPanel({ entry }: { entry: SessionEntry }) {
         <SheetRule />
 
         <div className="flex flex-wrap items-center justify-between gap-4 bg-[#FBFCFE] p-4 sm:px-[26px] sm:py-3">
-          <Micro className="text-[11px]">{t('analyzing.workerNote')}</Micro>
+          <Micro className="text-[12px]">{t('analyzing.workerNote')}</Micro>
           <Button size="sm" onClick={cancel}>
             {t('analyzing.cancel')}
           </Button>
@@ -108,7 +108,7 @@ function Stage({ state, label }: { state: StageState; label: string }) {
         <span className="size-[15px] shrink-0 rounded-full border-[1.6px] border-line" />
       )}
       <span
-        className={`text-[12.5px] ${
+        className={`text-[13.5px] ${
           state === 'active'
             ? 'font-semibold text-ink'
             : state === 'done'

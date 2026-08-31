@@ -114,9 +114,9 @@ export function TopBar({
     <div className="hidden h-[52px] shrink-0 items-center justify-between gap-6 border-b border-line bg-surface px-6 md:flex">
       <div className="flex min-w-0 items-center gap-2.5">
         {back && <BackButton {...back} />}
-        <p className="truncate text-[14px] font-semibold tracking-[-0.01em]">{title}</p>
+        <p className="truncate text-[15px] font-semibold tracking-[-0.01em]">{title}</p>
       </div>
-      {meta && <span className="truncate font-mono text-[11px] text-slate-400">{meta}</span>}
+      {meta && <span className="truncate font-mono text-[12px] text-slate-400">{meta}</span>}
     </div>
   )
 }
@@ -143,7 +143,7 @@ export function BackButton({
     <button
       type="button"
       onClick={onClick}
-      className={`-ml-1.5 flex shrink-0 items-center gap-1 rounded-[6px] py-1 pr-2.5 pl-1.5 text-[12.5px] text-ink-2 transition-colors hover:bg-ground hover:text-ink ${className}`}
+      className={`-ml-1.5 flex shrink-0 items-center gap-1 rounded-[6px] py-1 pr-2.5 pl-1.5 text-[13.5px] text-ink-2 transition-colors hover:bg-ground hover:text-ink ${className}`}
     >
       <ChevronLeftIcon size={15} className="shrink-0" />
       {label}

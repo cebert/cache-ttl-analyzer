@@ -85,7 +85,7 @@ function Metric({
         {value}
       </span>
       <Micro>{label}</Micro>
-      <span className="font-mono text-[10.5px] text-slate-400">{note}</span>
+      <span className="font-mono text-[11.5px] text-slate-400">{note}</span>
     </div>
   )
 }

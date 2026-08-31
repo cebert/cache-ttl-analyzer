@@ -49,9 +49,9 @@ function StatusSheet({
         <div className="flex flex-col gap-3 p-5 sm:px-[26px] sm:py-6">
           <div className="flex items-center gap-2.5">
             {tone === 'error' && <AlertCircleIcon size={18} className="shrink-0 text-red" />}
-            <h2 className="text-[17px] font-semibold tracking-[-0.015em]">{title}</h2>
+            <h2 className="text-[18px] font-semibold tracking-[-0.015em]">{title}</h2>
           </div>
-          <Micro className="text-[12.5px]">{body}</Micro>
+          <Micro className="text-[13.5px]">{body}</Micro>
           <div>
             <Button variant="primary" size="sm" onClick={() => select(null)}>
               {t('status.startOver')}

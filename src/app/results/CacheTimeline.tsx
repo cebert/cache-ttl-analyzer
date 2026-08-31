@@ -14,6 +14,7 @@
 import { useTranslation } from 'react-i18next'
 
 import type { BucketAnalysis, AnalysisResult, HardResetCause } from '../../engine/contract'
+import { useCounted } from '../../i18n/counted'
 import { useFormatters } from '../../i18n/formatters'
 import { Eyebrow, Micro, SectionTitle } from '../../ui/Sheet'
 import {
@@ -51,6 +52,7 @@ export function CacheTimeline({
 }) {
   const { t } = useTranslation()
   const fmt = useFormatters()
+  const counted = useCounted()
 
   const markers = timelineMarkers(bucket)
   const segments = configSegments(result, bucket)
@@ -90,7 +92,7 @@ export function CacheTimeline({
                 }`}
                 style={{ width: `${(segment.end - segment.start) * 100}%` }}
               >
-                <span className="hidden truncate font-mono text-[10px] whitespace-nowrap sm:inline">
+                <span className="hidden truncate font-mono text-[11px] whitespace-nowrap sm:inline">
                   {segment.effort ? `${segment.model} · ${segment.effort}` : segment.model}
                 </span>
               </div>
@@ -101,7 +103,7 @@ export function CacheTimeline({
             {segments.map((segment, index) => (
               <span
                 key={`legend-${segment.model}-${segment.effort ?? ''}-${index}`}
-                className="font-mono text-[10px] text-slate-500"
+                className="font-mono text-[11px] text-slate-500"
               >
                 {segment.effort ? `${segment.model} · ${segment.effort}` : segment.model}
               </span>
@@ -135,7 +137,7 @@ export function CacheTimeline({
                 />
               ))}
             </div>
-            <div className="flex justify-between font-mono text-[10.5px] text-slate-400">
+            <div className="flex justify-between font-mono text-[11.5px] text-slate-400">
               <span>{first ? fmt.timeOfDay(first.timestamp) : ''}</span>
               <span>{last ? fmt.timeOfDay(last.timestamp) : ''}</span>
             </div>
@@ -155,22 +157,22 @@ export function CacheTimeline({
                   key={`${reset.timestamp}-${reset.cause}`}
                   className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
                 >
-                  <span className="shrink-0 font-mono text-[11px] text-indigo-600">
+                  <span className="shrink-0 font-mono text-[12px] text-indigo-600">
                     {t('results.resetRequest', {
                       time: fmt.timeOfDay(reset.timestamp),
                       number: reset.requestNumber,
                     })}
                   </span>
-                  <span className="text-[12.5px] text-ink-2">
+                  <span className="text-[13.5px] text-ink-2">
                     {t(RESET_LABEL_KEY[reset.cause])}{' '}
-                    <span className="font-mono text-[11.5px] text-ink">
+                    <span className="font-mono text-[12.5px] text-ink">
                       {reset.from || '—'} → {reset.to || '—'}
                     </span>
                   </span>
                 </div>
               ))}
               {resetTokens !== null && (
-                <Micro>{t('results.resetsWaste', { tokens: fmt.integer(resetTokens) })}</Micro>
+                <Micro>{t('results.resetsWaste', { tokens: counted('tokens', resetTokens) })}</Micro>
               )}
             </>
           )}
@@ -224,7 +226,7 @@ function GapBar({
   return (
     <div className="flex items-center gap-3">
       <span
-        className={`w-[124px] shrink-0 text-[12.5px] ${highlighted ? 'font-semibold text-ink' : 'text-slate-500'}`}
+        className={`w-[134px] shrink-0 text-[13.5px] ${highlighted ? 'font-semibold text-ink' : 'text-slate-500'}`}
       >
         {label}
       </span>
@@ -235,7 +237,7 @@ function GapBar({
         />
       </div>
       <span
-        className={`w-8 shrink-0 text-right font-mono text-[12px] ${highlighted ? 'font-semibold text-ink' : 'text-ink-2'}`}
+        className={`w-8 shrink-0 text-right font-mono text-[13px] ${highlighted ? 'font-semibold text-ink' : 'text-ink-2'}`}
       >
         {fmt.integer(count)}
       </span>
