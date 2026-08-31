@@ -1,30 +1,94 @@
-:root {
-  color-scheme: light dark;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
-  line-height: 1.5;
+/**
+ * Design tokens and global styles — WP-D's palette sheet
+ * (docs/design/wp-d-ux/Palette.dc.html) expressed as Tailwind v4 theme
+ * variables, so every value on screen traces back to a named token.
+ *
+ * Fonts are imported from npm and bundled by Vite, i.e. served from our own
+ * origin: the strict CSP (`font-src 'self'`, see public/_headers) admits no
+ * external font host, and that CSP is how the privacy claim is proven.
+ */
+
+@import '@fontsource-variable/ibm-plex-sans/wght.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+@import '@fontsource/ibm-plex-mono/latin-600.css';
+
+@import 'tailwindcss';
+
+@theme {
+  /* Neutrals. Cooler and bluer than Tailwind's slate, so they are defined
+     rather than mapped (Palette.dc.html, "Tailwind mapping"). */
+  --color-ground: #f7f9fc;
+  --color-surface: #ffffff;
+  --color-line: #d9e2ec;
+  --color-line-soft: #e8eef4;
+  --color-ink: #172033;
+  --color-ink-2: #3d4b60;
+  --color-verdict: #f4f7fe;
+
+  /* Accents — each owns exactly one meaning. These five match stock Tailwind
+     (blue-600, indigo-500, emerald-600, amber-600, red-600) but are aliased
+     so components name the meaning, not the hue. */
+  --color-primary: #2563eb;
+  --color-primary-strong: #1d4ed8;
+  --color-indigo: #6366f1;
+  --color-green: #059669;
+  --color-amber: #d97706;
+  --color-red: #dc2626;
+
+  /* Accent tints at ~96% lightness, defined alongside the accents rather
+     than reaching for blue-50 and its siblings, which are warmer than this
+     ground. */
+  --color-primary-tint: #eff4fe;
+  --color-indigo-tint: #eeeffe;
+  --color-green-tint: #e7f5f0;
+  --color-amber-tint: #fdf4e7;
+  --color-red-tint: #fcebeb;
+
+  /* Text-on-tint pairs that carry enough contrast for body copy. */
+  --color-amber-ink: #92620a;
+  --color-red-ink: #991b1b;
+
+  --font-sans: 'IBM Plex Sans Variable', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  --radius-sheet: 10px;
+  --radius-control: 6px;
+  --radius-badge: 4px;
+
+  /* Elevation is reserved for dialogs, so a shadow always means "modal". */
+  --shadow-dialog: 0 10px 28px rgb(23 32 51 / 0.1);
 }
 
-body {
-  margin: 0;
-  display: flex;
-  justify-content: center;
-}
+@layer base {
+  html {
+    /* The design is a single committed light treatment; declaring it stops
+       the browser painting form controls and scrollbars for a dark theme. */
+    color-scheme: light;
+  }
 
-#root {
-  max-width: 48rem;
-  width: 100%;
-  padding: 2rem 1rem;
-}
+  body {
+    margin: 0;
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
 
-pre {
-  overflow-x: auto;
-  font-size: 0.8rem;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  border-radius: 6px;
-  padding: 0.75rem;
+  /* Every figure, identifier, path and model name is tabular so columns of
+     numbers line up as they do in the designs. */
+  .font-mono,
+  code,
+  kbd,
+  pre {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
 }
