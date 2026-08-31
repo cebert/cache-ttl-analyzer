@@ -13,17 +13,29 @@ import { Sheet, SheetRule } from '../../ui/Sheet'
 export function ContentPage({
   title,
   lead,
+  wide = false,
   children,
 }: {
   title: string
   lead?: ReactNode
+  /**
+   * Widen past the reading measure. Prose keeps the 760px measure; a page
+   * whose body is a set of side-by-side columns rather than paragraphs needs
+   * the room, and squeezing those into a measure meant for sentences is what
+   * made the log locations hard to read.
+   */
+  wide?: boolean
   children: ReactNode
 }) {
   return (
     <>
       <TopBar title={title} />
       <MainPane>
-        <div className="flex max-w-[760px] flex-col gap-4 px-4 pt-7 pb-10 sm:px-6 sm:pt-10">
+        <div
+          className={`flex flex-col gap-4 px-4 pt-7 pb-10 sm:px-6 sm:pt-10 ${
+            wide ? 'max-w-[1040px]' : 'max-w-[760px]'
+          }`}
+        >
           <div className="flex flex-col gap-2">
             <h1 className="text-[28px] leading-[1.15] font-semibold tracking-[-0.03em] text-balance">
               {title}

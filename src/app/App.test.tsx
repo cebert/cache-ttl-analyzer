@@ -235,14 +235,25 @@ describe('the app shell', () => {
     expect(await screen.findByText(en.upload.dropTitle)).toBeInTheDocument()
   })
 
-  it('reaches the find-your-logs page from the dropzone, with both platform paths', async () => {
+  it('reaches the find-your-logs page from the dropzone, with every platform', async () => {
     const { user } = renderApp()
 
     await user.click(screen.getByRole('button', { name: en.upload.whereAreLogs }))
 
     expect(await screen.findByText(en.findLogs.subagentsNote)).toBeInTheDocument()
-    expect(screen.getByText(en.findLogs.macosPath)).toBeInTheDocument()
-    expect(screen.getByText(en.findLogs.windowsPath)).toBeInTheDocument()
+    for (const platform of [en.findLogs.mac, en.findLogs.linux, en.findLogs.windows] as const) {
+      expect(screen.getByRole('heading', { name: platform.name })).toBeInTheDocument()
+    }
+    // macOS and Linux share a path, so this is the pair plus Windows.
+    expect(screen.getAllByText(en.findLogs.mac.path)).toHaveLength(2)
+    expect(screen.getByText(en.findLogs.windows.path)).toBeInTheDocument()
+  })
+
+  it('does not repeat the log locations on the landing screen, where the button owns them', () => {
+    renderApp()
+
+    expect(screen.getByRole('button', { name: en.upload.whereAreLogs })).toBeInTheDocument()
+    expect(screen.queryByText(en.findLogs.windows.path)).not.toBeInTheDocument()
   })
 
   it('reports a worker that fails to start rather than hanging on "analyzing"', async () => {

@@ -2,6 +2,10 @@
  * The app frame: sidebar beside content on desktop, a header with a drawer
  * below `md`. The top bar names what the main pane is showing, which is the
  * only piece of chrome that changes between screens.
+ *
+ * Below `md` the menu button and the drawer both sit on the left, the same
+ * side as the sidebar they stand in for — a drawer opening from the opposite
+ * edge to its own button reads as a different surface.
  */
 
 import { useEffect, useState, type ReactNode } from 'react'
@@ -9,7 +13,7 @@ import { Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { Sidebar, SidebarBrand } from './Sidebar'
-import { CloseIcon, MenuIcon } from '../ui/Icon'
+import { ChevronLeftIcon, CloseIcon, MenuIcon } from '../ui/Icon'
 
 export function Shell() {
   const { t } = useTranslation()
@@ -37,18 +41,23 @@ export function Shell() {
         {t('nav.skipToContent')}
       </a>
 
-      <header className="sticky top-0 z-20 flex h-[52px] shrink-0 items-center justify-between border-b border-line bg-surface pr-2 pl-4 md:hidden">
-        <SidebarBrand />
+      {/*
+        Above the drawer (z-30 to its z-20), not beside it. The drawer opens
+        from the same edge as this button, so at equal stacking it painted
+        over its own close control and the only way out was the scrim.
+      */}
+      <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center gap-1 border-b border-line bg-surface pr-4 pl-2 md:hidden">
         <button
           type="button"
           onClick={() => setDrawerOpen((open) => !open)}
           aria-expanded={drawerOpen}
           aria-controls="app-drawer"
-          className="flex size-11 items-center justify-center rounded-[6px] text-ink-2 hover:bg-ground"
+          className="flex size-11 shrink-0 items-center justify-center rounded-[6px] text-ink-2 hover:bg-ground"
         >
           {drawerOpen ? <CloseIcon size={20} /> : <MenuIcon size={20} />}
           <span className="sr-only">{drawerOpen ? t('nav.closeMenu') : t('nav.openMenu')}</span>
         </button>
+        <SidebarBrand />
       </header>
 
       {drawerOpen && (
@@ -62,7 +71,7 @@ export function Shell() {
           </button>
           <div
             id="app-drawer"
-            className="fixed inset-y-0 right-0 z-20 flex w-[280px] max-w-[85vw] flex-col border-l border-line bg-surface shadow-[var(--shadow-dialog)] md:hidden"
+            className="fixed inset-y-0 left-0 z-20 flex w-[280px] max-w-[85vw] flex-col border-r border-line bg-surface shadow-[var(--shadow-dialog)] md:hidden"
           >
             <div className="h-[52px] shrink-0" />
             <Sidebar onNavigate={() => setDrawerOpen(false)} />
@@ -92,12 +101,53 @@ export function Shell() {
  * `title` is app copy; `meta` may carry log-derived text, so it is rendered as
  * a text node and truncated rather than wrapped.
  */
-export function TopBar({ title, meta }: { title: ReactNode; meta?: ReactNode }) {
+export function TopBar({
+  title,
+  meta,
+  back,
+}: {
+  title: ReactNode
+  meta?: ReactNode
+  back?: BackAction
+}) {
   return (
     <div className="hidden h-[52px] shrink-0 items-center justify-between gap-6 border-b border-line bg-surface px-6 md:flex">
-      <p className="truncate text-[14px] font-semibold tracking-[-0.01em]">{title}</p>
+      <div className="flex min-w-0 items-center gap-2.5">
+        {back && <BackButton {...back} />}
+        <p className="truncate text-[14px] font-semibold tracking-[-0.01em]">{title}</p>
+      </div>
       {meta && <span className="truncate font-mono text-[11px] text-slate-400">{meta}</span>}
     </div>
+  )
+}
+
+export interface BackAction {
+  label: string
+  onClick: () => void
+}
+
+/**
+ * The way out of a session and back to the upload screen.
+ *
+ * It has to be a real control rather than a reliance on the browser's Back
+ * button: selecting a session pushes no history entry — the pane is a
+ * function of which session is selected, not of the URL — so Back would leave
+ * the site entirely.
+ */
+export function BackButton({
+  label,
+  onClick,
+  className = '',
+}: BackAction & { className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`-ml-1.5 flex shrink-0 items-center gap-1 rounded-[6px] py-1 pr-2.5 pl-1.5 text-[12.5px] text-ink-2 transition-colors hover:bg-ground hover:text-ink ${className}`}
+    >
+      <ChevronLeftIcon size={15} className="shrink-0" />
+      {label}
+    </button>
   )
 }
 

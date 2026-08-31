@@ -24,4 +24,6 @@ export function ExternalLink({ href, children }: { href: string; children: React
 }
 
 export const REPO_URL = 'https://github.com/cebert/cache-ttl-analyzer'
+export const AUTHOR_BLOG_URL = 'https://chrisebert.net'
+export const AUTHOR_X_URL = 'https://x.com/realchrisebert'
 export const CLAUDE_CODE_DOCS_URL = 'https://docs.claude.com/en/docs/claude-code'

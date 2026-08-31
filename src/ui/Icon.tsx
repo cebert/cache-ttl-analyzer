@@ -123,6 +123,14 @@ export function CopyIcon(props: IconProps) {
   )
 }
 
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <Icon strokeWidth={2} {...props}>
+      <path d="M14.5 5.8 8.3 12l6.2 6.2" />
+    </Icon>
+  )
+}
+
 export function MenuIcon(props: IconProps) {
   return (
     <Icon {...props}>

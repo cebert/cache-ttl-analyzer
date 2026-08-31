@@ -33,72 +33,101 @@ export const en = {
     closeMenu: 'Close navigation',
     skipToContent: 'Skip to main content',
     sessionList: 'Analyzed sessions',
+    home: 'Go to the start page',
+    backToUpload: 'All sessions',
   },
 
   upload: {
-    headline: 'Should your sessions cache for five minutes, or an hour?',
+    headline: 'Should your Claude Code sessions cache for five minutes, or an hour?',
     subhead:
-      'Add a Claude Code session log. You get the cost at both TTLs and the gaps that decide it — computed in this browser.',
+      'Drop in a session log and find out. You will see what it would have cost either way, and what made the difference. Nothing leaves this page.',
     dropTitle: 'Drop a session log here',
     dropTitleActive: 'Release to analyze',
     dropHint: 'One .jsonl file, up to {{size}}',
     choose: 'Choose a file',
     whereAreLogs: 'Where are my logs?',
     busyTitle: 'An analysis is already running',
-    busyHint: 'One session at a time — cancel the running analysis to add another.',
+    busyHint: 'One at a time. Cancel the one that is running to start another.',
     fileInputLabel: 'Session log file',
   },
 
   uploadError: {
-    tooLarge: 'That file is {{size}}. The limit is {{limit}} — larger than any real session log.',
+    tooLarge:
+      'That file is {{size}}, and the limit is {{limit}} — bigger than any real session log we have seen.',
     empty: 'That file is empty.',
     wrongType:
-      'Session logs are JSONL files. “{{name}}” does not end in .jsonl — add it anyway if you are sure.',
+      'Session logs are .jsonl files, and “{{name}}” does not end in .jsonl. Go ahead anyway if you know it is one.',
     addAnyway: 'Analyze it anyway',
     dismiss: 'Dismiss',
   },
 
   samples: {
-    title: 'Or start with a captured session',
-    meta: '{{requests}} requests · {{span}} · {{hitRate}} hits',
-    badge5m: '5 min wins',
+    title: 'Or try one of these',
+    meta: '{{requests}} requests over {{span}} · {{hitRate}} from cache',
+    badge5m: '5 minutes wins',
     badge1h: '1 hour wins',
     badgeResets: '{{count}} resets',
-    loadFailed: 'That sample could not be loaded. Reload the page and try again.',
+    loadFailed: 'That one would not load. Reload the page and try again.',
     // Sample names are our copy, not log-derived, so they are translatable
     // strings like everything else. WP-06 captures the sessions these name;
     // a sample it adds under a new id adds its name here too.
     // Consumed by `SampleSession.nameKey`; WP-06 adds the sessions these name.
     names: {
       realSession: 'A real 85-minute session',
-      tightLoop: 'Tight agent loop',
-      gapHeavy: 'Long and gap-heavy',
-      gapHeavy5m: 'Gap-heavy, run at 5 minutes',
-      modelSwitch: 'Model switched',
+      tightLoop: 'Back-to-back requests',
+      gapHeavy: 'Long pauses between requests',
+      gapHeavy5m: 'Long pauses, cached for 5 minutes',
+      modelSwitch: 'Switched models partway',
     },
   },
 
   privacy: {
     title: 'Nothing is uploaded',
-    inBrowser: 'Analyzed in a Web Worker on your machine. Never sent, never stored.',
-    metadataOnly: 'The parser reads token counts and timestamps — never message content.',
-    csp: 'A strict Content-Security-Policy blocks outbound connections. Check devtools.',
+    inBrowser: 'Your file is read on your own machine. It is never sent anywhere and never stored.',
+    metadataOnly: 'We read token counts and timestamps. We never read what you or Claude said.',
+    csp: 'The browser itself blocks this page from sending anything out. Open devtools and watch.',
     source: 'Source on GitHub',
   },
 
   findLogs: {
     title: 'Where are my session logs?',
     intro:
-      'Claude Code writes one JSONL file per session, under a folder named for the working directory.',
-    macos: 'macOS & Linux',
-    windows: 'Windows',
-    macosPath: '~/.claude/projects/<project>/<id>.jsonl',
-    windowsPath: '%USERPROFILE%\\.claude\\projects\\<project>\\<id>.jsonl',
-    projectNote: 'Project folder = working directory, non-alphanumerics replaced by dashes.',
-    macosHiddenNote:
-      'On macOS the .claude folder is hidden in Finder. In the file picker, press ⌘ + Shift + G and paste the path to jump straight to it.',
-    configDirNote:
-      'CLAUDE_CONFIG_DIR moves the root. Transcripts are deleted after 30 days by default.',
+      'Claude Code writes one JSONL file per session, in a folder named for the directory you were working in. Pick the file for the session you want to analyze.',
+    pathEyebrow: 'Path',
+    openEyebrow: 'Opening it',
+    // The three platforms get their own block rather than one shared path
+    // with footnotes: the path, the hidden-folder problem and the keystroke
+    // that solves it are different on each, and interleaving them is what
+    // made the earlier single-panel version hard to follow.
+    mac: {
+      name: 'macOS',
+      path: '~/.claude/projects/',
+      // The two ways in: from a file picker (which is where the user
+      // already is, having clicked "Choose a file"), and from Finder.
+      step1: 'In the file picker, press <keys><kbd>⌘</kbd><kbd>⇧</kbd><kbd>G</kbd></keys>.',
+      step2: 'Paste the path above and press <keys><kbd>Return</kbd></keys>.',
+      note: 'Finder hides the .claude folder. <keys><kbd>⌘</kbd><kbd>⇧</kbd><kbd>.</kbd></keys> shows hidden files if you would rather click your way there.',
+    },
+    linux: {
+      name: 'Linux',
+      path: '~/.claude/projects/',
+      step1: 'In the file picker, press <keys><kbd>Ctrl</kbd><kbd>L</kbd></keys>.',
+      step2: 'Paste the path above and press <keys><kbd>Enter</kbd></keys>.',
+      note: 'File managers hide the .claude folder. <keys><kbd>Ctrl</kbd><kbd>H</kbd></keys> shows hidden files.',
+    },
+    windows: {
+      name: 'Windows',
+      path: '%USERPROFILE%\\.claude\\projects\\',
+      step1:
+        'In the file picker, press <keys><kbd>Ctrl</kbd><kbd>L</kbd></keys> or click the address bar.',
+      step2: 'Paste the path above and press <keys><kbd>Enter</kbd></keys>.',
+      note: 'Paste it exactly as written — Explorer fills in %USERPROFILE% for you.',
+    },
+    fileNameTitle: 'Which file is which',
+    fileNameBody:
+      'Inside is one folder per project, named for its working directory with every non-alphanumeric character replaced by a dash. Each session is a file named for its id, so sort by date modified to find the one you just ran.',
+    retentionNote:
+      'Claude Code deletes transcripts after 30 days by default, and CLAUDE_CONFIG_DIR moves the whole root if you have set it.',
     subagentsTitle: 'Subagent transcripts',
     subagentsNote:
       'A session that spawned subagents keeps each one in its own file beside the session log, in <id>/subagents/agent-<agentId>.jsonl. Analyze those separately — a main-session log contains none of their traffic.',
@@ -111,15 +140,15 @@ export const en = {
     title: 'Analyzing',
     fileMeta: '{{name}} · {{size}}',
     cancel: 'Cancel',
-    workerNote: 'Running in a Web Worker — the tab stays responsive.',
-    starting: 'Starting the worker',
+    workerNote: 'Running in the background — the page stays usable.',
+    starting: 'Getting started',
     bytesProgress: '{{done}} of {{total}}',
     requestsSeen_one: '{{count}} request so far',
     requestsSeen_other: '{{count}} requests so far',
-    stepStream: 'Streamed the file',
-    stepDedup: 'Deduplicating requests',
-    stepPrice: 'Pricing at published API rates',
-    stepReplay: 'Replaying at 5 minutes and 1 hour',
+    stepStream: 'Reading the file',
+    stepDedup: 'Sorting out the requests',
+    stepPrice: 'Working out what each one cost',
+    stepReplay: 'Replaying it at 5 minutes and at 1 hour',
   },
 
   warnings: {
@@ -127,39 +156,40 @@ export const en = {
     hide: 'Hide',
     skippedRecordTypes_one: '{{count}} record skipped — unrecognized type, no billing data.',
     skippedRecordTypes_other: '{{count}} records skipped — unrecognized types, no billing data.',
-    malformedLines_one: '{{count}} line could not be parsed and was skipped.',
-    malformedLines_other: '{{count}} lines could not be parsed and were skipped.',
-    invalidUsageRows_one: '{{count}} row had unusable token counts and was skipped.',
-    invalidUsageRows_other: '{{count}} rows had unusable token counts and were skipped.',
-    lineLengthCap_one: '{{count}} line exceeded the length cap and was skipped.',
-    lineLengthCap_other: '{{count}} lines exceeded the length cap and were skipped.',
+    malformedLines_one: '{{count}} line was not readable and was skipped.',
+    malformedLines_other: '{{count}} lines were not readable and were skipped.',
+    invalidUsageRows_one: '{{count}} row had token counts we could not use, so it was skipped.',
+    invalidUsageRows_other:
+      '{{count}} rows had token counts we could not use, so they were skipped.',
+    lineLengthCap_one: '{{count}} line was too long to read, so it was skipped.',
+    lineLengthCap_other: '{{count}} lines were too long to read, so they were skipped.',
     versionOutOfRange:
-      'Recorded by Claude Code {{versions}}, outside the versions this parser was validated against. The analysis ran anyway.',
+      'This log came from Claude Code {{versions}}, which we have not tested against. We ran the analysis anyway.',
     unknownModels:
-      'No published rate for {{models}}. Those requests are excluded from every dollar figure.',
+      'There is no published price for {{models}}, so those requests are left out of the dollar figures.',
   },
 
   rejected: {
-    title: 'That is not a Claude Code session log',
+    title: 'This does not look like a session log',
     malformedLines:
-      'Most lines in this file are not valid JSON records. A session log is JSONL — one JSON object per line.',
+      'Most lines in this file are not valid JSON. A session log has one JSON object per line.',
     noAssistantUsage:
-      'This file has no assistant records carrying token usage, so there is nothing to cost out. Session logs written by Claude Code always do.',
-    linesScanned: 'Scanned {{lines}}, kept nothing.',
+      'Nothing in this file records how many tokens a request used, so there is nothing to price. A real Claude Code session log always has that.',
+    linesScanned: 'Read {{lines}} and found nothing to use.',
     tryAnother: 'Try another file',
     whereAreLogs: 'Where are my session logs?',
   },
 
   status: {
     cancelled: 'Analysis cancelled',
-    cancelledHint: 'The worker was stopped and nothing was kept.',
+    cancelledHint: 'Stopped, and nothing was kept.',
     failed: 'Analysis failed',
     analyzing: 'Analyzing',
     startOver: 'Start over',
-    errorFileTooLarge: 'That file is larger than this tool will read.',
+    errorFileTooLarge: 'That file is bigger than this tool will read.',
     errorReadFailure:
-      'The file could not be read. It may have moved or changed since you picked it.',
-    errorInternal: 'Something went wrong inside the analyzer.',
+      'We could not read the file. It may have moved or changed since you picked it.',
+    errorInternal: 'Something went wrong on our side.',
   },
 
   results: {
@@ -318,6 +348,11 @@ export const en = {
     monitorBody:
       'Claude Code 2.1.251 and later report live cache statistics with the /usage command, which is the right tool for day-to-day monitoring. This one is for deciding the setting in the first place.',
     sourceLink: 'Source on GitHub',
+    authorTitle: 'Who made this',
+    authorBody:
+      'Chris Ebert, a software engineer in Michigan with over fifteen years of experience building cloud applications. He works on govtech at Tyler Technologies, and has previously built software at Lockheed Martin and GE Healthcare — across space, signals intelligence, manufacturing, finance and public safety. He has a computer science degree from the University of Michigan and an MBA from Wayne State.',
+    authorBlog: 'chrisebert.net',
+    authorX: '@realchrisebert',
   },
 
   common: {

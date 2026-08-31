@@ -14,7 +14,7 @@ import { SheetSection } from '../../ui/Sheet'
 export function FindLogsPage() {
   const { t } = useTranslation()
   return (
-    <ContentPage title={t('findLogs.title')} lead={t('findLogs.intro')}>
+    <ContentPage title={t('findLogs.title')} lead={t('findLogs.intro')} wide>
       <SheetSection>
         <FindLogsPanel detailed hideTitle />
       </SheetSection>

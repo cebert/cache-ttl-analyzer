@@ -6,7 +6,7 @@
 
 import { useTranslation } from 'react-i18next'
 
-import { ExternalLink, REPO_URL } from '../../ui/ExternalLink'
+import { AUTHOR_BLOG_URL, AUTHOR_X_URL, ExternalLink, REPO_URL } from '../../ui/ExternalLink'
 import { ContentPage, Prose } from './ContentPage'
 
 export function AboutPage() {
@@ -28,8 +28,11 @@ export function AboutPage() {
       <Prose heading={t('about.monitorTitle')}>
         <p>{t('about.monitorBody')}</p>
       </Prose>
-      <Prose heading={t('app.name')}>
-        <p>
+      <Prose heading={t('about.authorTitle')}>
+        <p>{t('about.authorBody')}</p>
+        <p className="flex flex-wrap items-center gap-x-5 gap-y-1">
+          <ExternalLink href={AUTHOR_BLOG_URL}>{t('about.authorBlog')}</ExternalLink>
+          <ExternalLink href={AUTHOR_X_URL}>{t('about.authorX')}</ExternalLink>
           <ExternalLink href={REPO_URL}>{t('about.sourceLink')}</ExternalLink>
         </p>
       </Prose>

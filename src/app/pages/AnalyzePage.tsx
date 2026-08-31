@@ -11,13 +11,14 @@ import { useTranslation } from 'react-i18next'
 
 import { useFormatters } from '../../i18n/formatters'
 import { useSessions } from '../../state/sessions-context'
-import { MainPane, TopBar } from '../Shell'
+import { BackButton, MainPane, TopBar } from '../Shell'
 import { AnalyzingPanel } from '../analysis/AnalyzingPanel'
 import { RejectionPanel } from '../analysis/RejectionPanel'
 import { CancelledPanel, FailurePanel } from '../analysis/StatusPanel'
 import { ResultsView } from '../results/ResultsView'
 import { ROUTES } from '../routes'
 import { sessionTitle, shortSessionId } from '../session-display'
+import { useGoHome } from '../use-go-home'
 import { UploadScreen } from './UploadScreen'
 
 export function AnalyzePage() {
@@ -25,6 +26,7 @@ export function AnalyzePage() {
   const fmt = useFormatters()
   const navigate = useNavigate()
   const { selected } = useSessions()
+  const goHome = useGoHome()
 
   if (!selected) {
     return (
@@ -41,6 +43,10 @@ export function AnalyzePage() {
     selected.status.phase === 'analyzing'
       ? t('analyzing.title')
       : (sessionTitle(selected) ?? shortSessionId(selected))
+  // Opening a session pushes no history entry, so the browser's Back button
+  // leaves the site. Every width gets an explicit way back instead: in the
+  // top bar on desktop, and above the content where there is no top bar.
+  const back = { label: t('nav.backToUpload'), onClick: goHome }
 
   return (
     <>
@@ -50,8 +56,12 @@ export function AnalyzePage() {
           name: selected.fileName,
           size: fmt.bytes(selected.fileSizeBytes),
         })}
+        back={back}
       />
       <MainPane>
+        <div className="border-b border-line bg-surface px-3 py-1.5 md:hidden">
+          <BackButton {...back} />
+        </div>
         {selected.status.phase === 'analyzing' && <AnalyzingPanel entry={selected} />}
         {selected.status.phase === 'rejected' && <RejectionPanel entry={selected} />}
         {selected.status.phase === 'cancelled' && <CancelledPanel />}
