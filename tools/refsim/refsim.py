@@ -45,6 +45,30 @@ MAX_SAFE_INTEGER = 2**53 - 1
 # Parser (src/engine/parser.ts) constants that shape ParseStats.
 MAX_DISTINCT_SKIPPED_TYPES = 100
 OTHER_SKIPPED_TYPES_KEY = "<other>"
+# Skipped record types known to carry no billing payload (docs/PLAN.md §2).
+# Every session contains several, so they are counted silently; a type absent
+# from this set is the format drift contract F4 watches for, and warns.
+NON_BILLING_RECORD_TYPES = frozenset(
+    {
+        "artifact-autoreact-ledger",
+        "artifact-comment-monitor",
+        "atis-latch",
+        "bridge-session",
+        "cost-state",
+        "custom-title",
+        "file-history-delta",
+        "file-history-snapshot",
+        "frame-link",
+        "last-prompt",
+        "mode",
+        "permission-mode",
+        "pr-link",
+        "queue-operation",
+        "relocated",
+        "system",
+        "worktree-state",
+    }
+)
 MAIN_THREAD_ID = "main"
 LEGACY_SIDECHAIN_THREAD_PREFIX = "sidechain-"
 SYNTHETIC_MODEL_ID = "<synthetic>"
@@ -332,7 +356,11 @@ class SessionParser:
             self.count_skipped(type_)
 
     def count_skipped(self, type_: str) -> None:
-        key = sanitize_metadata_string(type_) or OTHER_SKIPPED_TYPES_KEY
+        # A type sanitization altered goes to `<other>`, not to its cleaned-up
+        # spelling: `"system\u0000"` must not inherit `system`'s silence.
+        sanitized = sanitize_metadata_string(type_)
+        key = sanitized if sanitized == type_ else OTHER_SKIPPED_TYPES_KEY
+        key = key or OTHER_SKIPPED_TYPES_KEY
         skipped = self.stats["skippedRecordTypes"]
         if key not in skipped and len(skipped) >= MAX_DISTINCT_SKIPPED_TYPES:
             key = OTHER_SKIPPED_TYPES_KEY
@@ -499,8 +527,11 @@ class SessionParser:
             out.append({"kind": "malformed-lines", "count": s["malformedLines"]})
         if self.capped_lines > 0:
             out.append({"kind": "line-length-cap-exceeded", "count": self.capped_lines})
-        if s["skippedRecordTypes"]:
-            out.append({"kind": "skipped-record-types", "types": dict(s["skippedRecordTypes"])})
+        unrecognized = {
+            t: n for t, n in s["skippedRecordTypes"].items() if t not in NON_BILLING_RECORD_TYPES
+        }
+        if unrecognized:
+            out.append({"kind": "skipped-record-types", "types": unrecognized})
         out_of_range = [v for v in self.versions if not version_in_range(v)]
         if out_of_range:
             out.append({"kind": "version-out-of-range", "versions": out_of_range})

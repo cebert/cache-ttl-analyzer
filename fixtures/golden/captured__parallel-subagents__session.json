@@ -40,23 +40,7 @@
     "syntheticRowsExcluded": 1,
     "invalidUsageRowsSkipped": 0
   },
-  "parseWarnings": [
-    {
-      "kind": "skipped-record-types",
-      "types": {
-        "mode": 61,
-        "permission-mode": 61,
-        "bridge-session": 61,
-        "file-history-snapshot": 8,
-        "atis-latch": 61,
-        "last-prompt": 60,
-        "queue-operation": 72,
-        "file-history-delta": 11,
-        "system": 22,
-        "pr-link": 38
-      }
-    }
-  ],
+  "parseWarnings": [],
   "buckets": [
     {
       "bucket": "main",

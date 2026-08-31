@@ -33,17 +33,7 @@
     "syntheticRowsExcluded": 0,
     "invalidUsageRowsSkipped": 0
   },
-  "parseWarnings": [
-    {
-      "kind": "skipped-record-types",
-      "types": {
-        "queue-operation": 8,
-        "atis-latch": 3,
-        "last-prompt": 5,
-        "mode": 1
-      }
-    }
-  ],
+  "parseWarnings": [],
   "buckets": [
     {
       "bucket": "main",

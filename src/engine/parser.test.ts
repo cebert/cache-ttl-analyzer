@@ -280,11 +280,53 @@ describe('skip-and-count unrecognized record types (F4)', () => {
       'artifact-autoreact-ledger': 1,
       'never-seen-before': 1,
     })
+    // Only the type we have never classified is worth a warning; the three
+    // known bookkeeping types are counted silently.
     expect(parsed.warnings).toContainEqual({
       kind: 'skipped-record-types',
-      types: parsed.stats.skippedRecordTypes,
+      types: { 'never-seen-before': 1 },
     })
     expect(parsed.verdict).toBe('valid-with-warnings')
+  })
+
+  it('counts known non-billing types without warning, so an ordinary log stays clean', () => {
+    const parsed = parse([
+      ...turn(0),
+      { type: 'queue-operation', sessionId: SESSION_ID },
+      { type: 'last-prompt', sessionId: SESSION_ID },
+      { type: 'atis-latch', sessionId: SESSION_ID },
+      { type: 'mode', sessionId: SESSION_ID },
+      { type: 'system', sessionId: SESSION_ID },
+    ])
+    expect(parsed.stats.skippedRecordTypes).toEqual({
+      'queue-operation': 1,
+      'last-prompt': 1,
+      'atis-latch': 1,
+      mode: 1,
+      system: 1,
+    })
+    expect(parsed.warnings).toEqual([])
+    expect(parsed.verdict).toBe('valid')
+  })
+
+  it('warns on the overflow bucket, which can hide an unclassified type', () => {
+    const rows: Json[] = [...turn(0)]
+    for (let i = 0; i < MAX_DISTINCT_SKIPPED_TYPES + 1; i++) rows.push({ type: `t${i}` })
+    const parsed = parse(rows)
+    expect(parsed.warnings).toContainEqual(
+      expect.objectContaining({ kind: 'skipped-record-types' }),
+    )
+  })
+
+  it('cannot launder an unknown type into a classified one through sanitization', () => {
+    // Control chars are stripped from metadata, so `system\u0000` would
+    // otherwise be counted as `system` and inherit its silence.
+    const parsed = parse([...turn(0), { type: 'system\u0000' }, { type: 'system' }])
+    expect(parsed.stats.skippedRecordTypes).toEqual({ system: 1, [OTHER_SKIPPED_TYPES_KEY]: 1 })
+    expect(parsed.warnings).toContainEqual({
+      kind: 'skipped-record-types',
+      types: { [OTHER_SKIPPED_TYPES_KEY]: 1 },
+    })
   })
 
   it('aggregates beyond MAX_DISTINCT_SKIPPED_TYPES so a hostile file cannot grow the map', () => {
@@ -729,9 +771,9 @@ describe('validation verdicts', () => {
   })
 
   it('valid-with-warnings: any warning downgrades the verdict', () => {
-    expect(parse([...turn(0), { type: 'mode', mode: 'default' }]).verdict).toBe(
-      'valid-with-warnings',
-    )
+    // `mode` is a classified bookkeeping type and no longer warns; an
+    // unclassified type is what F4 wants surfaced.
+    expect(parse([...turn(0), { type: 'never-seen-before' }]).verdict).toBe('valid-with-warnings')
   })
 
   it('not-a-session-log: no assistant rows carrying usage', () => {
@@ -1044,7 +1086,7 @@ describe('content poison: message content never influences or leaks into output'
     ]
     const parsed = parse(rows)
     expect(parsed.requests).toHaveLength(2)
-    expect(parsed.verdict).toBe('valid-with-warnings')
+    expect(parsed.verdict).toBe('valid')
     expect(JSON.stringify(parsed)).not.toContain(POISON)
     // And the analysis is identical with the content swapped out entirely.
     const scrubbed = JSON.parse(JSON.stringify(rows).replaceAll(POISON, 'other')) as Json[]
@@ -1258,8 +1300,10 @@ describe('real corpus: transcripts/004-build-plan/session.jsonl (v2.1.251)', () 
       syntheticRowsExcluded: 0,
       invalidUsageRowsSkipped: 0,
     })
-    expect(parsed.verdict).toBe('valid-with-warnings')
-    expect(parsed.warnings.map((w) => w.kind)).toEqual(['skipped-record-types'])
+    // All 234 skipped rows above are classified bookkeeping types, so a real
+    // session log produces no warnings at all — the point of the whitelist.
+    expect(parsed.verdict).toBe('valid')
+    expect(parsed.warnings).toEqual([])
 
     expect(parsed.metadata).toMatchObject({
       sessionId: SESSION_ID,

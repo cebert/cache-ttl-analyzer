@@ -134,11 +134,6 @@
     {
       "kind": "skipped-record-types",
       "types": {
-        "mode": 3,
-        "permission-mode": 3,
-        "last-prompt": 3,
-        "frame-link": 3,
-        "file-history-snapshot": 1,
         "experimental-record-0": 1,
         "experimental-record-1": 1,
         "experimental-record-2": 1,

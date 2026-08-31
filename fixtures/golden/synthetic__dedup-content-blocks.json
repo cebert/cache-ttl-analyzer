@@ -31,14 +31,7 @@
     "syntheticRowsExcluded": 0,
     "invalidUsageRowsSkipped": 0
   },
-  "parseWarnings": [
-    {
-      "kind": "skipped-record-types",
-      "types": {
-        "pr-link": 1
-      }
-    }
-  ],
+  "parseWarnings": [],
   "buckets": [
     {
       "bucket": "main",
