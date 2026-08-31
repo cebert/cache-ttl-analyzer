@@ -17,6 +17,9 @@ import { useTranslation } from 'react-i18next'
 const BYTE_UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte'] as const
 const BYTES_PER_UNIT = 1024
 
+/** Below this, the exact count still reads easily and is more informative. */
+const COMPACT_FROM = 100_000
+
 const MS_PER_SECOND = 1000
 const MS_PER_MINUTE = 60 * MS_PER_SECOND
 const MS_PER_HOUR = 60 * MS_PER_MINUTE
@@ -26,9 +29,9 @@ export interface Formatters {
   /** Whole number with grouping, e.g. "112,000". */
   integer: (value: number) => string
   /**
-   * A large count at a glance, e.g. "2.4M". Token totals run to seven
-   * figures and sit in a six-across metric row, where the grouped form
-   * neither fits nor reads; the exact figure goes in the `title`.
+   * A large count where the magnitude is the point, e.g. "2.4M" — written
+   * the way the locale writes compact numbers, not with an English suffix
+   * and an ASCII decimal point. Small values keep their exact digits.
    */
   compact: (value: number) => string
   /** USD at published Anthropic API rates (decision D2). */
@@ -43,8 +46,13 @@ export interface Formatters {
   date: (iso: string) => string
   /** An ISO timestamp as date and time of day. */
   dateTime: (iso: string) => string
-  /** An ISO timestamp as a time of day alone, e.g. "6:20 PM". */
-  time: (iso: string) => string
+  /** An ISO timestamp as time of day alone, e.g. "6:20 PM". */
+  timeOfDay: (iso: string) => string
+  /**
+   * A span as the results card shows it: "Aug 30, 2026 · 6:20 – 7:45 PM"
+   * within one day, and both dates in full when it crosses one.
+   */
+  dateTimeRange: (fromIso: string, toIso: string) => string
   /** A list joined the way the locale joins lists, e.g. "a, b, and c". */
   list: (items: readonly string[]) => string
 }
@@ -72,7 +80,7 @@ export function createFormatters(locale: string): Formatters {
   })
   const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' })
   const dateTime = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' })
-  const time = new Intl.DateTimeFormat(locale, { timeStyle: 'short' })
+  const timeOfDay = new Intl.DateTimeFormat(locale, { timeStyle: 'short' })
   const list = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' })
   const seconds = unitFormat(locale, 'second', 0)
   const minutes = unitFormat(locale, 'minute', 0)
@@ -107,9 +115,12 @@ export function createFormatters(locale: string): Formatters {
   return {
     locale,
     integer: (value) => (Number.isFinite(value) ? integer.format(value) : ''),
-    // Below 1000 the compact form is the plain number, so this needs no
-    // special case — `Intl` already returns "999" rather than "1.0K".
-    compact: (value) => (Number.isFinite(value) ? compact.format(value) : ''),
+    compact: (value) =>
+      Number.isFinite(value)
+        ? value < COMPACT_FROM
+          ? integer.format(value)
+          : compact.format(value)
+        : '',
     currency: (usd) => (Number.isFinite(usd) ? currency.format(usd) : ''),
     percent: (ratio, fractionDigits = 0) =>
       Number.isFinite(ratio)
@@ -122,7 +133,18 @@ export function createFormatters(locale: string): Formatters {
     duration,
     date: (iso) => formatInstant(iso, date),
     dateTime: (iso) => formatInstant(iso, dateTime),
-    time: (iso) => formatInstant(iso, time),
+    timeOfDay: (iso) => formatInstant(iso, timeOfDay),
+    dateTimeRange: (fromIso, toIso) => {
+      const from = new Date(fromIso)
+      const to = new Date(toIso)
+      if (Number.isNaN(from.getTime())) return ''
+      if (Number.isNaN(to.getTime())) return formatInstant(fromIso, dateTime)
+      // Repeating the date for a session that ran inside one day is noise,
+      // and it is the part that wraps the identification card.
+      const sameDay = date.format(from) === date.format(to)
+      if (!sameDay) return `${dateTime.format(from)} – ${dateTime.format(to)}`
+      return `${date.format(from)} · ${timeOfDay.format(from)} – ${timeOfDay.format(to)}`
+    },
     list: (items) => list.format(items),
   }
 }

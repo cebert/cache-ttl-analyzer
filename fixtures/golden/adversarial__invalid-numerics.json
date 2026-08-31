@@ -51,13 +51,6 @@
         "outputUsd": 0.00625,
         "totalUsd": 0.04084
       },
-      "actualUsage": {
-        "inputTokens": 8,
-        "cacheReadTokens": 6100,
-        "cacheWriteTokens": 3150,
-        "outputTokens": 250
-      },
-      "warmReadRequestCount": 2,
       "observedWriteSplit": {
         "fiveMinuteWriteTokens": 0,
         "oneHourWriteTokens": 3150
@@ -193,6 +186,12 @@
         "gapsIn5mTo1hBand": 0,
         "gapsUnder5m": 2,
         "gapsOver1h": 0
+      },
+      "tokenTotals": {
+        "inputTokens": 8,
+        "cacheReadTokens": 6100,
+        "cacheWriteTokens": 3150,
+        "outputTokens": 250
       }
     }
   ],

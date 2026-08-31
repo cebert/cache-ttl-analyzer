@@ -1,58 +1,49 @@
 /**
- * What this analysis does not know, stated on the same page as the verdict
- * rather than behind a link.
- *
- * Two of these are required disclosures: the all-or-nothing expiry
- * approximation and its direction (feasibility §7, read from
- * `result.approximation` rather than restated here), and — when the file
- * carried no sidechain traffic, which is every modern main-session upload —
- * the fact that `subagentPromptCacheTtl` was not evaluated at all. WP-08's
- * plan is explicit that silence there reads as a claim the tool never made.
+ * What this analysis does not claim (docs/PLAN.md §3, §7). The sidechain line
+ * is the load-bearing one: on modern Claude Code every main-session upload
+ * contains no subagent traffic (contract F2), so the tool has to say it
+ * evaluated `promptCacheTtl` only — silently omitting a subagent section
+ * would let the page imply it had checked.
  */
 
 import { useTranslation } from 'react-i18next'
 
 import type { AnalysisResult } from '../../engine/contract'
 import { useFormatters } from '../../i18n/formatters'
-import { Eyebrow } from '../../ui/Sheet'
-import { bucketFor } from './derive'
+import { Eyebrow, Micro } from '../../ui/Sheet'
+import { mainBucket, subagentBucket } from './results-model'
 
 export function LimitsPanel({ result }: { result: AnalysisResult }) {
   const { t } = useTranslation()
   const fmt = useFormatters()
-
-  const main = bucketFor(result, 'main')
-  const hasSubagent = bucketFor(result, 'subagent') !== null
+  const subagents = subagentBucket(result)
+  // A subagent transcript uploaded on its own has no main traffic at all, and
+  // the view headlines its bucket — so it is fully analyzed, and saying
+  // "the main conversation only" would be wrong.
+  const subagentOnly = subagents !== null && (mainBucket(result)?.requestCount ?? 0) === 0
   const { unknownModels } = result
 
-  const limits: string[] = []
-  if (!hasSubagent) limits.push(t('results.limits.noSidechain'))
-  limits.push(
-    main?.configExplicitness === 'provably-explicit'
-      ? t('results.limits.provablyExplicit')
-      : t('results.limits.observedNotConfigured'),
-  )
-  limits.push(t('results.limits.allOrNothing'))
-  if (unknownModels.models.length > 0) {
-    limits.push(
-      t('results.limits.unknownModels', {
-        count: unknownModels.excludedRequests,
-        formatted: fmt.integer(unknownModels.excludedRequests),
-        models: fmt.list(unknownModels.models),
-      }),
-    )
-  }
-
   return (
-    <div className="flex flex-col gap-2 bg-[#FBFCFE] px-5 py-4 sm:px-7">
-      <Eyebrow>{t('results.limits.title')}</Eyebrow>
-      <ul className="flex flex-col gap-1.5">
-        {limits.map((limit) => (
-          <li key={limit} className="text-[11.5px] leading-[1.55] text-slate-500">
-            {limit}
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-1.5 bg-[#fbfcfe] px-5 py-4 sm:px-7">
+      <Eyebrow>{t('results.limitsTitle')}</Eyebrow>
+      <Micro>
+        {subagents
+          ? t(subagentOnly ? 'results.limitSubagentsOnly' : 'results.limitSubagentsPresent', {
+              requests: fmt.integer(subagents.requestCount),
+              threads: fmt.integer(subagents.threadCount),
+            })
+          : t('results.limitNoSidechains')}
+      </Micro>
+      <Micro>{t('results.limitObservedOnly')}</Micro>
+      <Micro>{t('results.limitApproximation')}</Micro>
+      {unknownModels.models.length > 0 && (
+        <Micro>
+          {t('results.limitUnknownModels', {
+            models: fmt.list(unknownModels.models),
+            requests: fmt.integer(unknownModels.excludedRequests),
+          })}
+        </Micro>
+      )}
     </div>
   )
 }

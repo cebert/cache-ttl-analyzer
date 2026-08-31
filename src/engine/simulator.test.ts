@@ -302,6 +302,63 @@ describe('partial lapse: observed 5m, a stable prefix stayed warm', () => {
   })
 })
 
+describe('session shape and token totals (WP-08 amendment)', () => {
+  // Four same-thread gaps, one per band and one on each inclusive bound:
+  // 0→60s (under), 60→360s (300s exactly, still under), 360→1560s (20m, in
+  // band), 1560→5460s (65m, over).
+  const requests = [
+    req({ id: 'r1', start: 0, w1h: 1000, input: 10, output: 5 }),
+    req({ id: 'r2', start: 60, read: 1000, w1h: 100 }),
+    req({ id: 'r3', start: 360, read: 1100, w1h: 100 }),
+    req({ id: 'r4', start: 1560, read: 1200, w1h: 100 }),
+    req({ id: 'r5', start: 5460, w1h: 1500 }),
+  ]
+
+  it('buckets every gap into exactly one band', () => {
+    const { shape } = analyzeBucket('main', requests, PRICING)
+    expect(shape).toMatchObject({
+      requestCount: 5,
+      gapsUnder5m: 2,
+      gapsIn5mTo1hBand: 1,
+      gapsOver1h: 1,
+      largestGapMs: 3_900_000,
+    })
+    expect(shape.gapsUnder5m + shape.gapsIn5mTo1hBand + shape.gapsOver1h).toBe(
+      shape.requestCount - 1,
+    )
+  })
+
+  it('totals the observed tokens, unattributed writes included', () => {
+    // input 5×10 = 50; reads 1000 + 1100 + 1200 = 3300;
+    // writes 1000 + 100 + 100 + 100 + 1500 = 2800; output 5×5 = 25.
+    expect(analyzeBucket('main', requests, PRICING).tokenTotals).toEqual({
+      inputTokens: 50,
+      cacheReadTokens: 3300,
+      cacheWriteTokens: 2800,
+      outputTokens: 25,
+    })
+  })
+
+  it('counts a write the split did not attribute', () => {
+    // `cacheCreationInputTokens` 900 with a 400/100 split leaves 400
+    // unattributed; pricing folds it into the 5m side, and so does this.
+    const orphan = req({ id: 'r1', start: 0, w5m: 400, w1h: 100 })
+    orphan.usage.cacheCreationInputTokens = 900
+    expect(analyzeBucket('main', [orphan], PRICING).tokenTotals.cacheWriteTokens).toBe(900)
+  })
+
+  it('an empty bucket totals to zero rather than to nothing', () => {
+    const empty = analyzeBucket('main', [], PRICING)
+    expect(empty.tokenTotals).toEqual({
+      inputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      outputTokens: 0,
+    })
+    expect(empty.shape).toMatchObject({ gapsUnder5m: 0, gapsIn5mTo1hBand: 0, gapsOver1h: 0 })
+  })
+})
+
 describe('tight loop: gaps under 5m, observed 1h', () => {
   it('only the write price differs, so 5m wins', () => {
     // actual/1h: r1 0.010175; r2 0.00005 + 0.0005 + 100×$10 = 0.001 + 0.000125 → 0.001675 → 0.01185
@@ -664,12 +721,12 @@ describe('buckets and threads (F2, D4)', () => {
       [req({ id: 'a', start: 10 }), req({ id: 'b', start: 4, end: 6 })],
       groupByThread([req({ id: 'a', start: 10 }), req({ id: 'b', start: 4, end: 6 })]),
     )
+    // A clamped gap is zero, so it lands in the under-5m band.
     expect(shape).toEqual({
       requestCount: 2,
       spanMs: 9_000,
       largestGapMs: 0,
       gapsIn5mTo1hBand: 0,
-      // A clamped-to-zero gap is still a gap, and zero is under five minutes.
       gapsUnder5m: 1,
       gapsOver1h: 0,
     })
@@ -700,58 +757,6 @@ describe('per-request pricing modifiers survive the replay', () => {
     close(bucket.actualCost.totalUsd, 0.0050875)
     expect(bucket.scenarios.oneHour.cost).toEqual(bucket.actualCost)
     close(bucket.scenarios.fiveMinute.cost.totalUsd, 0.0032125)
-  })
-})
-
-describe('observed totals (WP-08 headline metrics)', () => {
-  // One request per gap band, so the histogram and the token totals are both
-  // exercised by the same fixture: 60s (under 5m), 10min (in band), 2h (over).
-  const requests = [
-    req({ id: 'r1', start: 0, end: 3, input: 100, output: 20, w1h: 1000 }),
-    req({ id: 'r2', start: 60, end: 63, input: 5, output: 10, read: 900, w1h: 100 }),
-    req({ id: 'r3', start: 660, end: 663, input: 5, output: 10, read: 800, w1h: 50 }),
-    req({ id: 'r4', start: 7860, end: 7863, input: 7, output: 30, w1h: 200 }),
-  ]
-  const bucket = analyzeBucket('main', requests, PRICING)
-
-  it('sums the tokens actually observed, per category', () => {
-    expect(bucket.actualUsage).toEqual({
-      inputTokens: 117,
-      cacheReadTokens: 1700,
-      cacheWriteTokens: 1350,
-      outputTokens: 70,
-    })
-  })
-
-  it('counts the requests that read from cache, not the tokens they read', () => {
-    expect(bucket.warmReadRequestCount).toBe(2)
-  })
-
-  it('partitions every same-thread gap across the three bands', () => {
-    const { shape } = bucket
-    expect(shape).toMatchObject({ gapsUnder5m: 1, gapsIn5mTo1hBand: 1, gapsOver1h: 1 })
-    expect(shape.gapsUnder5m + shape.gapsIn5mTo1hBand + shape.gapsOver1h).toBe(requests.length - 1)
-  })
-
-  it('counts tokens from unpriced models, which are excluded from the costs', () => {
-    // A token count is observed fact and needs no rate, so unlike every
-    // dollar figure it must not drop the unpriced request (contract).
-    const withUnknown = analyzeBucket(
-      'main',
-      [
-        req({ id: 'r1', start: 0, input: 100, output: 20, w1h: 1000 }),
-        req({ id: 'r2', start: 60, model: 'claude-not-a-model', input: 40, output: 5, read: 60 }),
-      ],
-      PRICING,
-    )
-    expect(withUnknown.actualUsage).toEqual({
-      inputTokens: 140,
-      cacheReadTokens: 60,
-      cacheWriteTokens: 1000,
-      outputTokens: 25,
-    })
-    expect(withUnknown.warmReadRequestCount).toBe(2 - 1)
-    expect(withUnknown.unpricedTokenShare).toBeGreaterThan(0)
   })
 })
 

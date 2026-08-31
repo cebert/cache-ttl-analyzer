@@ -405,8 +405,8 @@ export function sessionShape(
     for (let i = 1; i < thread.length; i++) {
       const gap = gapMs(thread[i - 1], thread[i])
       largestGapMs = Math.max(largestGapMs, gap)
-      // The band boundaries match `replayThread`'s expiry test exactly, so
-      // the histogram cannot disagree with the simulation it explains.
+      // Bands match the TTL windows exactly: alive at 5m, alive only at
+      // 1h, dead at both. Both bounds are inclusive, as `replayThread` is.
       if (gap <= CACHE_TTL_5M_MS) gapsUnder5m++
       else if (gap <= CACHE_TTL_1H_MS) gapsIn5mTo1hBand++
       else gapsOver1h++
@@ -420,6 +420,26 @@ export function sessionShape(
     gapsUnder5m,
     gapsOver1h,
   }
+}
+
+/** Observed token totals for a bucket, priced models and unpriced alike. */
+export function tokenTotals(requests: readonly RequestRecord[]): TokenTotals {
+  const totals: TokenTotals = {
+    inputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    outputTokens: 0,
+  }
+  for (const { usage } of requests) {
+    totals.inputTokens += usage.inputTokens
+    totals.cacheReadTokens += usage.cacheReadInputTokens
+    // The split's two sides plus anything the split did not attribute,
+    // which `requestWriteSplit` folds into the 5m side for pricing.
+    totals.cacheWriteTokens +=
+      usage.cacheCreation5mTokens + usage.cacheCreation1hTokens + unattributedWriteTokens(usage)
+    totals.outputTokens += usage.outputTokens
+  }
+  return totals
 }
 
 /* ---------------------------------------------------------------------------
@@ -438,23 +458,8 @@ export function analyzeBucket(
   const actualCosts: CostBreakdown[] = []
   let bucketTokens = 0
   let unpricedTokens = 0
-  // Token totals count every request, priced or not (see `TokenTotals`).
-  const actualUsage: TokenTotals = {
-    inputTokens: 0,
-    cacheReadTokens: 0,
-    cacheWriteTokens: 0,
-    outputTokens: 0,
-  }
-  let warmReadRequestCount = 0
   for (const request of requests) {
-    const { usage } = request
-    actualUsage.inputTokens += usage.inputTokens
-    actualUsage.cacheReadTokens += usage.cacheReadInputTokens
-    actualUsage.cacheWriteTokens += usage.cacheCreationInputTokens
-    actualUsage.outputTokens += usage.outputTokens
-    if (usage.cacheReadInputTokens > 0) warmReadRequestCount++
-
-    const tokens = totalTokens(usage)
+    const tokens = totalTokens(request.usage)
     bucketTokens += tokens
     const cost = priceRequest(request, pricing)
     if (cost) actualCosts.push(cost)
@@ -487,8 +492,6 @@ export function analyzeBucket(
     threadCount: threads.size,
     requestCount: requests.length,
     actualCost,
-    actualUsage,
-    warmReadRequestCount,
     observedWriteSplit,
     observedTtl,
     scenarios: { fiveMinute, oneHour },
@@ -497,6 +500,7 @@ export function analyzeBucket(
     verdictSuppressed,
     unpricedTokenShare,
     shape: sessionShape(requests, threads),
+    tokenTotals: tokenTotals(requests),
   }
   if (verdictSuppressed) analysis.suppressionReason = 'unknown-model-share-exceeded'
   return analysis

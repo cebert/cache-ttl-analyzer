@@ -1,148 +1,173 @@
 /**
- * The one tinted region on the page (WP-D): the recommendation, what taking
- * it would have saved, the two costs side by side, and the sentence that says
- * why. Everything below this band is evidence for it.
+ * The one tinted region on the page (WP-D): what to set, what it saves, and
+ * the two costs side by side. Order follows what matters — recommendation and
+ * dollars first, evidence after.
  *
- * The two cost bars share one scale, so the shorter bar is the cheaper option
- * at a glance without reading either figure.
+ * The bars are proportional to cost and carry no text, because their width is
+ * data-driven and a translated label could not be guaranteed to fit.
  */
 
-import { Link } from 'react-router'
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult, BucketAnalysis } from '../../engine/contract'
+import type { BucketAnalysis, CacheTtl } from '../../engine/contract'
 import { useFormatters } from '../../i18n/formatters'
-import { Badge } from '../../ui/Badge'
 import { Eyebrow, Micro } from '../../ui/Sheet'
-import { ROUTES } from '../routes'
-import { barShare, costComparison, settingKey, totalGaps } from './derive'
 
-const TTL_EMPHASIS = { em: <span className="text-primary" /> }
+const TTL_LABEL_KEY: Record<CacheTtl, 'results.ttl5m' | 'results.ttl1h'> = {
+  '5m': 'results.ttl5m',
+  '1h': 'results.ttl1h',
+}
 
 export function VerdictBand({
-  result,
   bucket,
+  pricesAsOf,
+  onWhy,
 }: {
-  result: AnalysisResult
   bucket: BucketAnalysis
+  pricesAsOf: string
+  onWhy: () => void
 }) {
   const { t } = useTranslation()
   const fmt = useFormatters()
 
-  const comparison = costComparison(bucket)
   const decided = !bucket.verdictSuppressed && bucket.recommendation !== 'no-verdict'
-  const headlineKey = !decided
-    ? 'results.recommendationNone'
-    : bucket.recommendation === '1h'
-      ? 'results.recommendation1h'
-      : 'results.recommendation5m'
+  const fiveMinuteUsd = bucket.scenarios.fiveMinute.cost.totalUsd
+  const oneHourUsd = bucket.scenarios.oneHour.cost.totalUsd
+  const worst = Math.max(fiveMinuteUsd, oneHourUsd)
 
   return (
-    <div className="flex flex-col gap-6 border-b border-[#E1E9F8] bg-verdict px-5 py-6 sm:px-7">
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
-        <div className="flex min-w-0 flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <Eyebrow>{t('results.recommendationEyebrow')}</Eyebrow>
-            <Badge tone="primary">{settingKey(bucket)}</Badge>
+    <div className="border-b border-[#e1e9f8] bg-verdict px-5 py-6 sm:px-7">
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2.5">
+              <Eyebrow>{t('results.recommendationLabel')}</Eyebrow>
+              <span className="inline-flex h-[19px] items-center rounded-[4px] bg-[#e3ecfd] px-1.5 font-mono text-[10.5px] text-primary">
+                {bucket.bucket === 'subagent' ? 'subagentPromptCacheTtl' : 'promptCacheTtl'}
+              </span>
+            </div>
+            <h2 className="text-[32px] leading-[1.05] font-semibold tracking-[-0.032em] text-balance sm:text-[46px]">
+              {decided ? (
+                <Verdict ttl={bucket.recommendation as CacheTtl} />
+              ) : (
+                t('results.recommendationNone')
+              )}
+            </h2>
           </div>
-          <h2 className="text-[30px] leading-[1.06] font-semibold tracking-[-0.032em] text-balance sm:text-[42px]">
-            <Trans i18nKey={headlineKey} components={TTL_EMPHASIS} />
-          </h2>
+
+          {decided ? (
+            <div className="flex flex-col gap-1 sm:items-end">
+              <Eyebrow>{t('results.savedLabel')}</Eyebrow>
+              <span className="font-mono text-[34px] leading-none font-medium tracking-[-0.035em] text-green sm:text-[44px]">
+                {fmt.currency(bucket.savingsUsd)}
+              </span>
+              {worst > 0 && (
+                <span className="text-[12.5px] text-ink-2">
+                  {t('results.savedComparison', {
+                    percent: fmt.percent(bucket.savingsUsd / worst),
+                    other: t(
+                      TTL_LABEL_KEY[bucket.recommendation === '1h' ? '5m' : '1h'],
+                    ).toLowerCase(),
+                  })}
+                </span>
+              )}
+            </div>
+          ) : null}
         </div>
 
-        {decided && comparison.savingsRatio !== null && (
-          <div className="flex shrink-0 flex-col gap-1 sm:items-end">
-            <Eyebrow>{t('results.savedEyebrow')}</Eyebrow>
-            <span className="font-mono text-[34px] leading-none font-medium tracking-[-0.035em] text-green sm:text-[42px]">
-              {fmt.currency(bucket.savingsUsd)}
-            </span>
-            <span className="text-[12.5px] text-ink-2">
-              {t('results.savedComparison', {
-                percent: fmt.percent(comparison.savingsRatio),
-                other: t(comparison.cheaper === '1h' ? 'results.ttl5m' : 'results.ttl1h'),
-              })}
-            </span>
+        {decided ? (
+          <div className="flex flex-col gap-2.5">
+            <CostBar
+              label={t('results.ttl5m')}
+              usd={fiveMinuteUsd}
+              worstUsd={worst}
+              highlighted={bucket.recommendation === '5m'}
+            />
+            <CostBar
+              label={t('results.ttl1h')}
+              usd={oneHourUsd}
+              worstUsd={worst}
+              highlighted={bucket.recommendation === '1h'}
+            />
           </div>
+        ) : (
+          <Micro className="max-w-prose">
+            {bucket.requestCount === 0 ? t('results.noVerdictEmpty') : t('results.noVerdictBody')}
+          </Micro>
         )}
-      </div>
 
-      {bucket.verdictSuppressed && (
-        <div className="flex flex-col gap-0.5 rounded-[6px] border border-[#F0DFC2] bg-amber-tint px-3.5 py-2.5">
-          <p className="text-[12.5px] font-semibold text-amber-ink">
-            {t('results.suppressedTitle')}
+        <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
+          <p className="text-[13px] text-ink-2">
+            {bucket.shape.gapsIn5mTo1hBand === 0
+              ? t('results.bandSentenceNone')
+              : t('results.bandSentence', {
+                  count: bucket.shape.gapsIn5mTo1hBand,
+                  total: totalGaps(bucket),
+                })}
           </p>
-          <p className="text-[12px] leading-[1.5] text-amber-ink">{t('results.suppressedBody')}</p>
+          <Micro>
+            {t('results.notional', { date: fmt.date(pricesAsOf) })}{' '}
+            <button
+              type="button"
+              onClick={onWhy}
+              className="text-primary hover:text-primary-strong hover:underline"
+            >
+              {t('results.whyLink')}
+            </button>
+          </Micro>
         </div>
-      )}
-
-      <div className="flex flex-col gap-2.5">
-        <CostBar
-          label={t('results.ttl5m')}
-          usd={comparison.fiveMinuteUsd}
-          share={barShare(comparison.fiveMinuteUsd, comparison.maxUsd)}
-          winner={decided && bucket.recommendation === '5m'}
-        />
-        <CostBar
-          label={t('results.ttl1h')}
-          usd={comparison.oneHourUsd}
-          share={barShare(comparison.oneHourUsd, comparison.maxUsd)}
-          winner={decided && bucket.recommendation === '1h'}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-        <p className="text-[13px] leading-[1.5] text-ink-2">
-          <BandSentence bucket={bucket} />
-        </p>
-        <Micro className="shrink-0 text-[11px]">
-          {t('results.ratesNote', { date: fmt.date(result.pricesAsOf) })}{' '}
-          <Link to={ROUTES.about} className="text-primary hover:underline">
-            {t('results.ratesWhy')}
-          </Link>
-        </Micro>
       </div>
     </div>
   )
 }
 
-/**
- * `aria-hidden` on the bar and a real figure beside it: the bar restates the
- * number visually, so announcing both would read every row twice.
- */
+/** The recommendation, with the TTL itself in the interaction accent. */
+function Verdict({ ttl }: { ttl: CacheTtl }) {
+  const { t } = useTranslation()
+  const sentence = t(ttl === '1h' ? 'results.recommendation1h' : 'results.recommendation5m')
+  const ttlPhrase = t(TTL_LABEL_KEY[ttl])
+  // The catalog owns the sentence; highlight the TTL inside it when the
+  // phrase appears verbatim, and leave the sentence alone when a translation
+  // words it differently rather than splicing markup into it blindly.
+  const at = sentence.indexOf(ttlPhrase)
+  if (at < 0) return <>{sentence}</>
+  return (
+    <>
+      {sentence.slice(0, at)}
+      <span className="text-primary">{sentence.slice(at, at + ttlPhrase.length)}</span>
+      {sentence.slice(at + ttlPhrase.length)}
+    </>
+  )
+}
+
 function CostBar({
   label,
   usd,
-  share,
-  winner,
+  worstUsd,
+  highlighted,
 }: {
   label: string
   usd: number
-  share: number
-  winner: boolean
+  worstUsd: number
+  highlighted: boolean
 }) {
   const fmt = useFormatters()
+  const width = worstUsd > 0 ? Math.max(0, Math.min(1, usd / worstUsd)) : 0
   return (
-    <div className="flex items-center gap-3 sm:gap-3.5">
+    <div className="flex items-center gap-3.5">
       <span
-        className={`w-[74px] shrink-0 text-[12.5px] sm:w-[84px] ${
-          winner ? 'font-semibold text-ink' : 'text-slate-500'
-        }`}
+        className={`w-[86px] shrink-0 text-[12.5px] ${highlighted ? 'font-semibold text-ink' : 'text-slate-500'}`}
       >
         {label}
       </span>
-      <span
-        aria-hidden="true"
-        className="h-[10px] flex-1 overflow-hidden rounded-[3px] bg-[#E3E9F3]"
-      >
-        <span
-          className={`block h-full rounded-[3px] ${winner ? 'bg-primary' : 'bg-[#B9C6DA]'}`}
-          style={{ width: `${share * 100}%` }}
+      <div className="h-2.5 grow overflow-hidden rounded-[3px] bg-[#e3e9f3]">
+        <div
+          className={`h-full ${highlighted ? 'bg-primary' : 'bg-[#b9c6da]'}`}
+          style={{ width: `${width * 100}%` }}
         />
-      </span>
+      </div>
       <span
-        className={`w-[64px] shrink-0 text-right font-mono text-[13.5px] sm:text-[14px] ${
-          winner ? 'font-semibold text-ink' : 'text-ink-2'
-        }`}
+        className={`w-[68px] shrink-0 text-right font-mono text-[14px] ${highlighted ? 'font-semibold text-ink' : 'text-ink-2'}`}
       >
         {fmt.currency(usd)}
       </span>
@@ -150,18 +175,7 @@ function CostBar({
   )
 }
 
-/** The single sentence of reasoning WP-D allowed the page (design README). */
-function BandSentence({ bucket }: { bucket: BucketAnalysis }) {
-  const { t } = useTranslation()
-  const fmt = useFormatters()
-  const total = totalGaps(bucket)
-  const inBand = bucket.shape.gapsIn5mTo1hBand
-
-  if (total === 0) return t('results.timeline.gapsNone')
-  if (inBand === 0) return t('results.bandSentenceNone')
-  return t('results.bandSentence', {
-    count: inBand,
-    formatted: fmt.integer(inBand),
-    total: fmt.integer(total),
-  })
+function totalGaps(bucket: BucketAnalysis): number {
+  const { gapsUnder5m, gapsIn5mTo1hBand, gapsOver1h } = bucket.shape
+  return gapsUnder5m + gapsIn5mTo1hBand + gapsOver1h
 }

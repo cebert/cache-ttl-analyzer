@@ -193,122 +193,111 @@ export const en = {
   },
 
   results: {
-    recommendationEyebrow: 'Recommendation',
     recommendation5m: 'Use the 5-minute cache',
     recommendation1h: 'Use the 1-hour cache',
     recommendationNone: 'No verdict for this session',
-    // The verdict headline colors the TTL alone, so it is interpolated
-    // rather than split in the component — a translation is free to put the
-    // highlighted phrase wherever its grammar wants it.
+    pricesAsOf: 'Prices as of {{date}}',
+
+    // Verdict band.
+    recommendationLabel: 'Recommendation',
+    savedLabel: 'You would have saved',
+    savedComparison: '{{percent}} less than {{other}}',
     ttl5m: '5 minutes',
     ttl1h: '1 hour',
-    savedEyebrow: 'You would have saved',
-    savedComparison: '{{percent}} less than {{other}}',
-    noDifference: 'Both settings would have cost the same here. Either is fine.',
-    scenarioCostLabel: 'Cost at {{ttl}}',
-    // `count` drives plural selection; `formatted` is the same number through
-    // `Intl`, so a five-figure gap count still reads with separators.
+    noVerdictBody:
+      'Too much of this session ran on models with no published rate, so there is no honest cost to compare.',
+    noVerdictEmpty: 'This file recorded no billable requests for this cache.',
     bandSentence_one:
-      '{{formatted}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+      '{{count}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
     bandSentence_other:
-      '{{formatted}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+      '{{count}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
     bandSentenceNone:
       'No gap fell between 5 minutes and 1 hour, the only band where the setting changes anything.',
-    ratesNote: 'Notional, at published API rates · {{date}}',
-    ratesWhy: 'What does that mean?',
-    suppressedTitle: 'Too much of this session has no published price',
-    suppressedBody:
-      'Making a recommendation would mean guessing at what some of these requests cost, so we are not making one. The figures below cover only the part we could price.',
-    metrics: {
-      hitRate: 'Cache hit rate',
-      hitRateDetail: '{{warm}} of {{total}} requests',
-      reads: 'Cache reads',
-      readsDetail: 'billed at 0.1×',
-      writes: 'Cache writes',
-      writesAll1h: 'at 2× — all 1 hour',
-      writesAll5m: 'at 1.25× — all 5 minutes',
-      writesMixed: 'mixed, {{share}} at 1 hour',
-      writesNone: 'none written',
-      input: 'Input tokens',
-      inputDetail: 'never cached',
-      output: 'Output tokens',
-      outputDetail: 'thinking included',
-      errorRate: 'Error rate',
-      errorRateDetail_one: '{{formatted}} failed',
-      errorRateDetail_other: '{{formatted}} failed',
-      exactTokens_one: '{{formatted}} token',
-      exactTokens_other: '{{formatted}} tokens',
-    },
-    details: {
-      directory: 'Directory',
-      branch: 'Branch',
-      span: 'Span',
-      observedTtl: 'Observed TTL',
-      model: 'Model',
-      effort: 'Effort',
-      version: 'Claude Code',
-      requests: 'Requests',
-      subagents: 'Subagents',
-      changed: 'CHANGED',
-      notRecorded: 'not recorded',
-      observedAll1h: '1 hour, every write',
-      observedAll5m: '5 minutes, every write',
-      observedMixed: 'mixed — {{share}} at 1 hour',
-      observedNone: 'no cache writes',
-      spanValue: '{{start}} – {{end}}',
-      spanSameDay: '{{date}}, {{start}} – {{end}}',
-      requestsValue_one: '{{formatted}} priced',
-      requestsValue_other: '{{formatted}} priced',
-      requestsSkipped: '{{priced}} · {{skipped}} skipped',
-      subagentsNone: 'none in this file',
-      subagentsCount_one: '{{formatted}} thread',
-      subagentsCount_other: '{{formatted}} threads',
-      changedFromTo: '{{from}} → {{to}}',
-    },
-    timeline: {
-      title: 'Cache timeline',
-      legendWarm: 'warm read',
-      legendExpiry: 'expiry at 5 minutes',
-      legendReset: 'reset',
-      caption:
-        'Each column is a slice of the session. The tall marks are where a five-minute cache would have gone cold; an hour-long cache goes cold at some of the same points, never more.',
-      unavailable: 'This session was too short to plot — everything happened at once.',
-      configStripLabel: 'Model and effort over the session',
-      resetsTitle: 'Cache resets',
-      resetsNone: 'None. The model, effort and version stayed the same throughout.',
-      resetNote: 'A reset throws the cache away and rebuilds it, and costs the same either way.',
-      resetCauseModel: 'model',
-      resetCauseEffort: 'effort',
-      resetCauseVersion: 'version',
-      gapsTitle: 'Gaps between requests',
-      gapsNone: 'Only one request, so there are no gaps to measure.',
-      gapUnder5m: 'under 5 minutes',
-      gapBand: '5 minutes – 1 hour',
-      gapOver1h: 'over 1 hour',
-    },
-    subagentTitle: 'Subagent traffic',
-    subagentLead:
-      'This session also ran subagents, which Claude Code caches under a separate setting. Here is that half on its own.',
-    limits: {
-      title: 'Limits of this analysis',
-      noSidechain:
-        'This file has no subagent traffic, so subagentPromptCacheTtl was not looked at. Subagents keep their own logs.',
-      observedNotConfigured:
-        'The log shows which cache setting was used, but never whether you chose it or it was the default.',
-      provablyExplicit:
-        'The two settings differed, which only happens when someone sets them deliberately.',
-      allOrNothing:
-        'A cache entry is treated as either surviving a gap or not, with nothing in between. That errs toward making 5 minutes look worse, not better.',
-      unknownModels_one:
-        'No published rate for {{models}}. {{count}} request is excluded from every dollar figure.',
-      unknownModels_other:
-        'No published rate for {{models}}. {{count}} requests are excluded from every dollar figure.',
-    },
-    footer: {
-      privacy: 'Read here in your browser. Never uploaded.',
-      about: 'How this is worked out',
-      source: 'Source on GitHub',
-    },
+    notional: 'Notional, at published API rates · {{date}}',
+    whyLink: 'why?',
+
+    // Headline metrics.
+    metricHitRate: 'Cache hit rate',
+    metricHitRateNote: '{{reads}} of {{requests}} read warm',
+    metricReads: 'Cache reads',
+    metricReadsNote: '0.1× rate',
+    metricWrites: 'Cache writes',
+    metricWritesNote5m: '1.25× rate, all 5 minutes',
+    metricWritesNote1h: '2.0× rate, all 1 hour',
+    metricWritesNoteMixed: 'mixed 5 minute and 1 hour writes',
+    metricWritesNoteNone: 'no cache writes',
+    metricInput: 'Input tokens',
+    metricInputNote: 'uncached',
+    metricOutput: 'Output tokens',
+    metricOutputNote: 'thinking included',
+    metricErrors: 'Error rate',
+    metricErrorsNote_one: '{{count}} failed row',
+    metricErrorsNote_other: '{{count}} failed rows',
+
+    // Session identification.
+    detailDirectory: 'Directory',
+    detailBranch: 'Branch',
+    detailSpan: 'Span',
+    detailObservedTtl: 'Observed TTL',
+    detailModel: 'Model',
+    detailEffort: 'Effort',
+    detailVersion: 'Claude Code',
+    detailRequests: 'Requests',
+    detailSubagents: 'Subagents',
+    detailChanged: 'CHANGED',
+    detailUnknown: 'not recorded',
+    detailNone: 'none',
+    observedTtlUniform: '{{ttl}}, every write',
+    observedTtlMixed: '{{ttl}} for most writes',
+    observedTtlNone: 'no cache writes',
+    requestsCount: '{{priced}} priced · {{skipped}} skipped',
+    // `count` picks the plural form; `formattedCount` is the same number
+    // written by the locale's formatter, which is what gets displayed.
+    requestsCountNoSkips_one: '{{formattedCount}} request',
+    requestsCountNoSkips_other: '{{formattedCount}} requests',
+    subagentThreads_one: '{{count}} thread, {{requests}} requests',
+    subagentThreads_other: '{{count}} threads, {{requests}} requests',
+
+    // Cache behaviour.
+    timelineTitle: 'Cache timeline',
+    legendWarmRead: 'warm read',
+    legendExpiry: 'cache expired',
+    legendWrite: 'wrote, read nothing',
+    legendReset: 'reset',
+    timelineEmpty: 'This cache recorded no requests to plot.',
+    resetsTitle: 'Cache resets',
+    resetRequest: '{{time}} · req {{number}}',
+    resetModel: 'model',
+    resetEffort: 'effort',
+    resetVersion: 'version',
+    resetsWaste: '{{tokens}} tokens rewritten — the same under either TTL.',
+    resetsNone: 'No model, effort or version change reset this cache.',
+    gapsTitle: 'Gaps between requests',
+    gapsUnder5m: 'under 5 minutes',
+    gapsBand: '5 minutes – 1 hour',
+    gapsOver1h: 'over 1 hour',
+
+    // Limits.
+    limitsTitle: 'Limits of this analysis',
+    limitNoSidechains:
+      'No sidechain traffic in this file — subagentPromptCacheTtl was not evaluated. Subagent transcripts are separate files, beside the session log in its subagents folder.',
+    // A file can carry sidechain traffic two ways, and the honest sentence
+    // differs: a subagent transcript on its own is fully analyzed (its bucket
+    // is the headline), while a legacy log carrying both gets a main-only
+    // verdict.
+    limitSubagentsOnly:
+      'This file is a subagent transcript: {{requests}} sidechain requests across {{threads}} threads, analyzed here in full. Its verdict governs subagentPromptCacheTtl, not promptCacheTtl.',
+    limitSubagentsPresent:
+      'This file also carries {{requests}} sidechain requests across {{threads}} threads. Version 1 reports the main conversation only; analyzing both caches together is on the roadmap.',
+    limitObservedOnly:
+      'The log records the observed TTL, never whether it was configured or defaulted.',
+    limitApproximation:
+      'A cache entry is modelled as expiring whole, or as far as the log shows it lapsed — which overstates the 5-minute cost rather than understating it.',
+    limitUnknownModels:
+      'No published rate for {{models}}, so {{requests}} requests are excluded from every dollar figure.',
+    footerPrivacy: 'Read in this browser, never uploaded.',
+    footerHowTo: 'How to set promptCacheTtl',
+    footerSource: 'Source on GitHub',
   },
 
   dataPolicy: {

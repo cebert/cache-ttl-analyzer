@@ -1,46 +1,45 @@
 /**
- * What the cache did over the session: which model and effort were in force,
- * where entries were read warm and where they lapsed, what reset the cache,
- * and how the gaps between requests fell out.
+ * What the cache did, over time (docs/PLAN.md §3): the model/effort segments
+ * the session ran in, a marker per request positioned in real time, the hard
+ * resets that emptied the cache, and the gap histogram that explains why the
+ * TTL choice mattered or did not.
  *
- * The plotted expiries are the FIVE-MINUTE scenario's. That is the shorter
- * TTL, so its lapses are a superset of the hour-long one's — plotting it
- * shows every point where the choice could possibly bite, and the caption
- * says so rather than leaving the reader to guess which run they are seeing.
- *
- * The track is bucketed into a fixed number of columns rather than drawn one
- * mark per request (see `timelineColumns`), so a nine-request sample and a
- * four-thousand-request session both render a readable, bounded chart.
+ * The marker rail is decorative in the accessibility sense — every fact it
+ * draws is also stated in the lists beneath it and in the metrics row — so it
+ * is hidden from assistive technology rather than narrated tick by tick.
+ * Below ~700px the segment strip drops its inline labels to a legend, which
+ * is what WP-D's mobile artboard does.
  */
 
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult, BucketAnalysis, HardResetCause } from '../../engine/contract'
+import type { BucketAnalysis, AnalysisResult, HardResetCause } from '../../engine/contract'
 import { useFormatters } from '../../i18n/formatters'
 import { Eyebrow, Micro, SectionTitle } from '../../ui/Sheet'
 import {
-  barShare,
   configSegments,
-  gapBands,
-  isSameCalendarDay,
-  resetPoints,
-  sessionSpan,
-  shortModelName,
-  timelineColumns,
-  totalGaps,
-  type ResetPoint,
-} from './derive'
+  orderedResets,
+  resetPositions,
+  resetWastedTokens,
+  timelineMarkers,
+  type MarkerKind,
+} from './results-model'
 
-const GAP_LABEL_KEY = {
-  under5m: 'results.timeline.gapUnder5m',
-  band: 'results.timeline.gapBand',
-  over1h: 'results.timeline.gapOver1h',
-} as const
+/** Width of one marker on the rail; also `w-[3px]` in the class below. */
+const MARKER_WIDTH_PX = 3
 
-const RESET_CAUSE_KEY = {
-  'model-change': 'results.timeline.resetCauseModel',
-  'effort-change': 'results.timeline.resetCauseEffort',
-  'version-change': 'results.timeline.resetCauseVersion',
+const MARKER_STYLE: Record<MarkerKind, { className: string; heightPx: number }> = {
+  // Height carries the same ordering as the legend: an expiry is the tallest
+  // because it is the event that cost money.
+  'warm-read': { className: 'bg-[#b9c6da]', heightPx: 13 },
+  'write-only': { className: 'bg-[#8fa3c0]', heightPx: 22 },
+  expiry: { className: 'bg-indigo', heightPx: 31 },
+}
+
+const RESET_LABEL_KEY = {
+  'model-change': 'results.resetModel',
+  'effort-change': 'results.resetEffort',
+  'version-change': 'results.resetVersion',
 } as const satisfies Record<HardResetCause, string>
 
 export function CacheTimeline({
@@ -53,220 +52,198 @@ export function CacheTimeline({
   const { t } = useTranslation()
   const fmt = useFormatters()
 
-  const span = sessionSpan(result.metadata)
-  const events = bucket.scenarios.fiveMinute.events
-  const resets = span ? resetPoints(events, span) : []
-
-  // A session inside one day needs only clock times under its track; one that
-  // ran past midnight needs the date to say so.
-  const { firstTimestamp = '', lastTimestamp = '' } = result.metadata
-  const edge = isSameCalendarDay(firstTimestamp, lastTimestamp) ? fmt.time : fmt.dateTime
+  const markers = timelineMarkers(bucket)
+  const segments = configSegments(result, bucket)
+  const resets = orderedResets(bucket)
+  const resetRules = resetPositions(bucket)
+  const resetTokens = resetWastedTokens(bucket)
+  const first = markers.at(0)
+  const last = markers.at(-1)
 
   return (
-    <div className="flex flex-col gap-5 px-5 py-5 sm:px-7">
+    <div className="flex flex-col gap-4 px-5 py-4 sm:px-7">
       <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
-        <SectionTitle>{t('results.timeline.title')}</SectionTitle>
+        <SectionTitle>{t('results.timelineTitle')}</SectionTitle>
         <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5">
-          <LegendItem swatch="bg-[#B9C6DA]" label={t('results.timeline.legendWarm')} />
-          <LegendItem swatch="bg-indigo" label={t('results.timeline.legendExpiry')} />
-          <LegendItem swatch="w-[2px] h-[10px] bg-ink" label={t('results.timeline.legendReset')} />
+          <LegendSwatch className="bg-[#b9c6da]" label={t('results.legendWarmRead')} />
+          <LegendSwatch className="bg-[#8fa3c0]" label={t('results.legendWrite')} />
+          <LegendSwatch className="bg-indigo" label={t('results.legendExpiry')} />
+          {resets.length > 0 && (
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-0.5 bg-ink" aria-hidden="true" />
+              <Micro>{t('results.legendReset')}</Micro>
+            </span>
+          )}
         </div>
       </div>
 
-      {span ? (
-        <div className="flex flex-col gap-3">
-          <ConfigStrip result={result} resets={resets} />
-          <Track events={events} span={span} resets={resets} />
-          <div className="flex items-baseline justify-between font-mono text-[10.5px] text-slate-400">
-            <span>{edge(firstTimestamp)}</span>
-            <span>{edge(lastTimestamp)}</span>
-          </div>
-          <Micro className="text-[11px]">{t('results.timeline.caption')}</Micro>
-        </div>
+      {markers.length === 0 ? (
+        <Micro>{t('results.timelineEmpty')}</Micro>
       ) : (
-        <Micro className="text-[11.5px]">{t('results.timeline.unavailable')}</Micro>
+        <>
+          <div className="flex h-[22px] gap-[3px]" aria-hidden="true">
+            {segments.map((segment, index) => (
+              <div
+                key={`${segment.model}-${segment.effort ?? ''}-${index}`}
+                className={`flex items-center overflow-hidden rounded-[2px] px-2 ${
+                  index === 0 ? 'bg-[#e3ecfd] text-primary' : 'bg-[#edf1f7] text-slate-500'
+                }`}
+                style={{ width: `${(segment.end - segment.start) * 100}%` }}
+              >
+                <span className="hidden truncate font-mono text-[10px] whitespace-nowrap sm:inline">
+                  {segment.effort ? `${segment.model} · ${segment.effort}` : segment.model}
+                </span>
+              </div>
+            ))}
+          </div>
+          {/* The labels the strip hides on narrow screens. */}
+          <div className="flex flex-wrap gap-x-3 gap-y-1 sm:hidden">
+            {segments.map((segment, index) => (
+              <span
+                key={`legend-${segment.model}-${segment.effort ?? ''}-${index}`}
+                className="font-mono text-[10px] text-slate-500"
+              >
+                {segment.effort ? `${segment.model} · ${segment.effort}` : segment.model}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <div
+              className="relative h-[46px] overflow-hidden rounded-md border border-line-soft bg-[#fafcfe]"
+              aria-hidden="true"
+            >
+              {resetRules.map((position) => (
+                <div
+                  key={`reset-${position}`}
+                  className="absolute top-0 bottom-0 w-0.5 bg-ink"
+                  style={{ left: `calc(${position * 100}% - ${position * 2}px)` }}
+                />
+              ))}
+              {markers.map((marker) => (
+                <div
+                  key={marker.messageId}
+                  className={`absolute bottom-[7px] w-[3px] rounded-[1.5px] ${MARKER_STYLE[marker.kind].className}`}
+                  style={{
+                    // The window ends at the last event, so the final marker
+                    // sits at 100% — where its own width would put it past the
+                    // clipping edge. Pull each marker in by its share of that
+                    // width: no shift at the left edge, a full one at the right.
+                    left: `calc(${marker.position * 100}% - ${marker.position * MARKER_WIDTH_PX}px)`,
+                    height: `${MARKER_STYLE[marker.kind].heightPx}px`,
+                  }}
+                />
+              ))}
+            </div>
+            <div className="flex justify-between font-mono text-[10.5px] text-slate-400">
+              <span>{first ? fmt.timeOfDay(first.timestamp) : ''}</span>
+              <span>{last ? fmt.timeOfDay(last.timestamp) : ''}</span>
+            </div>
+          </div>
+        </>
       )}
 
-      <div className="flex flex-col gap-6 border-t border-line-soft pt-4 lg:flex-row lg:gap-10">
-        <ResetList resets={resets} formatTime={edge} />
-        <GapHistogram bucket={bucket} />
+      <div className="flex flex-col gap-6 border-t border-line-soft pt-3.5 lg:flex-row lg:gap-10">
+        <div className="flex flex-col gap-2 lg:w-[380px] lg:shrink-0">
+          <Eyebrow>{t('results.resetsTitle')}</Eyebrow>
+          {resets.length === 0 ? (
+            <Micro>{t('results.resetsNone')}</Micro>
+          ) : (
+            <>
+              {resets.map((reset) => (
+                <div
+                  key={`${reset.timestamp}-${reset.cause}`}
+                  className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
+                >
+                  <span className="shrink-0 font-mono text-[11px] text-indigo-600">
+                    {t('results.resetRequest', {
+                      time: fmt.timeOfDay(reset.timestamp),
+                      number: reset.requestNumber,
+                    })}
+                  </span>
+                  <span className="text-[12.5px] text-ink-2">
+                    {t(RESET_LABEL_KEY[reset.cause])}{' '}
+                    <span className="font-mono text-[11.5px] text-ink">
+                      {reset.from || '—'} → {reset.to || '—'}
+                    </span>
+                  </span>
+                </div>
+              ))}
+              {resetTokens !== null && (
+                <Micro>{t('results.resetsWaste', { tokens: fmt.integer(resetTokens) })}</Micro>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="flex grow flex-col gap-2">
+          <Eyebrow>{t('results.gapsTitle')}</Eyebrow>
+          <GapBar
+            label={t('results.gapsUnder5m')}
+            count={bucket.shape.gapsUnder5m}
+            max={maxGapBand(bucket)}
+          />
+          <GapBar
+            label={t('results.gapsBand')}
+            count={bucket.shape.gapsIn5mTo1hBand}
+            max={maxGapBand(bucket)}
+            highlighted
+          />
+          <GapBar
+            label={t('results.gapsOver1h')}
+            count={bucket.shape.gapsOver1h}
+            max={maxGapBand(bucket)}
+          />
+        </div>
       </div>
     </div>
   )
 }
 
-function LegendItem({ swatch, label }: { swatch: string; label: string }) {
+function LegendSwatch({ className, label }: { className: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <span
-        aria-hidden="true"
-        className={`shrink-0 rounded-[2px] ${swatch.includes('w-') ? swatch : `size-[7px] ${swatch}`}`}
-      />
-      <span className="text-[11px] leading-none text-slate-500">{label}</span>
+      <span className={`h-[7px] w-[7px] rounded-[2px] ${className}`} aria-hidden="true" />
+      <Micro>{label}</Micro>
     </span>
   )
 }
 
-/** The run of model-and-effort settings, drawn to scale across the session. */
-function ConfigStrip({ result, resets }: { result: AnalysisResult; resets: ResetPoint[] }) {
-  const { t } = useTranslation()
-  const segments = configSegments(result.metadata, resets)
-  if (segments.length === 0) return null
-
-  return (
-    <div
-      className="flex h-[22px] gap-[3px]"
-      role="img"
-      aria-label={t('results.timeline.configStripLabel')}
-    >
-      {segments.map((segment, index) => (
-        <span
-          key={`${segment.model}-${segment.effort ?? ''}-${index}`}
-          style={{ width: `${segment.width * 100}%` }}
-          title={[segment.model, segment.effort].filter(Boolean).join(' · ')}
-          className={`flex items-center overflow-hidden rounded-[2px] px-2 font-mono text-[10px] whitespace-nowrap ${
-            index === 0 ? 'bg-primary-tint text-primary' : 'bg-[#EDF1F7] text-slate-500'
-          }`}
-        >
-          {[shortModelName(segment.model), segment.effort].filter(Boolean).join(' · ')}
-        </span>
-      ))}
-    </div>
-  )
-}
-
-/**
- * The event track. A column with any expiry is drawn as an expiry — a lapse
- * is the thing worth seeing, and averaging it away with the warm reads around
- * it would hide exactly what the page is for.
- */
-function Track({
-  events,
-  span,
-  resets,
+function GapBar({
+  label,
+  count,
+  max,
+  highlighted = false,
 }: {
-  events: BucketAnalysis['scenarios']['fiveMinute']['events']
-  span: NonNullable<ReturnType<typeof sessionSpan>>
-  resets: ResetPoint[]
+  label: string
+  count: number
+  max: number
+  highlighted?: boolean
 }) {
-  const columns = timelineColumns(events, span)
-
-  return (
-    <div
-      aria-hidden="true"
-      className="relative flex h-[46px] items-end gap-[1px] overflow-hidden rounded-[6px] border border-line-soft bg-[#FAFCFE] px-1 pb-1.5"
-    >
-      {columns.map((column, index) => {
-        const expired = column.expiries > 0
-        const warm = column.warmReads > 0
-        if (!expired && !warm) return <span key={index} className="flex-1" />
-        return (
-          <span
-            key={index}
-            className={`flex-1 rounded-[1.5px] ${expired ? 'h-[31px] bg-indigo' : 'h-[13px] bg-[#B9C6DA]'}`}
-          />
-        )
-      })}
-      {resets.map((reset) => (
-        <span
-          key={`${reset.timestamp}-${reset.cause}`}
-          style={{ left: `${reset.position * 100}%` }}
-          className="absolute inset-y-0 w-[2px] bg-ink"
-        />
-      ))}
-    </div>
-  )
-}
-
-function ResetList({
-  resets,
-  formatTime,
-}: {
-  resets: ResetPoint[]
-  /** Same same-day rule as the track's edge labels, so the two agree. */
-  formatTime: (iso: string) => string
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex flex-col gap-2 lg:w-[380px] lg:shrink-0">
-      <Eyebrow>{t('results.timeline.resetsTitle')}</Eyebrow>
-      {resets.length === 0 ? (
-        <Micro className="text-[11.5px]">{t('results.timeline.resetsNone')}</Micro>
-      ) : (
-        <>
-          <ul className="flex flex-col gap-1.5">
-            {resets.map((reset) => (
-              <li
-                key={`${reset.timestamp}-${reset.cause}-${reset.to}`}
-                className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
-              >
-                <span className="shrink-0 font-mono text-[11px] text-indigo-600">
-                  {formatTime(reset.timestamp)}
-                </span>
-                <span className="min-w-0 text-[12.5px] text-ink-2">
-                  {t(RESET_CAUSE_KEY[reset.cause])}{' '}
-                  <span className="font-mono text-[11.5px] break-all text-ink">
-                    {shortModelName(reset.from)} → {shortModelName(reset.to)}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <Micro className="text-[11px]">{t('results.timeline.resetNote')}</Micro>
-        </>
-      )}
-    </div>
-  )
-}
-
-function GapHistogram({ bucket }: { bucket: BucketAnalysis }) {
-  const { t } = useTranslation()
   const fmt = useFormatters()
-
-  const total = totalGaps(bucket)
-  const bands = gapBands(bucket)
-  const largest = Math.max(...bands.map((band) => band.count))
-
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-2">
-      <Eyebrow>{t('results.timeline.gapsTitle')}</Eyebrow>
-      {total === 0 ? (
-        <Micro className="text-[11.5px]">{t('results.timeline.gapsNone')}</Micro>
-      ) : (
-        bands.map((band) => (
-          <div key={band.id} className="flex items-center gap-3">
-            <span
-              className={`w-[118px] shrink-0 text-[12.5px] ${
-                band.decisive ? 'font-semibold text-ink' : 'text-slate-500'
-              }`}
-            >
-              {t(GAP_LABEL_KEY[band.id])}
-            </span>
-            <span
-              aria-hidden="true"
-              className="h-[5px] flex-1 overflow-hidden rounded-[3px] bg-[#EDF1F7]"
-            >
-              <span
-                className={`block h-full rounded-[3px] ${band.decisive ? 'bg-primary' : 'bg-[#B9C6DA]'}`}
-                style={{
-                  // A band with gaps in it must not render as an empty track:
-                  // 4 against a scale of 121 is a sliver, and the row below
-                  // it really is zero.
-                  width: band.count === 0 ? 0 : `max(3px, ${barShare(band.count, largest) * 100}%)`,
-                }}
-              />
-            </span>
-            <span
-              className={`w-[34px] shrink-0 text-right font-mono text-[12px] ${
-                band.decisive ? 'font-semibold text-ink' : 'text-ink-2'
-              }`}
-            >
-              {fmt.integer(band.count)}
-            </span>
-          </div>
-        ))
-      )}
+    <div className="flex items-center gap-3">
+      <span
+        className={`w-[124px] shrink-0 text-[12.5px] ${highlighted ? 'font-semibold text-ink' : 'text-slate-500'}`}
+      >
+        {label}
+      </span>
+      <div className="h-[5px] grow overflow-hidden rounded-[3px] bg-[#edf1f7]">
+        <div
+          className={`h-full ${highlighted ? 'bg-primary' : 'bg-[#b9c6da]'}`}
+          style={{ width: `${max > 0 ? (count / max) * 100 : 0}%` }}
+        />
+      </div>
+      <span
+        className={`w-8 shrink-0 text-right font-mono text-[12px] ${highlighted ? 'font-semibold text-ink' : 'text-ink-2'}`}
+      >
+        {fmt.integer(count)}
+      </span>
     </div>
   )
+}
+
+function maxGapBand(bucket: BucketAnalysis): number {
+  const { gapsUnder5m, gapsIn5mTo1hBand, gapsOver1h } = bucket.shape
+  return Math.max(gapsUnder5m, gapsIn5mTo1hBand, gapsOver1h)
 }

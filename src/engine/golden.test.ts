@@ -139,8 +139,6 @@ function projectBucket(b: BucketAnalysis): Json {
     threadCount: b.threadCount,
     requestCount: b.requestCount,
     actualCost: b.actualCost as unknown as Json,
-    actualUsage: b.actualUsage as unknown as Json,
-    warmReadRequestCount: b.warmReadRequestCount,
     observedWriteSplit: b.observedWriteSplit as unknown as Json,
     observedTtl: b.observedTtl,
     configExplicitness: b.configExplicitness,
@@ -150,6 +148,7 @@ function projectBucket(b: BucketAnalysis): Json {
     verdictSuppressed: b.verdictSuppressed,
     unpricedTokenShare: b.unpricedTokenShare,
     shape: b.shape as unknown as Json,
+    tokenTotals: b.tokenTotals as unknown as Json,
   }
   if (b.suppressionReason !== undefined) out.suppressionReason = b.suppressionReason
   return out

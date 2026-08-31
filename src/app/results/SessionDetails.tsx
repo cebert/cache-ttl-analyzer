@@ -1,23 +1,21 @@
 /**
- * Which session this was: directory, branch, when it ran, and the settings in
- * force. WP-08 calls this the identification card — its job is to let someone
- * with four analyses in the sidebar tell which one they are looking at.
+ * The session identification card (docs/PLAN.md §3): enough content-free
+ * metadata for the user to confirm they loaded the session they meant.
  *
- * Every value here is log-derived and therefore untrusted (docs/PLAN.md §2):
- * each is rendered as a text node, never as markup, and the parser has already
- * stripped control characters and clamped length.
- *
- * A field the log did not record says so rather than disappearing, so the card
- * keeps the same shape between sessions and an absence is legible as one.
+ * Every value here is log-derived and therefore untrusted — rendered as text
+ * nodes only, already control-character-stripped and length-clamped by the
+ * parser. A field the log did not carry says so rather than being omitted,
+ * so the card never implies a session had no branch when it simply was not
+ * recorded.
  */
 
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { AnalysisResult, BucketAnalysis } from '../../engine/contract'
-import { useFormatters } from '../../i18n/formatters'
-import { Badge } from '../../ui/Badge'
-import { isSameCalendarDay, shortModelName, writeMix } from './derive'
+import { NON_BILLING_RECORD_TYPES } from '../../engine/parser'
+import { useFormatters, type Formatters } from '../../i18n/formatters'
+import { subagentBucket, writesAreUniform } from './results-model'
 
 export function SessionDetails({
   result,
@@ -29,126 +27,134 @@ export function SessionDetails({
   const { t } = useTranslation()
   const fmt = useFormatters()
   const { metadata, parseStats } = result
-
-  const subagent = result.buckets.find((candidate) => candidate.bucket === 'subagent')
+  const subagents = subagentBucket(result)
+  const observedTtl = useObservedTtlLabel(bucket)
 
   return (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-4 px-5 py-5 sm:grid-cols-3 sm:px-7 lg:grid-cols-4">
-      <Field label={t('results.details.directory')} value={metadata.cwd} />
-      <Field label={t('results.details.branch')} value={metadata.gitBranch} />
-      <Field label={t('results.details.span')} value={spanValue(result, fmt, t)} />
-      <Field label={t('results.details.observedTtl')} value={observedTtlValue(bucket, fmt, t)} />
-
-      <ChangingField
-        label={t('results.details.model')}
-        values={metadata.models.map(shortModelName)}
-      />
-      <ChangingField label={t('results.details.effort')} values={metadata.efforts} />
-      <ChangingField label={t('results.details.version')} values={metadata.versions} />
-
+    <div className="grid grid-cols-1 gap-x-6 gap-y-3.5 px-5 py-4 sm:grid-cols-2 sm:px-7 lg:grid-cols-4">
+      <Field label={t('results.detailDirectory')} value={metadata.cwd} />
+      <Field label={t('results.detailBranch')} value={metadata.gitBranch} />
+      <Field label={t('results.detailSpan')} value={span(metadata, fmt)} />
+      <Field label={t('results.detailObservedTtl')} value={observedTtl} />
       <Field
-        label={t('results.details.requests')}
-        value={requestsValue(bucket, parseStats.syntheticRowsExcluded, fmt, t)}
+        label={t('results.detailModel')}
+        value={metadata.models.join(' → ')}
+        changed={metadata.models.length > 1}
       />
       <Field
-        label={t('results.details.subagents')}
+        label={t('results.detailEffort')}
+        value={metadata.efforts.join(' → ')}
+        changed={metadata.efforts.length > 1}
+      />
+      <Field
+        label={t('results.detailVersion')}
+        value={metadata.versions.join(' → ')}
+        changed={metadata.versions.length > 1}
+      />
+      <Field
+        label={t('results.detailRequests')}
         value={
-          subagent
-            ? t('results.details.subagentsCount', {
-                count: subagent.threadCount,
-                formatted: fmt.integer(subagent.threadCount),
+          skippedCount(result) === 0
+            ? // A plural form needs `count`; the formatter still owns how the
+              // number is written, so both are passed.
+              t('results.requestsCountNoSkips', {
+                count: parseStats.dedupedRequests,
+                formattedCount: fmt.integer(parseStats.dedupedRequests),
               })
-            : t('results.details.subagentsNone')
+            : t('results.requestsCount', {
+                priced: fmt.integer(parseStats.dedupedRequests),
+                skipped: fmt.integer(skippedCount(result)),
+              })
         }
       />
-    </dl>
+      <Field
+        label={t('results.detailSubagents')}
+        value={
+          subagents
+            ? t('results.subagentThreads', {
+                count: subagents.threadCount,
+                requests: fmt.integer(subagents.requestCount),
+              })
+            : t('results.detailNone')
+        }
+      />
+    </div>
   )
 }
 
-type Translate = ReturnType<typeof useTranslation>['t']
-type Format = ReturnType<typeof useFormatters>
-
-function spanValue(result: AnalysisResult, fmt: Format, t: Translate): string | undefined {
-  const { firstTimestamp, lastTimestamp } = result.metadata
-  if (!firstTimestamp || !lastTimestamp) return undefined
-
-  // Nearly every session begins and ends on one day, and saying that date
-  // twice is what overran this field's width.
-  if (isSameCalendarDay(firstTimestamp, lastTimestamp)) {
-    const date = fmt.date(firstTimestamp)
-    const start = fmt.time(firstTimestamp)
-    const end = fmt.time(lastTimestamp)
-    if (date && start && end) return t('results.details.spanSameDay', { date, start, end })
-  }
-
-  const start = fmt.dateTime(firstTimestamp)
-  const end = fmt.dateTime(lastTimestamp)
-  if (!start || !end) return undefined
-  return t('results.details.spanValue', { start, end })
-}
-
-function observedTtlValue(bucket: BucketAnalysis, fmt: Format, t: Translate): string {
-  const mix = writeMix(bucket)
-  if (mix === 'none') return t('results.details.observedNone')
-  if (mix === 'all-1h') return t('results.details.observedAll1h')
-  if (mix === 'all-5m') return t('results.details.observedAll5m')
-  const { fiveMinuteWriteTokens, oneHourWriteTokens } = bucket.observedWriteSplit
-  return t('results.details.observedMixed', {
-    share: fmt.percent(oneHourWriteTokens / (fiveMinuteWriteTokens + oneHourWriteTokens)),
-  })
-}
-
-function requestsValue(bucket: BucketAnalysis, failed: number, fmt: Format, t: Translate): string {
-  const priced = t('results.details.requestsValue', {
-    count: bucket.requestCount,
-    formatted: fmt.integer(bucket.requestCount),
-  })
-  if (failed === 0) return priced
-  return t('results.details.requestsSkipped', { priced, skipped: fmt.integer(failed) })
-}
-
-/**
- * A field whose value changed mid-session. The badge is the point: a change
- * of model, effort or version is a hard cache reset, and the reset list below
- * explains what it cost.
- */
-function ChangingField({ label, values }: { label: string; values: readonly string[] }) {
-  const { t } = useTranslation()
-  const changed = values.length > 1
-
-  return (
-    <Field
-      label={label}
-      badge={changed ? <Badge tone="indigo">{t('results.details.changed')}</Badge> : undefined}
-      value={
-        changed
-          ? t('results.details.changedFromTo', { from: values[0], to: values[values.length - 1] })
-          : values[0]
-      }
-    />
-  )
-}
-
-function Field({ label, value, badge }: { label: string; value?: string; badge?: ReactNode }) {
+function Field({
+  label,
+  value,
+  changed = false,
+}: {
+  label: string
+  value: string | undefined
+  changed?: boolean
+}) {
   const { t } = useTranslation()
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <dt className="flex items-center gap-1.5 font-mono text-[10px] font-medium tracking-[0.07em] text-slate-400 uppercase">
-        {label}
-        {badge}
-      </dt>
-      {/*
-        Wrapping, not truncating. These columns are half a phone screen wide,
-        where an ellipsis hides the end of the span and of the request counts
-        — and a `title` tooltip is not reachable by touch.
-      */}
-      <dd
-        className={`font-mono text-[12.5px] leading-[1.45] break-words ${
-          value ? 'text-ink' : 'text-slate-400 italic'
-        }`}
-      >
-        {value ?? t('results.details.notRecorded')}
-      </dd>
+      <span className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] font-medium tracking-[0.07em] text-slate-400 uppercase">
+          {label}
+        </span>
+        {changed && (
+          <span className="inline-flex h-3.5 items-center rounded-[3px] bg-indigo-tint px-1 font-mono text-[8.5px] font-semibold text-indigo-600">
+            {t('results.detailChanged')}
+          </span>
+        )}
+      </span>
+      <Value>{value}</Value>
     </div>
   )
+}
+
+function Value({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
+  const empty = children === undefined || children === null || children === ''
+  return (
+    <span
+      className={`font-mono text-[12.5px] leading-[1.45] break-words ${empty ? 'text-slate-400' : 'text-ink'}`}
+    >
+      {empty ? t('results.detailUnknown') : children}
+    </span>
+  )
+}
+
+function span(metadata: AnalysisResult['metadata'], fmt: Formatters): string | undefined {
+  const { firstTimestamp, lastTimestamp } = metadata
+  if (!firstTimestamp) return undefined
+  return lastTimestamp
+    ? fmt.dateTimeRange(firstTimestamp, lastTimestamp)
+    : fmt.dateTime(firstTimestamp)
+}
+
+/**
+ * "1 hour, every write" — the TTL the log shows, and whether it shows it for
+ * everything. A hook rather than a plain function so it reads the same
+ * translation instance as the rest of the card.
+ */
+function useObservedTtlLabel(bucket: BucketAnalysis): string {
+  const { t } = useTranslation()
+  if (bucket.observedTtl === null) return t('results.observedTtlNone')
+  const ttl = t(bucket.observedTtl === '1h' ? 'results.ttl1h' : 'results.ttl5m')
+  return writesAreUniform(bucket)
+    ? t('results.observedTtlUniform', { ttl })
+    : t('results.observedTtlMixed', { ttl })
+}
+
+/**
+ * Rows the user should know were dropped — not every row that was not a
+ * request. Claude Code writes hundreds of bookkeeping records per session
+ * (`mode`, `queue-operation`, …) that never carried billing data, and
+ * counting those as "skipped" reads as data loss; the parser already draws
+ * that line for the warnings banner, so the card draws it the same way.
+ */
+function skippedCount(result: AnalysisResult): number {
+  const { parseStats } = result
+  let unrecognized = 0
+  for (const [type, count] of Object.entries(parseStats.skippedRecordTypes)) {
+    if (!NON_BILLING_RECORD_TYPES.has(type)) unrecognized += count
+  }
+  return unrecognized + parseStats.malformedLines + parseStats.invalidUsageRowsSkipped
 }
