@@ -1,0 +1,59 @@
+name: Transcripts site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Lets the site be republished without a transcript change (e.g. after
+  # enabling Pages, or a landing-page tweak).
+  workflow_dispatch:
+
+# Pages allows one deployment at a time. Queue rather than cancel, so a
+# superseded run never leaves the site half-published.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build transcripts site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      # The generator is dependency-free Node, so no `npm ci` here — it reads
+      # transcripts/README.md and copies the rendered folders.
+      - name: Build site
+        run: npm run build:transcripts
+
+      - name: Upload Pages artifact
+        # On pull requests this step is skipped: the build above is the check
+        # (it fails when the session map and transcripts/ disagree), and only
+        # main publishes.
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

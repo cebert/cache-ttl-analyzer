@@ -78,8 +78,19 @@ export const UNKNOWN_MODEL_SUPPRESSION_RATIO = 0.1
  */
 export const VALIDATED_VERSION_RANGE = { min: '2.1.193', max: '2.1.251' } as const
 
-/** Resource limits (docs/PLAN.md §2, "Input validation"). */
-export const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024
+/**
+ * Resource limits (docs/PLAN.md §2, "Input validation").
+ *
+ * AMENDED IN WP-07 (2026-08-30), 500 MB -> 100 MB, with the user's sign-off
+ * and no other consumer at the time: WP-07 is the first code to enforce the
+ * cap, and 500 MB was set before anyone had measured a session log. Measured:
+ * 49 logs across a real ~/.claude/projects tree (the 30-day retention window)
+ * ran to a 0.15 MB median, 1.8 MB p90 and a 3.36 MB maximum; this repo's own
+ * committed transcripts, which are long dense engineering sessions, top out at
+ * 3.25 MB. 100 MB is ~30x the largest log anyone has produced here and matches
+ * the copy WP-D wrote, so it is the cap the UI states and enforces.
+ */
+export const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024
 export const MAX_LINE_LENGTH_BYTES = 10 * 1024 * 1024
 /** Log-derived display strings (title, cwd, gitBranch, model) are clamped. */
 export const MAX_METADATA_STRING_LENGTH = 500

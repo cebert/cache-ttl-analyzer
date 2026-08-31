@@ -28,12 +28,8 @@ import { VALIDATED_VERSION_RANGE, type AnalysisResult, type BucketAnalysis } fro
 import { knownModelIds } from './cost'
 import { isVersionInValidatedRange, parseSession, rejectionReason } from './parser'
 import { analyzeSession } from './simulator'
-import {
-  buildSamplesIndex,
-  renderIndex,
-  SAMPLES_DIR,
-  SAMPLES_INDEX,
-} from '../../scripts/sync-samples.ts'
+import { SAMPLES } from '../config/samples'
+import { SAMPLES_DIR, sampleSource } from '../../scripts/sync-samples.ts'
 
 const FIXTURES_ROOT = 'fixtures'
 const MANIFEST_PATH = join(FIXTURES_ROOT, 'fixtures.json')
@@ -305,18 +301,48 @@ describe.each(fixtures.map((f) => [f.id, f] as const))('%s', (id, fixture) => {
 })
 
 describe('bundled samples (public/samples)', () => {
-  // The scenario captures double as the app's samples (PLAN WP-06). They are
-  // copies, so prove they cannot drift from the fixtures the goldens cover.
-  it('are byte-identical copies of their scenario fixtures, with a current index', () => {
-    const index = buildSamplesIndex()
-    expect(index.samples.length).toBeGreaterThan(0)
-    expect(readFileSync(SAMPLES_INDEX, 'utf8')).toBe(renderIndex(index))
-    for (const sample of index.samples) {
-      expect(readFileSync(join(SAMPLES_DIR, sample.file))).toEqual(readFileSync(sample.source))
+  // The scenario captures double as the app's samples (PLAN WP-06). The UI's
+  // `SAMPLES` list is the source of truth for which ship and what the cards
+  // say; prove the shipped copies and the card numbers cannot drift from the
+  // fixtures the goldens cover.
+  it('ships exactly the SAMPLES entries, byte-identical to their fixtures', () => {
+    expect(SAMPLES.length).toBeGreaterThan(0)
+    for (const sample of SAMPLES) {
+      expect(readFileSync(join(SAMPLES_DIR, sample.file))).toEqual(
+        readFileSync(sampleSource(sample.id)),
+      )
     }
     const shipped = readdirSync(SAMPLES_DIR)
       .filter((name) => name.endsWith('.jsonl'))
       .sort()
-    expect(shipped).toEqual(index.samples.map((s) => s.file).sort())
+    expect(shipped).toEqual(SAMPLES.map((s) => s.file).sort())
   })
+
+  it.each(SAMPLES.map((s) => [s.id, s] as const))(
+    '%s card numbers come from the data',
+    async (_id, sample) => {
+      const { parsed, result } = await runEngine(sampleSource(sample.id))
+      expect(result).toBeDefined()
+      const main = result!.buckets.find((b) => b.bucket === 'main')!
+      expect(sample.requestCount).toBe(main.requestCount)
+      expect(sample.spanMs).toBe(main.shape.spanMs)
+      expect(sample.hardResets ?? 0).toBe(main.scenarios.oneHour.hardResets)
+      let input = 0
+      let read = 0
+      let write = 0
+      for (const r of parsed.requests) {
+        input += r.usage.inputTokens
+        read += r.usage.cacheReadInputTokens
+        write += r.usage.cacheCreationInputTokens
+      }
+      expect(sample.cacheHitRate).toBeCloseTo(read / (input + read + write), 3)
+      const lesson =
+        main.scenarios.oneHour.hardResets > 0
+          ? 'hard-resets'
+          : main.recommendation === '5m'
+            ? 'five-minute-wins'
+            : 'one-hour-wins'
+      expect(sample.lesson).toBe(lesson)
+    },
+  )
 })

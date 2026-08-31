@@ -29,3 +29,5 @@ fixtures/generated/
 
 # Python bytecode (reference sim)
 __pycache__/
+# Generated GitHub Pages output for transcripts/
+site
