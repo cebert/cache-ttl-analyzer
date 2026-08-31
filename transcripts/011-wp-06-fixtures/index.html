@@ -161,10 +161,11 @@ details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom
 <span class="disabled">&larr; Prev</span>
 <a href="page-001.html">1</a>
 <a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
 <a href="page-001.html">Next &rarr;</a>
 </div>
 
-        <p style="color: var(--text-muted); margin-bottom: 24px;">10 prompts · 364 messages · 109 tool calls · 2 commits · 2 pages</p>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">13 prompts · 367 messages · 109 tool calls · 2 commits · 3 pages</p>
         
 <div class="index-item"><a href="page-001.html#msg-2026-08-30T23-47-36-273Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2026-08-30T23:47:36.273Z" data-timestamp="2026-08-30T23:47:36.273Z">2026-08-30T23:47:36.273Z</time></div><div class="index-item-content"><p><command-name>/model</command-name>
             <command-message>model</command-message>
@@ -248,9 +249,12 @@ details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom
 <output-file>/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/tasks/bj2htzh2v.output</output-file>
 <status>completed</status></p>
 <summary>Background command "Run all four scenario captures in the background" completed (exit code 0)</summary>
-<p></task-notification></p></div></a><div class="index-item-stats"><span>13 bash · 1 skill</span>
+<p></task-notification></p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-08-31T00-46-35-846Z"><div class="index-item-header"><span class="index-item-number">#8</span><time datetime="2026-08-31T00:46:35.846Z" data-timestamp="2026-08-31T00:46:35.846Z">2026-08-31T00:46:35.846Z</time></div><div class="index-item-content"><p>[sent mid-turn] status?</p></div></a><div class="index-item-stats"><span>3 bash</span>
 </div></div>
-<div class="index-item"><a href="page-002.html#msg-2026-08-31T00-51-22-620Z"><div class="index-item-header"><span class="index-item-number">#8</span><time datetime="2026-08-31T00:51:22.620Z" data-timestamp="2026-08-31T00:51:22.620Z">2026-08-31T00:51:22.620Z</time></div><div class="index-item-content"><p>Base directory for this skill: ~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript</p>
+<div class="index-item"><a href="page-002.html#msg-2026-08-31T00-47-47-473Z"><div class="index-item-header"><span class="index-item-number">#9</span><time datetime="2026-08-31T00:47:47.473Z" data-timestamp="2026-08-31T00:47:47.473Z">2026-08-31T00:47:47.473Z</time></div><div class="index-item-content"><p>[sent mid-turn] FYI I just merged PR#18 which added our fully functional UI shell</p></div></a><div class="index-item-stats"><span>10 bash · 1 skill</span>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2026-08-31T00-51-22-620Z"><div class="index-item-header"><span class="index-item-number">#10</span><time datetime="2026-08-31T00:51:22.620Z" data-timestamp="2026-08-31T00:51:22.620Z">2026-08-31T00:51:22.620Z</time></div><div class="index-item-content"><p>Base directory for this skill: ~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript</p>
 <h1>Publish a session transcript</h1>
 <p>Turns one Claude Code session for this repo into one committed folder holding
 both published forms:</p>
@@ -644,12 +648,14 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
 2. The reconciliation property is exact everywhere except a 5m-dominant bucket with flipped 1h writes, by design (hand-checked, $0.004125).</p>
 <p>Housekeeping: I worked from a worktree at <code>../cache-ttl-analyzer-wp06</code> after another session switched branches in the main checkout; the main checkout is back on <code>ci/transcripts-github-pages</code> at its pushed commit, untouched.</p></div></div><button class="expand-btn">Show more</button></div></div>
 </div></div><div class="index-commit"><a href="https://github.com/cebert/cache-ttl-analyzer/commit/c1266fb"><div class="index-commit-header"><span class="index-commit-hash">c1266fb</span><time datetime="2026-08-31T00:51:59.050Z" data-timestamp="2026-08-31T00:51:59.050Z">2026-08-31T00:51:59.050Z</time></div><div class="index-commit-msg">docs(readme): document the reference sim, golden fixtures, and their npm scripts</div></a></div>
-<div class="index-item"><a href="page-002.html#msg-2026-08-31T00-59-11-030Z"><div class="index-item-header"><span class="index-item-number">#9</span><time datetime="2026-08-31T00:59:11.030Z" data-timestamp="2026-08-31T00:59:11.030Z">2026-08-31T00:59:11.030Z</time></div><div class="index-item-content"><p>this analysis is great, this tool looks useful actually</p></div></a><div class="index-item-stats">
+<div class="index-item"><a href="page-003.html#msg-2026-08-31T00-59-11-030Z"><div class="index-item-header"><span class="index-item-number">#11</span><time datetime="2026-08-31T00:59:11.030Z" data-timestamp="2026-08-31T00:59:11.030Z">2026-08-31T00:59:11.030Z</time></div><div class="index-item-content"><p>this analysis is great, this tool looks useful actually</p></div></a><div class="index-item-stats">
 <div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Thanks — and I think the captures are the strongest argument for it. Two sessions with the <em>same</em> four prompts and the <em>same</em> three idle gaps came out at $0.32 (1h) versus $0.56 (5m) — a 75% difference on nothing but a config setting nobody sees. The tool's whole job is making that visible from a log file people already have on disk, and the real data says the effect is not subtle.</p>
 <p>The other thing the captures bought you is credibility of the model itself: the partial-invalidation case is exactly the kind of thing a synthetic fixture would never have produced, and now it's pinned in the harness waiting for the simulator fix. When you get to that follow-up, the natural rule is "on a &gt;5m gap with <code>reads &gt; 0</code> and a large write, restore <code>min(write, warm − read)</code> as reads" — and <code>gap-heavy-5m</code>'s golden will flip to 1h wins the moment it's right.</p>
 <p>PR #17 is ready whenever you want to merge.</p></div></div><button class="expand-btn">Show more</button></div></div>
 </div></div>
-<div class="index-item"><a href="page-002.html#msg-2026-08-31T00-59-48-837Z"><div class="index-item-header"><span class="index-item-number">#10</span><time datetime="2026-08-31T00:59:48.837Z" data-timestamp="2026-08-31T00:59:48.837Z">2026-08-31T00:59:48.837Z</time></div><div class="index-item-content"><p>this might be a good example default session to include if people don't have their own</p></div></a><div class="index-item-stats"><span>4 bash · 1 askuserquestion</span>
+<div class="index-item"><a href="page-003.html#msg-2026-08-31T00-59-48-837Z"><div class="index-item-header"><span class="index-item-number">#12</span><time datetime="2026-08-31T00:59:48.837Z" data-timestamp="2026-08-31T00:59:48.837Z">2026-08-31T00:59:48.837Z</time></div><div class="index-item-content"><p>this might be a good example default session to include if people don't have their own</p></div></a><div class="index-item-stats"><span>2 bash · 1 askuserquestion</span>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2026-08-31T01-01-05-814Z"><div class="index-item-header"><span class="index-item-number">#13</span><time datetime="2026-08-31T01:01:05.814Z" data-timestamp="2026-08-31T01:01:05.814Z">2026-08-31T01:01:05.814Z</time></div><div class="index-item-content"><p>[sent mid-turn] we can have a few samples right to show different problems?</p></div></a><div class="index-item-stats"><span>2 bash</span>
 </div></div>
         
 
@@ -658,6 +664,7 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
 <span class="disabled">&larr; Prev</span>
 <a href="page-001.html">1</a>
 <a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
 <a href="page-001.html">Next &rarr;</a>
 </div>
 
@@ -677,7 +684,7 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
         </dialog>
         <script>
 (function() {
-    var totalPages = 2;
+    var totalPages = 3;
     var searchBox = document.getElementById('search-box');
     var searchInput = document.getElementById('search-input');
     var searchBtn = document.getElementById('search-btn');
