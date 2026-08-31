@@ -318,6 +318,17 @@ describe('skip-and-count unrecognized record types (F4)', () => {
     )
   })
 
+  it('cannot launder an unknown type into a classified one through sanitization', () => {
+    // Control chars are stripped from metadata, so `system\u0000` would
+    // otherwise be counted as `system` and inherit its silence.
+    const parsed = parse([...turn(0), { type: 'system\u0000' }, { type: 'system' }])
+    expect(parsed.stats.skippedRecordTypes).toEqual({ system: 1, [OTHER_SKIPPED_TYPES_KEY]: 1 })
+    expect(parsed.warnings).toContainEqual({
+      kind: 'skipped-record-types',
+      types: { [OTHER_SKIPPED_TYPES_KEY]: 1 },
+    })
+  })
+
   it('aggregates beyond MAX_DISTINCT_SKIPPED_TYPES so a hostile file cannot grow the map', () => {
     const rows: Json[] = [...turn(0)]
     for (let i = 0; i < MAX_DISTINCT_SKIPPED_TYPES + 50; i++) rows.push({ type: `t${i}` })

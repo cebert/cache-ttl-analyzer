@@ -440,7 +440,8 @@ export class SessionParser {
     // Only types we have never classified are worth surfacing: the known
     // bookkeeping ones (NON_BILLING_RECORD_TYPES) appear in every session and
     // cost the user nothing. `stats.skippedRecordTypes` still counts them all.
-    // `<other>` is the hostile-file overflow bucket, so it is never inert.
+    // `<other>` — the bucket for overflow and for sanitized-away types — is
+    // not in that set, so it always warns.
     const unrecognized = Object.fromEntries(
       Object.entries(stats.skippedRecordTypes).filter(
         ([type]) => !NON_BILLING_RECORD_TYPES.has(type),
@@ -465,7 +466,11 @@ export class SessionParser {
   }
 
   private countSkipped(type: string): void {
-    let key = sanitizeMetadataString(type)
+    const sanitized = sanitizeMetadataString(type)
+    // A type that sanitization altered goes to `<other>`, never to its
+    // cleaned-up spelling: otherwise `"system\u0000"` would land on the
+    // classified `system` key and inherit its silence.
+    let key = sanitized === type ? sanitized : OTHER_SKIPPED_TYPES_KEY
     if (key.length === 0) key = OTHER_SKIPPED_TYPES_KEY
     if (!this.skipped.has(key) && this.skipped.size >= MAX_DISTINCT_SKIPPED_TYPES) {
       key = OTHER_SKIPPED_TYPES_KEY
