@@ -15,9 +15,6 @@ import { useFormatters } from '../../i18n/formatters'
 import { Micro } from '../../ui/Sheet'
 import { cacheHitRate, errorRate, observedScenario, writesAreUniform } from './results-model'
 
-/** Above this many tokens the exact count stops being informative. */
-const COMPACT_FROM = 100_000
-
 export function MetricsRow({ bucket, stats }: { bucket: BucketAnalysis; stats: ParseStats }) {
   const { t } = useTranslation()
   const fmt = useFormatters()
@@ -36,22 +33,22 @@ export function MetricsRow({ bucket, stats }: { bucket: BucketAnalysis; stats: P
         })}
       />
       <Metric
-        value={compactTokens(totals.cacheReadTokens, fmt)}
+        value={fmt.compact(totals.cacheReadTokens)}
         label={t('results.metricReads')}
         note={t('results.metricReadsNote')}
       />
       <Metric
-        value={compactTokens(totals.cacheWriteTokens, fmt)}
+        value={fmt.compact(totals.cacheWriteTokens)}
         label={t('results.metricWrites')}
         note={t(writeNoteKey(bucket))}
       />
       <Metric
-        value={compactTokens(totals.inputTokens, fmt)}
+        value={fmt.compact(totals.inputTokens)}
         label={t('results.metricInput')}
         note={t('results.metricInputNote')}
       />
       <Metric
-        value={compactTokens(totals.outputTokens, fmt)}
+        value={fmt.compact(totals.outputTokens)}
         label={t('results.metricOutput')}
         note={t('results.metricOutputNote')}
       />
@@ -91,13 +88,6 @@ function Metric({
       <span className="font-mono text-[10.5px] text-slate-400">{note}</span>
     </div>
   )
-}
-
-/** "2.41M" rather than "2,410,000" — the magnitude is the point. */
-function compactTokens(tokens: number, fmt: { integer: (n: number) => string }): string {
-  if (tokens < COMPACT_FROM) return fmt.integer(tokens)
-  if (tokens < 1_000_000) return `${Math.round(tokens / 1_000)}k`
-  return `${(tokens / 1_000_000).toFixed(2)}M`
 }
 
 /** Which note the cache-writes figure carries, as a catalog key. */

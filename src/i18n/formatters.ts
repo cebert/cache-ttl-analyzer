@@ -17,6 +17,9 @@ import { useTranslation } from 'react-i18next'
 const BYTE_UNITS = ['byte', 'kilobyte', 'megabyte', 'gigabyte'] as const
 const BYTES_PER_UNIT = 1024
 
+/** Below this, the exact count still reads easily and is more informative. */
+const COMPACT_FROM = 100_000
+
 const MS_PER_SECOND = 1000
 const MS_PER_MINUTE = 60 * MS_PER_SECOND
 const MS_PER_HOUR = 60 * MS_PER_MINUTE
@@ -25,6 +28,12 @@ export interface Formatters {
   locale: string
   /** Whole number with grouping, e.g. "112,000". */
   integer: (value: number) => string
+  /**
+   * A large count where the magnitude is the point, e.g. "2.4M" — written
+   * the way the locale writes compact numbers, not with an English suffix
+   * and an ASCII decimal point. Small values keep their exact digits.
+   */
+  compact: (value: number) => string
   /** USD at published Anthropic API rates (decision D2). */
   currency: (usd: number) => string
   /** A 0–1 ratio as a percentage, e.g. 0.61 -> "61%". */
@@ -59,6 +68,10 @@ function unitFormat(locale: string, unit: string, maximumFractionDigits: number)
 
 export function createFormatters(locale: string): Formatters {
   const integer = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 })
+  const compact = new Intl.NumberFormat(locale, {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  })
   const currency = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'USD',
@@ -102,6 +115,12 @@ export function createFormatters(locale: string): Formatters {
   return {
     locale,
     integer: (value) => (Number.isFinite(value) ? integer.format(value) : ''),
+    compact: (value) =>
+      Number.isFinite(value)
+        ? value < COMPACT_FROM
+          ? integer.format(value)
+          : compact.format(value)
+        : '',
     currency: (usd) => (Number.isFinite(usd) ? currency.format(usd) : ''),
     percent: (ratio, fractionDigits = 0) =>
       Number.isFinite(ratio)

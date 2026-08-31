@@ -25,6 +25,9 @@ import {
   type MarkerKind,
 } from './results-model'
 
+/** Width of one marker on the rail; also `w-[3px]` in the class below. */
+const MARKER_WIDTH_PX = 3
+
 const MARKER_STYLE: Record<MarkerKind, { className: string; heightPx: number }> = {
   // Height carries the same ordering as the legend: an expiry is the tallest
   // because it is the event that cost money.
@@ -114,7 +117,7 @@ export function CacheTimeline({
                 <div
                   key={`reset-${position}`}
                   className="absolute top-0 bottom-0 w-0.5 bg-ink"
-                  style={{ left: `${position * 100}%` }}
+                  style={{ left: `calc(${position * 100}% - ${position * 2}px)` }}
                 />
               ))}
               {markers.map((marker) => (
@@ -122,7 +125,11 @@ export function CacheTimeline({
                   key={marker.messageId}
                   className={`absolute bottom-[7px] w-[3px] rounded-[1.5px] ${MARKER_STYLE[marker.kind].className}`}
                   style={{
-                    left: `${marker.position * 100}%`,
+                    // The window ends at the last event, so the final marker
+                    // sits at 100% — where its own width would put it past the
+                    // clipping edge. Pull each marker in by its share of that
+                    // width: no shift at the left edge, a full one at the right.
+                    left: `calc(${marker.position * 100}% - ${marker.position * MARKER_WIDTH_PX}px)`,
                     height: `${MARKER_STYLE[marker.kind].heightPx}px`,
                   }}
                 />

@@ -101,8 +101,8 @@ def assistant(uuid, parent, ts, msg_id, *, model="claude-opus-5", usage=None, **
 
 class PricingTests(unittest.TestCase):
     def test_opus5_each_bucket(self):
-        # base 1000×$5 = 0.005; read 2000×$0.50 = 0.001; 5m 3000×$6.25 = 0.01875;
-        # 1h 4000×$10 = 0.04; out 500×$25 = 0.0125 → total 0.07725
+        # base 1000x$5 = 0.005; read 2000x$0.50 = 0.001; 5m 3000x$6.25 = 0.01875;
+        # 1h 4000x$10 = 0.04; out 500x$25 = 0.0125 → total 0.07725
         cost = refsim.price_tokens(
             {"baseInputTokens": 1000, "cacheReadTokens": 2000, "cacheWrite5mTokens": 3000, "cacheWrite1hTokens": 4000, "outputTokens": 500},
             PRICING["models"]["claude-opus-5"],
@@ -152,8 +152,8 @@ class ShorteningTests(unittest.TestCase):
 
     def test_five_minute_scenario_lapses_the_read(self):
         five = self.bucket["scenarios"]["fiveMinute"]
-        # r1 at 5m: 0.00005 + 1000×$6.25 = 0.00625 + 0.000125 = 0.006425
-        # r2: the 1000 read lapses (gap 600s > 300s) and joins the write: 1200×$6.25 = 0.0075
+        # r1 at 5m: 0.00005 + 1000x$6.25 = 0.00625 + 0.000125 = 0.006425
+        # r2: the 1000 read lapses (gap 600s > 300s) and joins the write: 1200x$6.25 = 0.0075
         #     → 0.00005 + 0.0075 + 0.000125 = 0.007675.  Total 0.0141.
         self.assertAlmostEqual(five["cost"]["totalUsd"], 0.0141, places=12)
         self.assertEqual(five["cacheExpiries"], 1)
@@ -211,8 +211,8 @@ class PartialLapseTests(unittest.TestCase):
         self.bucket = refsim.analyze_bucket("main", [req("r1", 0, w5m=2000), req("r2", 600, read=800, w5m=1500)], PRICING)
 
     def test_five_minute_scenario_names_the_partial_expiry(self):
-        # r1: 0.00005 + 2000×$6.25 = 0.0125 + 0.000125 = 0.012675
-        # r2: 0.00005 + 800×$0.50 = 0.0004 + 1500×$6.25 = 0.009375 + 0.000125 = 0.00995
+        # r1: 0.00005 + 2000x$6.25 = 0.0125 + 0.000125 = 0.012675
+        # r2: 0.00005 + 800x$0.50 = 0.0004 + 1500x$6.25 = 0.009375 + 0.000125 = 0.00995
         five = self.bucket["scenarios"]["fiveMinute"]
         self.assertAlmostEqual(self.bucket["actualCost"]["totalUsd"], 0.022625, places=12)
         self.assertEqual(five["cost"], self.bucket["actualCost"])
@@ -225,8 +225,8 @@ class PartialLapseTests(unittest.TestCase):
         self.assertEqual(five["wastedWriteTokens"], 1200)
 
     def test_one_hour_restores_only_the_lapsed_share(self):
-        # r1: 0.00005 + 2000×$10 = 0.02 + 0.000125 = 0.020175
-        # r2: 0.00005 + (800 + 1200)×$0.50 = 0.001 + 300×$10 = 0.003 + 0.000125 = 0.004175
+        # r1: 0.00005 + 2000x$10 = 0.02 + 0.000125 = 0.020175
+        # r2: 0.00005 + (800 + 1200)x$0.50 = 0.001 + 300x$10 = 0.003 + 0.000125 = 0.004175
         one = self.bucket["scenarios"]["oneHour"]
         self.assertAlmostEqual(one["cost"]["totalUsd"], 0.02435, places=12)
         self.assertEqual(kinds(one["events"]), ["cache-write", "warm-read", "cache-write"])
@@ -244,7 +244,7 @@ class PartialLapseTests(unittest.TestCase):
         # there is no lapsed share, no expiry, and the write stands.
         bucket = refsim.analyze_bucket("main", [req("r1", 0, w5m=2000), req("r2", 600, read=2500, w5m=400)], PRICING)
         one = bucket["scenarios"]["oneHour"]
-        # r2 at 1h: 0.00005 + 2500×$0.50 = 0.00125 + 400×$10 = 0.004 + 0.000125 = 0.005425
+        # r2 at 1h: 0.00005 + 2500x$0.50 = 0.00125 + 400x$10 = 0.004 + 0.000125 = 0.005425
         self.assertAlmostEqual(one["cost"]["totalUsd"], 0.0256, places=12)
         self.assertEqual(one["events"][2]["tokens"], 400)
         self.assertEqual(bucket["scenarios"]["fiveMinute"]["cacheExpiries"], 0)
@@ -264,8 +264,8 @@ class HardResetTests(unittest.TestCase):
             self.assertEqual(kinds(s["events"]), ["cache-write", "hard-reset", "cache-write"])
             self.assertEqual(s["events"][1]["from"], "claude-opus-5")
             self.assertEqual(s["events"][1]["to"], "claude-sonnet-5")
-        # A reset request is priced per its own model: sonnet-5 1h write 1000×$4 = 0.004,
-        # in 1000×$2 = 0.00002, out 5×$10 = 0.00005 → 0.00407; plus r1 0.010175 → 0.014245.
+        # A reset request is priced per its own model: sonnet-5 1h write 1000x$4 = 0.004,
+        # in 1000x$2 = 0.00002, out 5x$10 = 0.00005 → 0.00407; plus r1 0.010175 → 0.014245.
         self.assertAlmostEqual(bucket["actualCost"]["totalUsd"], 0.014245, places=12)
 
     def test_effort_and_version_changes_are_each_a_cause(self):
@@ -291,13 +291,13 @@ class MixedTtlTests(unittest.TestCase):
         self.assertIsNone(refsim.dominant_ttl({"fiveMinuteWriteTokens": 0, "oneHourWriteTokens": 0}))
 
     def test_server_share_stays_5m_in_both_scenarios(self):
-        # 1h (= actual): r1 0.00005 + 0.01 + 100×$6.25 = 0.000625 + 0.000125 = 0.0108
-        #                r2 0.00005 + 1100×$0.50 = 0.00055 + 50×$10 = 0.0005 + 0.000125 = 0.001225 → 0.012025
+        # 1h (= actual): r1 0.00005 + 0.01 + 100x$6.25 = 0.000625 + 0.000125 = 0.0108
+        #                r2 0.00005 + 1100x$0.50 = 0.00055 + 50x$10 = 0.0005 + 0.000125 = 0.001225 → 0.012025
         one = self.bucket["scenarios"]["oneHour"]
         self.assertAlmostEqual(one["cost"]["totalUsd"], 0.012025, places=12)
         self.assertEqual(one["cost"], self.bucket["actualCost"])
         # 5m: r1 user 1000 at 5m 0.00625 + server 100 at 5m 0.000625 + 0.000175 = 0.00705
-        #     r2 read lapses → user write 50 + 1100 = 1150×$6.25 = 0.0071875 + 0.000175 = 0.0073625 → 0.0144125
+        #     r2 read lapses → user write 50 + 1100 = 1150x$6.25 = 0.0071875 + 0.000175 = 0.0073625 → 0.0144125
         five = self.bucket["scenarios"]["fiveMinute"]
         self.assertAlmostEqual(five["cost"]["totalUsd"], 0.0144125, places=12)
         for s in (one, five):
@@ -309,7 +309,7 @@ class MixedTtlTests(unittest.TestCase):
         bucket = refsim.analyze_bucket("main", [req("r1", 0, w5m=1000, w1h=100)], PRICING)
         one = bucket["scenarios"]["oneHour"]
         self.assertEqual([(e["kind"], e["tokens"], e["ttl"]) for e in one["events"]], [("cache-write", 1100, "1h")])
-        # 1100×$10 = 0.011 + 0.000175
+        # 1100x$10 = 0.011 + 0.000175
         self.assertAlmostEqual(one["cost"]["totalUsd"], 0.011175, places=12)
 
 
@@ -339,8 +339,8 @@ class ShapeAndTotalsTests(unittest.TestCase):
         )
 
     def test_token_totals(self):
-        # input 5×10 = 50; reads 1000 + 1100 + 1200 = 3300;
-        # writes 1000 + 100 + 100 + 100 + 1500 = 2800; output 5×5 = 25.
+        # input 5x10 = 50; reads 1000 + 1100 + 1200 = 3300;
+        # writes 1000 + 100 + 100 + 100 + 1500 = 2800; output 5x5 = 25.
         self.assertEqual(
             refsim.analyze_bucket("main", self.requests, PRICING)["tokenTotals"],
             {"inputTokens": 50, "cacheReadTokens": 3300, "cacheWriteTokens": 2800, "outputTokens": 25},

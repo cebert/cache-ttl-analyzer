@@ -133,6 +133,8 @@ describe('no sidechain traffic (contract F2)', () => {
     const result = await analyze('fixtures/synthetic/legacy-interleaved-sidechains.jsonl')
     renderResult(result)
 
+    // This log carries main traffic too, so the main-only caveat is the
+    // honest one here.
     expect(screen.queryByText(en.results.limitNoSidechains)).not.toBeInTheDocument()
     expect(
       screen.getByText(en.results.limitSubagentsPresent.split('{{')[0], { exact: false }),
@@ -149,6 +151,12 @@ describe('no sidechain traffic (contract F2)', () => {
     // The verdict speaks for the bucket that has the traffic, and names it.
     expect(screen.getByText('subagentPromptCacheTtl')).toBeInTheDocument()
     expect(screen.queryByText(en.results.noVerdictEmpty)).not.toBeInTheDocument()
+    // …and the limits panel says this file was analyzed in full, rather than
+    // claiming the main conversation only — there is no main traffic here.
+    expect(
+      screen.getByText(en.results.limitSubagentsOnly.split('{{')[0], { exact: false }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(en.results.limitSubagentsPresent)).not.toBeInTheDocument()
   })
 })
 

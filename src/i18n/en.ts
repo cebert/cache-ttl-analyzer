@@ -251,8 +251,14 @@ export const en = {
     limitsTitle: 'Limits of this analysis',
     limitNoSidechains:
       'No sidechain traffic in this file — subagentPromptCacheTtl was not evaluated. Subagent transcripts are separate files, beside the session log in its subagents folder.',
+    // A file can carry sidechain traffic two ways, and the honest sentence
+    // differs: a subagent transcript on its own is fully analyzed (its bucket
+    // is the headline), while a legacy log carrying both gets a main-only
+    // verdict.
+    limitSubagentsOnly:
+      'This file is a subagent transcript: {{requests}} sidechain requests across {{threads}} threads, analyzed here in full. Its verdict governs subagentPromptCacheTtl, not promptCacheTtl.',
     limitSubagentsPresent:
-      'This file carries {{requests}} sidechain requests across {{threads}} threads. Version 1 analyzes the main conversation only; subagent caches are on the roadmap.',
+      'This file also carries {{requests}} sidechain requests across {{threads}} threads. Version 1 reports the main conversation only; analyzing both caches together is on the roadmap.',
     limitObservedOnly:
       'The log records the observed TTL, never whether it was configured or defaulted.',
     limitApproximation:

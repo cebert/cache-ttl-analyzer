@@ -24,6 +24,27 @@ describe('createFormatters', () => {
     })
   })
 
+  describe('compact', () => {
+    it('keeps an exact count until the magnitude is the point', () => {
+      expect(en.compact(0)).toBe('0')
+      expect(en.compact(41_070)).toBe('41,070')
+      expect(en.compact(99_999)).toBe('99,999')
+    })
+
+    it('abbreviates larger counts the way the locale does', () => {
+      // en-US writes "2.4M"; de-DE writes millions differently and uses a
+      // comma decimal, which is the whole reason this goes through Intl.
+      expect(en.compact(2_410_000)).toBe('2.4M')
+      expect(en.compact(578_000)).toBe('578K')
+      expect(de.compact(2_410_000)).not.toBe(en.compact(2_410_000))
+      expect(de.compact(2_410_000)).toContain(',')
+    })
+
+    it('renders nothing for a non-finite count', () => {
+      expect(en.compact(Number.NaN)).toBe('')
+    })
+  })
+
   describe('currency', () => {
     it('always shows two decimals, so a column of costs aligns', () => {
       expect(en.currency(2.1)).toBe('$2.10')

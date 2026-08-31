@@ -11,12 +11,16 @@ import { useTranslation } from 'react-i18next'
 import type { AnalysisResult } from '../../engine/contract'
 import { useFormatters } from '../../i18n/formatters'
 import { Eyebrow, Micro } from '../../ui/Sheet'
-import { subagentBucket } from './results-model'
+import { mainBucket, subagentBucket } from './results-model'
 
 export function LimitsPanel({ result }: { result: AnalysisResult }) {
   const { t } = useTranslation()
   const fmt = useFormatters()
   const subagents = subagentBucket(result)
+  // A subagent transcript uploaded on its own has no main traffic at all, and
+  // the view headlines its bucket — so it is fully analyzed, and saying
+  // "the main conversation only" would be wrong.
+  const subagentOnly = subagents !== null && (mainBucket(result)?.requestCount ?? 0) === 0
   const { unknownModels } = result
 
   return (
@@ -24,7 +28,7 @@ export function LimitsPanel({ result }: { result: AnalysisResult }) {
       <Eyebrow>{t('results.limitsTitle')}</Eyebrow>
       <Micro>
         {subagents
-          ? t('results.limitSubagentsPresent', {
+          ? t(subagentOnly ? 'results.limitSubagentsOnly' : 'results.limitSubagentsPresent', {
               requests: fmt.integer(subagents.requestCount),
               threads: fmt.integer(subagents.threadCount),
             })
