@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 5</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 5/5</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-004.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<span class="current">5</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+        
+<div class="message user" id="msg-2026-08-31T02-48-11-222Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-31T02-48-11-222Z" class="timestamp-link"><time datetime="2026-08-31T02:48:11.222Z" data-timestamp="2026-08-31T02:48:11.222Z">2026-08-31T02:48:11.222Z</time></a></div><div class="message-content">
+<div class="user-content"><p>[sent mid-turn] I reviewed these changes and they look good to me. Make sure to attach a session log to this PR then merge this PR after the checks pass and let’s start that last task of improving the published session logs.</p></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T02-50-04-610Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T02-50-04-610Z" class="timestamp-link"><time datetime="2026-08-31T02:50:04.610Z" data-timestamp="2026-08-31T02:50:04.610Z">2026-08-31T02:50:04.610Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 240000ms exceeded.
+Call log:
+[2m  - waiting for getByText(/9,975 requests/) to be visible[22m
+
+    at /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/timing.mjs:18:42 {
+  log: [ &#x27;  - waiting for getByText(/9,975 requests/) to be visible&#x27; ],
+  name: &#x27;TimeoutError&#x27;
+}
+
+Node.js v26.8.1
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-50-14-749Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-50-14-749Z" class="timestamp-link"><time datetime="2026-08-31T02:50:14.749Z" data-timestamp="2026-08-31T02:50:14.749Z">2026-08-31T02:50:14.749Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-50-22-176Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-50-22-176Z" class="timestamp-link"><time datetime="2026-08-31T02:50:22.176Z" data-timestamp="2026-08-31T02:50:22.176Z">2026-08-31T02:50:22.176Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DV2jyxAoSG8pYTjdkxjW4S">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Probe real large-file result on preview</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad &amp;&amp; cat &gt; probe.mjs &lt;&lt;&#39;EOF&#39;
+import { chromium } from &#39;playwright&#39;
+const BIG = &#39;~/Code/cache-ttl-analyzer/.playwright-mcp/large-session.jsonl&#39;
+const b = await chromium.launch()
+const page = await b.newPage({ viewport: { width: 1280, height: 900 } })
+const errs = []
+page.on(&#39;console&#39;, m =&gt; m.type() === &#39;error&#39; &amp;&amp; errs.push(m.text().slice(0,160)))
+page.on(&#39;pageerror&#39;, e =&gt; errs.push(&#39;pageerror: &#39; + String(e).slice(0,160)))
+await page.goto(process.env.BASE, { waitUntil: &#39;load&#39; })
+const t0 = Date.now()
+const ch = page.waitForEvent(&#39;filechooser&#39;)
+await page.getByRole(&#39;button&#39;, { name: /Choose a file/ }).click()
+;(await ch).setFiles(BIG)
+await page.getByText(/Use the (5-minute|1-hour) cache/).waitFor({ timeout: 240000 })
+const tVerdict = ((Date.now() - t0)/1000).toFixed(1)
+// Let the whole sheet settle, then read the real numbers off it.
+await page.waitForTimeout(2000)
+const body = await page.innerText(&#39;body&#39;)
+console.log(JSON.stringify({
+  secToVerdict: tVerdict,
+  verdict: (body.match(/Use the (5-minute|1-hour) cache/)||[])[0],
+  requestsField: (body.match(/REQUESTS\n([^\n]+)/)||[])[1],
+  title: (body.match(/Large synthetic session[^\n]*/)||[])[0],
+  file: (body.match(/large-session\.jsonl[^\n]*/)||[])[0],
+  costs: (body.match(/\$[\d,]+\.\d\d/g)||[]).slice(0,4),
+  consoleErrors: errs,
+}, null, 2))
+await b.close()
+EOF
+BASE=https://pr-27-feat-wp-10-launch-polish-cache-ttl-analyzer.cebert.workers.dev node probe.mjs 2&gt;&amp;1 | tail -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T02-50-27-496Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T02-50-27-496Z" class="timestamp-link"><time datetime="2026-08-31T02:50:27.496Z" data-timestamp="2026-08-31T02:50:27.496Z">2026-08-31T02:50:27.496Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>{
+  &quot;secToVerdict&quot;: &quot;0.9&quot;,
+  &quot;verdict&quot;: &quot;Use the 5-minute cache&quot;,
+  &quot;requestsField&quot;: &quot;9,976 requests&quot;,
+  &quot;title&quot;: &quot;Large synthetic session, turn 9975&quot;,
+  &quot;file&quot;: &quot;large-session.jsonl · 99.9 MB&quot;,
+  &quot;costs&quot;: [
+    &quot;$37.41&quot;,
+    &quot;$37.41&quot;,
+    &quot;$329.13&quot;,
+    &quot;$366.54&quot;
+  ],
+  &quot;consoleErrors&quot;: []
+}
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-50-37-572Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-50-37-572Z" class="timestamp-link"><time datetime="2026-08-31T02:50:37.572Z" data-timestamp="2026-08-31T02:50:37.572Z">2026-08-31T02:50:37.572Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-50-38-998Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-50-38-998Z" class="timestamp-link"><time datetime="2026-08-31T02:50:38.998Z" data-timestamp="2026-08-31T02:50:38.998Z">2026-08-31T02:50:38.998Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Correction on my earlier number: the 100 MB analysis takes <strong>~1 second</strong>, not 10.4 — my local instrumentation started its clock before the file-chooser round trip, so ~9s of my own tool latency was inside the measurement. The preview run confirms it: 0.9s, 9,976 requests, 99.9 MB, $329.13 vs $366.54 — identical figures to the local run. Now the PLAN notes:</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-51-25-388Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-51-25-388Z" class="timestamp-link"><time datetime="2026-08-31T02:51:25.388Z" data-timestamp="2026-08-31T02:51:25.388Z">2026-08-31T02:51:25.388Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014KF94JRQVjnaJgZzzbPKFK">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Mark WP-10 complete with notes and decisions</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp10 &amp;&amp; python3 - &lt;&lt;&#39;PY&#39;
+p=&#39;docs/PLAN.md&#39;
+s=open(p).read()
+
+old = &#34;&#34;&#34;### WP-10 — Launch polish
+**Depends on:** WP-08, WP-09.
+README rewrite for end users; verify samples load on the deployed site;
+cross-browser pass (Chrome plus at least one of Safari/Firefox — the real
+compatibility risk is `File.stream()` in workers; Edge is Chromium); perf
+sanity check with the generated 100MB fixture; final wording pass on privacy
+and approximation disclosures.&#34;&#34;&#34;
+
+new = &#34;&#34;&#34;### WP-10 — Launch polish ✅ complete (PR #27, 2026-08-30)
+**Depends on:** WP-08, WP-09.
+README rewrite for end users; verify samples load on the deployed site;
+cross-browser pass (Chrome plus at least one of Safari/Firefox — the real
+compatibility risk is `File.stream()` in workers; Edge is Chromium); perf
+sanity check with the generated 100MB fixture; final wording pass on privacy
+and approximation disclosures.
+
+**Implementation notes (2026-08-30):**
+
+- **i18n plurals (the one real defect).** i18next selects a plural form from
+  one variable per key (`count`), so a string carrying two counts could not
+  agree with both: `subagentThreads_one` rendered &#34;1 thread, 45 request**s**&#34;
+  correctly only by luck, and `limitSubagentsOnly` / `limitSubagentsPresent`
+  had no plural forms at all. Each count is now a `counts.*` fragment resolved
+  by `useCounted` (`src/i18n/counted.ts`), and the sentence interpolates
+  finished fragments; `CountNoun` is derived from the catalog so a fragment
+  cannot lose its forms silently. Eight strings were wrong this way — the two
+  reported plus `subagentThreads`, `badgeResets` (&#34;1 resets&#34;),
+  `limitUnknownModels` (&#34;1 requests are excluded&#34;), `samples.meta`,
+  `bandSentence`&#39;s `total` and `resetsWaste`&#39;s token count.
+  `src/i18n/plurals.test.ts` carries the durable part: three catalog
+  invariants, the load-bearing one failing any string that puts a
+  non-selector variable immediately before a plural noun. Verified by
+  reintroducing the original bug and watching it fail — the whole class
+  produces copy that still reads like copy, which is why nothing caught it.
+  `bandSentence_one`/`_other` being identical is correct English, not a bug.
+- **The 100MB fixture was over the cap, so the perf check had never been
+  runnable in a browser.** The generator emits a whole turn at a time, so
+  targeting `MAX_FILE_SIZE_BYTES` exactly overshot it — the manifest read
+  104,867,601 bytes against a 104,857,600 cap. Every Node test passed because
+  the parser streams it happily; `file-validation.ts` rejects an over-cap file
+  before a worker exists. It now targets one turn&#39;s margin under the cap
+  (the largest file the app will accept, which is the interesting case) and
+  `ensureLargeFixture` throws if that stops holding.
+- **Samples cut to four (D24)** and the heading now names them. WP-D left it
+  as &#34;Or try one of these&#34;.
+- **Type ramp and nav (D25)** deviate from WP-D deliberately; see the log.
+- **Well-known files (D26):** `robots.txt`, `sitemap.xml`, `site.webmanifest`
+  (the CSP already permitted `manifest-src &#39;self&#39;`), an apple-touch-icon
+  rasterized from the brand mark, `.well-known/security.txt` pointing at
+  GitHub advisories rather than publishing an email, plus link-preview
+  metadata and a canonical URL. The og:image is self-hosted like every other
+  asset — an external card host would weaken the claim the CSP exists to
+  prove. **security.txt carries an `Expires` of 2027-08-30 and needs renewing
+  before then.**
+- **Vendor references on About.** The divergences are why the section exists:
+  Bedrock is five-minute-only on Claude 3.7 Sonnet and 3.5 Sonnet v2, and
+  Google Cloud does not support the 1h TTL on four older Claude models, so a
+  one-hour verdict is not actionable for those readers. Every URL fetched and
+  200 on 2026-08-30.
+
+*Verified against the deployed preview* (`pr-27-…workers.dev`, the real
+Workers runtime with the production `_headers`), not just locally:
+
+| Check | Evidence |
+|---|---|
+| All four samples load and render | Each clicked through to its verdict; `gap-heavy-5m` 1h $0.31 vs $0.56, `real-session` 1h saving $21.41 over 126 requests, `tight-loop-5m` 5m, `model-switch` 5m with 2 resets |
+| Deep links resolve | `/find-your-logs`, `/data-policy`, `/about` each served the SPA shell and rendered distinct content |
+| CSP and security headers intact | All eight served, full `connect-src &#39;self&#39;` CSP |
+| No console errors | Zero errors or warnings across every run, all three engines |
+| 100MB fixture in a real browser | 99.9 MB accepted, **~1s to a rendered verdict**, 9,976 requests, $329.13 (5m) vs $366.54 (1h). Page stayed responsive throughout: rAF p50 20.0ms, p95 20.9ms, 3 frames over 100ms, one 515ms spike at the final results render |
+| Cancel actually terminates | Instrumented `Worker.terminate`: 1 created, 1 terminated; worker messages stopped 447ms after the click and nothing arrived in the following 12s; UI showed &#34;Analysis cancelled&#34; and no verdict |
+| Cross-browser | **Chromium, Firefox and WebKit** all passed the full flow — sample → 100MB upload → cancel — against the https preview, with zero console errors. `File.stream()` in a module worker, the stated risk, works in all three |
+
+Note: WebKit cannot be tested against `http://localhost` — the app&#39;s own
+`Strict-Transport-Security` header makes it upgrade to https, which then
+fails TLS locally. Test WebKit against a deployed https URL.
+
+**Deferred out of this WP:** the published transcripts are missing 39
+mid-turn human messages across 9 of 13 sessions. Cause is upstream —
+`claude-code-transcripts` v0.6 `_parse_jsonl_file()` drops every record whose
+type is not `user`/`assistant`, and a message typed while Claude is working is
+logged as `queue-operation`. The content is intact in the committed
+`session.jsonl`; the loss is at render time. Its own PR.&#34;&#34;&#34;
+
+assert old in s; s=s.replace(old,new)
+
+# decision log
+old_d = &#34;&#34;&#34;| D21 | `inference_geo` is not modeled;&#34;&#34;&#34;
+new_d = &#34;&#34;&#34;| D23 | The contract&#39;s mixed-TTL paragraph is amended to match the simulator: the residual split is the server-tool share **only in a 1h-dominant bucket**; in a 5m-dominant bucket a 1h residual is a mid-session config flip and every write is user-controlled | The paragraph called the residual the server-tool share unconditionally and then said nonzero 1h tokens are user-controlled — contradictory for a 5m-dominant bucket with a 1h residual. The simulator has always followed the rationale (WP-05 notes), so this is wording only: no behavior change, and all 60 goldens re-checked unmoved. Flagged &#34;amend when next touched&#34; since WP-05; WP-10 touched it. (User, 2026-08-30) |
+| D24 | Four bundled samples, not five: `gap-heavy-1h` loses its card. Both files stay as fixtures and goldens | `gap-heavy-1h` and `gap-heavy-5m` are the same prompts and gaps recorded at the two TTLs, so a card for each teaches one lesson twice. The 5m one is the keeper: a session actually configured at 5m where 1h wins is the actionable finding the tool exists to surface, and it is the only sample exercising partial lapses. The 1h twin mostly confirms the status quo. (User, 2026-08-30) |
+| D25 | Two deliberate deviations from WP-D&#39;s signed-off design: the reading end of the type ramp goes up ~1px (body 13 → 14, and the 10–17px range with it), and the three standing links move from the sidebar footer to just under *Add session* | Type: the ramp read small on both phone and desktop once it was real rather than an artboard; the display sizes (23px+) are unchanged, so the hierarchy WP-D set is intact, and the three fixed-width label columns were widened to match. Nav: the three were not the same kind of link — &#34;Find your logs&#34; is a task link you need *before* you can upload anything, and filing it with two meta links in the footer read as an afterthought. The session list keeps the flexible space below them. (User, 2026-08-30) |
+| D26 | Ship the standard well-known files, with `security.txt` pointing at GitHub security advisories rather than an email address, and a self-hosted og:image | A public site should serve `robots.txt`, a sitemap and a manifest; the CSP already permitted `manifest-src &#39;self&#39;`, so one had been intended. The advisories URL avoids publishing a personal address for scraping. The og:image is self-hosted because `img-src &#39;self&#39;` is what the CSP allows and an external card host would weaken the claim the CSP exists to prove. `Expires` on security.txt needs renewing by 2027-08-30. (User, 2026-08-30) |
+| D21 | `inference_geo` is not modeled;&#34;&#34;&#34;
+assert old_d in s; s=s.replace(old_d,new_d,1)
+
+# D21 gets its disclosure upgrade recorded
+s=s.replace(&#34;&#34;&#34;Stated as an assumption in fixtures/README.md and pinned by a fixture rather than left silent; amend the contract if it starts appearing in real logs. (User, 2026-08-30) |&#34;&#34;&#34;,
+&#34;&#34;&#34;Stated as an assumption in fixtures/README.md and pinned by a fixture rather than left silent; amend the contract if it starts appearing in real logs. **Reaffirmed in WP-10** — modelling it means a contract amendment, engine and refsim changes and re-emitting every golden, which is disproportionate for launch polish — but the ~10% understatement is now disclosed in the UI&#39;s limits panel and on the About page, not only in fixtures/README.md, since the engine cannot detect the field per request and the line must therefore be unconditional. (User, 2026-08-30) |&#34;&#34;&#34;)
+
+# risk table
+s=s.replace(&#34;| Huge session files stall the browser | Streaming parse in a worker; progress + cancel; 100MB perf test in WP-10 |&#34;,
+            &#34;| ~~Huge session files stall the browser~~ | Closed in WP-10: 99.9 MB analyzed in ~1s in Chromium, Firefox and WebKit on the deployed preview, page responsive throughout (rAF p95 20.9ms), and cancel verified to really terminate the worker |&#34;)
+open(p,&#39;w&#39;).write(s)
+print(&#34;PLAN.md updated&#34;)
+PY
+npx prettier --check docs/PLAN.md 2&gt;&amp;1|tail -2</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T02-51-27-239Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T02-51-27-239Z" class="timestamp-link"><time datetime="2026-08-31T02:51:27.239Z" data-timestamp="2026-08-31T02:51:27.239Z">2026-08-31T02:51:27.239Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>PLAN.md updated
+Checking formatting...
+All matched files use Prettier code style!
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-51-34-418Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-51-34-418Z" class="timestamp-link"><time datetime="2026-08-31T02:51:34.418Z" data-timestamp="2026-08-31T02:51:34.418Z">2026-08-31T02:51:34.418Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DD8fZX3inHynJVDzwb4uYj">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit PLAN.md updates</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp10 &amp;&amp; npx vitest run 2&gt;&amp;1|tail -4 &amp;&amp; npm run lint &gt;/dev/null 2&gt;&amp;1 &amp;&amp; npm run format:check &gt;/dev/null 2&gt;&amp;1 &amp;&amp; git add -A &amp;&amp; git commit -q -m &#34;docs(plan): mark WP-10 complete with verification evidence and D23-D26&#34; -m &#34;Records what was verified against the deployed preview rather than
+locally: four samples, deep links, CSP, zero console errors, the 100MB
+fixture at ~1s with frame timings, cancel proven to terminate the worker,
+and the full flow passing in Chromium, Firefox and WebKit.
+
+Adds D23 (contract wording), D24 (four samples), D25 (the two deliberate
+WP-D deviations) and D26 (well-known files), reaffirms D21 with its new
+UI disclosure, and closes the huge-files risk.
+
+Notes the deferred transcript-rendering defect and its upstream cause.&#34; &amp;&amp; git push -q &amp;&amp; git log --oneline -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T02-51-40-767Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T02-51-40-767Z" class="timestamp-link"><time datetime="2026-08-31T02:51:40.767Z" data-timestamp="2026-08-31T02:51:40.767Z">2026-08-31T02:51:40.767Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>      Tests  551 passed (551)
+   Start at  22:51:36
+   Duration  1.90s (transform 977ms, setup 484ms, import 1.49s, tests 4.77s, environment 1.20s)
+
+a74f497 docs(plan): mark WP-10 complete with verification evidence and D23-D26
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-51-42-803Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-51-42-803Z" class="timestamp-link"><time datetime="2026-08-31T02:51:42.803Z" data-timestamp="2026-08-31T02:51:42.803Z">2026-08-31T02:51:42.803Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now the session transcript, then merge:</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-51-44-267Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-51-44-267Z" class="timestamp-link"><time datetime="2026-08-31T02:51:44.267Z" data-timestamp="2026-08-31T02:51:44.267Z">2026-08-31T02:51:44.267Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0155a5dXJn3r2hhwokbi872W"><div class="tool-header"><span class="tool-icon">⚙</span> Skill</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;skill&#34;: &#34;publish-transcript&#34;,
+  &#34;args&#34;: &#34;Publish this WP-10 launch polish session. Work in the worktree ~/Code/cache-ttl-analyzer-wp10 on branch feat/wp-10-launch-polish, and commit the transcript there so it lands in PR #27.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T02-51-44-314Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T02-51-44-314Z" class="timestamp-link"><time datetime="2026-08-31T02:51:44.314Z" data-timestamp="2026-08-31T02:51:44.314Z">2026-08-31T02:51:44.314Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Launching skill: publish-transcript</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message user" id="msg-2026-08-31T02-51-44-312Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-31T02-51-44-312Z" class="timestamp-link"><time datetime="2026-08-31T02:51:44.312Z" data-timestamp="2026-08-31T02:51:44.312Z">2026-08-31T02:51:44.312Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Base directory for this skill: ~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript</p>
+<h1>Publish a session transcript</h1>
+<p>Turns one Claude Code session for this repo into one committed folder holding
+both published forms:</p>
+<pre><code>transcripts/&lt;NNN-slug&gt;/
+  session.jsonl    the redacted session log
+  index.html       rendered via simonw/claude-code-transcripts
+  page-001.html
+</code></pre>
+<p><strong>The HTML is rendered from the redacted JSONL, never from the original.</strong>
+Redact once at the source and both outputs stay consistent — never redact the
+rendered HTML separately.</p>
+<p><code>to_text.py</code> renders a session as plain text for <em>your</em> review in step 2. That
+rendering is a working file: it is never committed. Only <code>session.jsonl</code> and the
+rendered HTML go into the repo.</p>
+<h2>Prerequisites</h2>
+<p><code>claude-code-transcripts</code> must be on PATH. If <code>which claude-code-transcripts</code>
+comes up empty, run it via <code>uvx claude-code-transcripts</code> instead, or install with
+<code>uv tool install claude-code-transcripts</code>.</p>
+<p>Scripts live in <code>.claude/skills/publish-transcript/scripts/</code>. Below, <code>$S</code> means
+that directory and <code>$W</code> a scratch working directory (use the session scratchpad,
+not the repo — intermediate files must never be committed).</p>
+<h2>Step 1 — Pick the session</h2>
+<pre><code class="language-bash">python3 $S/list_sessions.py --limit 20
+</code></pre>
+<p>Show the list and ask the user which session to publish, unless they already
+named one (by session id, by "the current session", or by describing its topic
+clearly enough to match exactly one row).</p>
+<p><strong>Publishing the current session:</strong> the JSONL is still being written, so it will
+not contain this final turn. That is expected and fine — say so, and offer to
+re-run later if they want the tail included. Note that the skill is loaded at
+session start, so a session that <em>created or edited</em> the skill cannot invoke it
+by name; follow these steps directly instead.</p>
+<h2>Step 2 — Stage and render for review</h2>
+<pre><code class="language-bash">mkdir -p $W
+cp ~/.claude/projects/&lt;project-slug&gt;/&lt;session-id&gt;.jsonl $W/original.jsonl
+python3 $S/to_text.py $W/original.jsonl -o $W/review.txt --max-tool-output 4000
+</code></pre>
+<p><code>list_sessions.py</code> prints the absolute source path — copy it from there rather
+than reconstructing it.</p>
+<h2>Step 3 — Find sensitive material</h2>
+<p>Two passes, both required. The regex pass catches well-shaped secrets; the
+reading pass catches everything shaped like ordinary prose.</p>
+<p><strong>Pass A — regex triage:</strong></p>
+<pre><code class="language-bash">python3 $S/scan_secrets.py $W/original.jsonl
+</code></pre>
+<p><strong>Pass B — read the transcript.</strong> Read <code>$W/review.txt</code> in full. For a long
+session, read it in chunks — do not skim, and do not delegate this to a subagent
+that only reports back a summary. You are looking for things a regex cannot
+match:</p>
+<ul>
+<li>Credentials, tokens, API keys, passwords, connection strings — including ones
+  pasted mid-sentence or shown in command output</li>
+<li>Real names, emails, phone numbers, addresses of anyone (the user included)</li>
+<li>Customer, client, or employer names the user may not want public</li>
+<li>Internal hostnames, private URLs, ticket IDs, Slack/DM links, S3 buckets</li>
+<li><strong>Names of the user's other projects.</strong> A session that ran <code>ls ~/.claude/projects</code>,
+  <code>git remote -v</code> elsewhere, or any directory listing above the repo will name
+  unrelated work. A regex cannot catch this — it is the single most likely real
+  leak in an otherwise clean session.</li>
+<li>Unreleased or confidential product details discussed in passing</li>
+<li><code>.env</code> file contents, private keys, or <code>~/.aws/credentials</code> echoed by a tool</li>
+<li>Anything in a file the repo's <code>.gitignore</code> excludes (this repo ignores
+  <code>.env</code>, <code>.env.*</code>) — if its contents appear in the transcript, redact them</li>
+</ul>
+<p>Judgment calls to raise with the user rather than decide alone:</p>
+<ul>
+<li><strong>The user's own name and email.</strong> They are already in the git history of this
+  repo, so redacting them is usually pointless — but ask, don't assume.</li>
+<li><strong>Home directory paths</strong> (<code>/Users/&lt;name&gt;/...</code>). Low risk, but they leak a
+  username and local layout. Offer to rewrite them to <code>~/</code>.</li>
+<li><strong>Third parties' names.</strong> Default to redacting these; a person who was
+  mentioned in a session did not consent to being published.</li>
+</ul>
+<h2>Step 4 — Propose redactions</h2>
+<p>Write <code>$W/redactions.json</code> — a list of rules, each with a <code>reason</code>:</p>
+<pre><code class="language-json">[
+  {&quot;find&quot;: &quot;sk-ant-api03-REAL-KEY&quot;, &quot;replace&quot;: &quot;[REDACTED_API_KEY]&quot;, &quot;reason&quot;: &quot;Anthropic API key in tool output&quot;},
+  {&quot;find&quot;: &quot;coworker@example.com&quot;, &quot;replace&quot;: &quot;[REDACTED_EMAIL]&quot;, &quot;reason&quot;: &quot;third party PII&quot;},
+  {&quot;find&quot;: &quot;~&quot;, &quot;replace&quot;: &quot;~&quot;, &quot;reason&quot;: &quot;local home path&quot;}
+]
+</code></pre>
+<p>Rules are literal by default; add <code>"regex": true</code> for a pattern. Use
+<code>[REDACTED_&lt;KIND&gt;]</code> placeholders so a reader can tell <em>what</em> was removed.</p>
+<p><strong>Redact the shortest distinctive token, not the full prefixed value.</strong> A
+transcript contains <em>truncated</em> copies of its own content — tool output gets cut
+off, scanner context windows clip mid-value, and prose refers to values with an
+ellipsis. A rule for <code>sk-ant-api03-&lt;key&gt;</code> will sail past <code>...-api03-&lt;key&gt;</code> and
+<code>sk-ant-api03-&lt;pre&gt;...</code>, leaving fragments behind. Add a rule for the bare core
+(<code>&lt;key&gt;</code>) as well as the full value, and for a multi-part name like
+<code>acme-widget-service</code> add one for <code>acme</code> too.</p>
+<p><strong>Watch for self-reference.</strong> Once a session discusses its own redaction, the
+sensitive strings appear in the discussion — in your grep commands, your
+findings summary, and your questions to the user. Re-copying the source JSONL
+after that point pulls those in, and each re-copy adds more. Copy the source
+once, redact and verify against that snapshot, and stop; do not chase the tail.</p>
+<p>Present the proposed list to the user — grouped by category, with the reason and
+match count for each — and get approval before applying. <strong>If you find a live
+credential, tell the user plainly that it should be rotated</strong>, since it existed
+in plaintext on disk regardless of what gets published.</p>
+<p>If both passes come up clean, say so explicitly and confirm they want to publish
+unredacted rather than silently proceeding.</p>
+<h2>Step 5 — Apply and verify</h2>
+<pre><code class="language-bash">python3 $S/apply_redactions.py $W/original.jsonl $W/redactions.json \
+    -o $W/redacted.jsonl --verify
+python3 $S/scan_secrets.py $W/redacted.jsonl
+</code></pre>
+<p><code>--verify</code> fails if any literal target survived. Investigate a <code>NO MATCHES</code>
+warning before continuing — it usually means a typo'd rule, which means
+something you meant to redact is still in the file.</p>
+<p>The second scan is the real check: re-read its output and confirm every
+remaining hit is something you and the user consciously decided to keep.</p>
+<h2>Step 6 — Render the two artifacts</h2>
+<p>Name the session <code>NNN-short-topic</code>: a zero-padded counter one higher than the
+highest folder already in <code>transcripts/</code>, plus a kebab-case topic — e.g.
+<code>002-cost-model</code>.</p>
+<p><code>--json</code> copies the JSONL into the output directory alongside the HTML, naming
+it after the input file. Rename the redacted file to <code>session.jsonl</code> first so it
+lands with the right name, and the whole folder is produced in one command:</p>
+<pre><code class="language-bash">SLUG=&lt;NNN-short-topic&gt;
+mv $W/redacted.jsonl $W/session.jsonl
+claude-code-transcripts json $W/session.jsonl -o transcripts/$SLUG --json
+</code></pre>
+<p>Do not pass <code>--gist</code> — that uploads to a public Gist, which is a separate
+publishing decision the user has to make explicitly.</p>
+<p>Then confirm the redaction survived rendering:</p>
+<pre><code class="language-bash">python3 $S/scan_secrets.py transcripts/$SLUG/*
+</code></pre>
+<h2>Step 7 — Update the session map</h2>
+<p>Add a row to the table in <code>transcripts/README.md</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Session</th>
+<th>Covers</th>
+<th>Share link</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td><a href="001-transcript-skill/">001-transcript-skill</a></td>
+<td>Built the transcript publishing skill</td>
+<td><a href="https://cebert.github.io/cache-ttl-analyzer/001-transcript-skill/">open</a></td>
+<td>3 emails redacted</td>
+</tr>
+</tbody>
+</table>
+<p>Keep rows in date order. Put a short, honest note about what was redacted in the
+Notes column — that is the reader's signal that gaps are deliberate.</p>
+<p>The share link is the GitHub Pages copy —
+<code>https://cebert.github.io/cache-ttl-analyzer/&lt;slug&gt;/</code>, live once the commit
+reaches <code>main</code>. This table is also the source for that site's landing page, so
+a missing or misspelled row fails the <code>Transcripts site</code> workflow rather than
+publishing a broken index. Check the table still matches the folders with:</p>
+<pre><code class="language-bash">npm run build:transcripts
+</code></pre>
+<p><strong>Ask the user what the session covers — don't just write it yourself.</strong> Propose
+a one-line summary drawn from reading the transcript, and ask them to confirm or
+replace it. They know why the session mattered; the transcript only shows what
+happened in it.</p>
+<p>Aim the summary at <em>why the work was done</em>, not the mechanics of what was
+typed. Where a session advanced a stated goal of the project, say so — that
+connection is the reason the transcript is worth keeping, and it is exactly the
+part a reader cannot reconstruct from the log.</p>
+<ul>
+<li>Weak: "Created four Python scripts and a SKILL.md"</li>
+<li>Better: "Built the transcript publishing skill, so build sessions can be
+  published without leaking secrets or PII — a stated goal of the project"</li>
+</ul>
+<p>Use the same confirmed summary for the commit subject in step 8, so the map row
+and the git history agree.</p>
+<h2>Step 8 — Commit</h2>
+<p>This repo uses <a href="https://www.conventionalcommits.org/">Conventional Commits</a>.
+Transcript publishing is a <code>docs</code> change:</p>
+<pre><code class="language-bash">git add transcripts/
+git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
+</code></pre>
+<p>Guidance:</p>
+<ul>
+<li>Subject in imperative mood, no trailing period, under ~72 characters.</li>
+<li>If anything was redacted, note it in the body — e.g.
+  <code>Redacted 2 API keys and 3 third-party email addresses before publishing.</code></li>
+<li>Commit only under <code>transcripts/</code>; leave unrelated working-tree changes alone.</li>
+<li>Do not push unless the user asks. Publishing to a remote is their call, and it
+  is the point of no return for anything that slipped through redaction.</li>
+</ul>
+<p>ARGUMENTS: Publish this WP-10 launch polish session. Work in the worktree ~/Code/cache-ttl-analyzer-wp10 on branch feat/wp-10-launch-polish, and commit the transcript there so it lands in PR #27.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-51-47-238Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-51-47-238Z" class="timestamp-link"><time datetime="2026-08-31T02:51:47.238Z" data-timestamp="2026-08-31T02:51:47.238Z">2026-08-31T02:51:47.238Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_013UaYmCPSrJJXAkbTy9Xj5q">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">List recent sessions</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp10 &amp;&amp; python3 .claude/skills/publish-transcript/scripts/list_sessions.py --limit 8 2&gt;&amp;1 | head -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T02-51-48-713Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T02-51-48-713Z" class="timestamp-link"><time datetime="2026-08-31T02:51:48.713Z" data-timestamp="2026-08-31T02:51:48.713Z">2026-08-31T02:51:48.713Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>No session store found at ~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer-wp10
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T02-51-51-723Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T02-51-51-723Z" class="timestamp-link"><time datetime="2026-08-31T02:51:51.723Z" data-timestamp="2026-08-31T02:51:51.723Z">2026-08-31T02:51:51.723Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019iEV7tdqgzEhDf6FsrRtyv">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">List sessions from main checkout</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 .claude/skills/publish-transcript/scripts/list_sessions.py --limit 8 2&gt;&amp;1 | head -40</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T02-51-53-207Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T02-51-53-207Z" class="timestamp-link"><time datetime="2026-08-31T02:51:53.207Z" data-timestamp="2026-08-31T02:51:53.207Z">2026-08-31T02:51:53.207Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre> 1. 00cafd7d-bf73-4f90-aea8-752607f5624a
+    2026-08-31T02:51:48Z  4555 KB  208 user / 345 assistant turns  branch=ci/transcripts-github-pages
+    WP-10 launch polish
+ 2. cafad611-1b34-45ff-94bc-e00c46ce127c
+    2026-08-31T02:30:58Z  7723 KB  237 user / 411 assistant turns  branch=ci/transcripts-github-pages
+    Worktree PR UX oddities
+ 3. 1df33a8f-b624-49d6-bb98-c9e1959c1650
+    2026-08-31T02:29:52Z  177 KB  14 user / 21 assistant turns  branch=feat/scaffold-and-engine-contract
+    Claude design task 2 prompt
+ 4. bb530185-b4eb-4701-b3e3-1a2668b890e5
+    2026-08-31T02:10:20Z  4475 KB  275 user / 433 assistant turns  branch=ci/transcripts-github-pages
+    WP-06 simulator follow-up and WP-08 results UI
+ 5. c25961e2-7be0-4e5c-a928-62fcaed4c0e0
+    2026-08-31T01:17:59Z  752 KB  109 user / 169 assistant turns  branch=ci/transcripts-github-pages
+    Session log doc update
+ 6. 2436569a-e3cb-4e8e-877b-af31a990660c
+    2026-08-31T01:09:22Z  2912 KB  129 user / 270 assistant turns  branch=ci/transcripts-github-pages
+    WP-06 implementation
+ 7. 0e7641fb-f23b-4b94-b939-28216127ef0f
+    2026-08-31T01:02:43Z  3366 KB  143 user / 310 assistant turns  branch=main
+    WP-03 Parser implementation
+ 8. a7077fe4-31d2-42f6-9309-cefd1c7be615
+    2026-08-31T00:53:07Z  4051 KB  229 user / 360 assistant turns  branch=ci/transcripts-github-pages
+    WP-07 UI</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-004.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<span class="current">5</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

@@ -151,7 +151,34 @@ something you meant to redact is still in the file.
 The second scan is the real check: re-read its output and confirm every
 remaining hit is something you and the user consciously decided to keep.
 
-## Step 6 — Render the two artifacts
+## Step 6 — Recover mid-turn messages
+
+A message typed *while Claude is working* is not logged as a `type: "user"`
+record — Claude Code writes it as a `queue-operation`, and the renderer
+discards every record that is not `user` or `assistant`
+(`claude-code-transcripts` v0.6, `__init__.py:481`). Left alone, those
+messages vanish from the HTML while staying in the JSONL. Across this repo's
+first fourteen sessions that silently hid **50 human messages**; one session
+published 2 prompts where 10 were sent.
+
+```bash
+python3 $S/restore_queued_messages.py $W/redacted.jsonl \
+    -o $W/for-render.jsonl --report
+```
+
+Read the `--report` list: it is exactly what was invisible before. The script
+skips queued messages that were later delivered normally (so nothing is
+duplicated) and `<task-notification>` payloads (harness plumbing, not the
+user's voice).
+
+**Render from `for-render.jsonl`, but commit `redacted.jsonl`.** The recovered
+rows are synthetic — the archive should stay the authentic log. Each recovered
+message renders prefixed `[sent mid-turn]`, because the renderer starts a new
+conversation at every user record, so a message that interrupted a turn
+necessarily displays as a top-level prompt; the prefix is what keeps that
+honest.
+
+## Step 7 — Render the two artifacts
 
 Name the session `NNN-short-topic`: a zero-padded counter one higher than the
 highest folder already in `transcripts/`, plus a kebab-case topic — e.g.
@@ -164,8 +191,13 @@ lands with the right name, and the whole folder is produced in one command:
 ```bash
 SLUG=<NNN-short-topic>
 mv $W/redacted.jsonl $W/session.jsonl
-claude-code-transcripts json $W/session.jsonl -o transcripts/$SLUG --json
+claude-code-transcripts json $W/for-render.jsonl -o transcripts/$SLUG
+cp $W/session.jsonl transcripts/$SLUG/session.jsonl
 ```
+
+The render and the committed log come from different files, so `--json` is not
+used: the HTML is built from `for-render.jsonl` and the authentic
+`session.jsonl` is copied in beside it.
 
 Do not pass `--gist` — that uploads to a public Gist, which is a separate
 publishing decision the user has to make explicitly.
@@ -176,7 +208,7 @@ Then confirm the redaction survived rendering:
 python3 $S/scan_secrets.py transcripts/$SLUG/*
 ```
 
-## Step 7 — Update the session map
+## Step 8 — Update the session map
 
 Add a row to the table in `transcripts/README.md`:
 
@@ -211,10 +243,10 @@ part a reader cannot reconstruct from the log.
 - Better: "Built the transcript publishing skill, so build sessions can be
   published without leaking secrets or PII — a stated goal of the project"
 
-Use the same confirmed summary for the commit subject in step 8, so the map row
+Use the same confirmed summary for the commit subject in step 9, so the map row
 and the git history agree.
 
-## Step 8 — Commit
+## Step 9 — Commit
 
 This repo uses [Conventional Commits](https://www.conventionalcommits.org/).
 Transcript publishing is a `docs` change:

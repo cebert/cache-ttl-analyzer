@@ -145,7 +145,7 @@ details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom
 </head>
 <body>
     <div class="container">
-        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 2/4</h1>
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 2/5</h1>
         
 
 <div class="pagination">
@@ -155,10 +155,423 @@ details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom
 <span class="current">2</span>
 <a href="page-003.html">3</a>
 <a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
 <a href="page-003.html">Next &rarr;</a>
 </div>
 
         
+<div class="message user" id="msg-2026-08-30T19-49-02-478Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T19-49-02-478Z" class="timestamp-link"><time datetime="2026-08-30T19:49:02.478Z" data-timestamp="2026-08-30T19:49:02.478Z">2026-08-30T19:49:02.478Z</time></a></div><div class="message-content">
+<div class="user-content"><p>[sent mid-turn] please make sure to incorperate our plan to use Claude Design for the UX</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-18-464Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-18-464Z" class="timestamp-link"><time datetime="2026-08-30T19:50:18.464Z" data-timestamp="2026-08-30T19:50:18.464Z">2026-08-30T19:50:18.464Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_011XtBXtpoo2DtmGZdNKnc8T">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># Build plan
+
+The plan for taking cache-ttl-analyzer from scaffolding to a deployed MVP.
+Grounded in the research at
+[docs/design/claude-code-session-logs/feasibility.md](design/claude-code-session-logs/feasibility.md)
+(referenced below as &#34;the feasibility doc&#34;) — read it before implementing the
+parser or simulator; it documents the traps that make naive implementations
+silently wrong.
+
+This plan is decomposed into **work packages (WPs)** sized for individual Claude
+sessions, with an explicit dependency graph so independent WPs can run in
+parallel.
+
+---
+
+## 1. MVP definition
+
+A static web app, deployed to Cloudflare, where a user:
+
+1. Uploads **one Claude Code session log (JSONL)** at a time — or loads a
+   bundled sample.
+2. Watches analysis run **entirely in their browser** (Web Worker), with a
+   progress indicator and a cancel button.
+3. Gets a verdict: what the session actually cost at published Anthropic API
+   rates, what it *would have cost* under the other cache TTL (5m vs 1h), and a
+   recommendation.
+4. Sees cache-behavior insights: cache invalidations (expiry gaps, and hard
+   resets from model / effort / version changes), warm-read counts, and short
+   educational explanations of each.
+5. Can revisit sessions analyzed earlier in the same browser session
+   (in-memory history only — nothing persisted).
+
+Plus: clear instructions for finding session logs on macOS and Windows, a
+prominent privacy statement (&#34;analysis is local; this is open source — verify
+it yourself&#34; with a link to the repo), and a &#34;prices as of&#34; date on every
+dollar figure.
+
+### Non-goals for MVP (deferred, in rough priority order)
+
+- **Anthropic API deep-analysis feature** (upload timestamps/token counts for
+  richer analysis). Deferred until MVP proves useful. When picked up, the
+  BYO-API-key vs. our-key-plus-rate-limiting decision gets made then.
+- Multi-file / folder upload and cross-session rollups (requires global dedup
+  and cross-session cache modeling — feasibility doc §6.3, §7).
+- Provider-specific rate tables (Bedrock, Vertex). MVP uses Anthropic
+  published API rates only — see decision log.
+- Claude Code **web JSON export** input. Unverified that it carries `usage`
+  (feasibility doc §10). JSONL only for MVP.
+- Durable persistence, accounts, authentication.
+- Vanity domain. Launch on `workers.dev`; domain cutover is a fast follow once
+  a name is chosen.
+
+---
+
+## 2. Architecture
+
+- **Stack:** React + TypeScript + Vite. Deployed as **static assets on
+  Cloudflare Workers** via Wrangler. **No server-side code in the MVP** — this
+  is deliberate: the strongest form of the privacy claim is that there is no
+  backend to send data to.
+- **Analysis engine** (`src/engine/`): pure TypeScript, zero DOM/React
+  dependencies, so it runs in a Web Worker and is unit-testable in Node.
+  - **Parser** reads only the fields it needs (`type`, `timestamp`,
+    `message.id`, `message.model`, `message.usage`, `isSidechain`, `effort`,
+    `version`) and **never reads `message.content`** — enforced by a test that
+    feeds a session whose content blocks are poison values and asserts they
+    never appear in any output (feasibility doc §9).
+  - **Simulator** implements the counterfactual model from the feasibility
+    doc: see §3 below.
+- **Web Worker** wraps the engine: streams the file
+  (`File.stream()` + line splitting, so large logs don&#39;t need one giant
+  string), posts progress messages, and supports cancellation (terminate).
+- **Pricing config** (`src/config/pricing.json`): per-model base rates, cache
+  multipliers (read 0.1×, 5m write 1.25×, 1h write 2.0×), `service_tier` and
+  `speed` modifiers, and a top-level `pricesAsOf` date shown in the UI.
+  Unknown model IDs are reported to the user, never guessed.
+- **UI** consumes a frozen engine contract (WP-02) so UI and engine work can
+  proceed in parallel.
+
+### Engine correctness rules (from the feasibility doc — all mandatory)
+
+| Rule | Source |
+|---|---|
+| Dedup rows on `message.id` (one row per content block, each carries full usage; up to 13× overstatement otherwise) | §6.1 |
+| Exclude `message.model == &#34;&lt;synthetic&gt;&#34;` rows | §6.2 |
+| Partition by `isSidechain` before computing gaps — sidechains are a separate cache namespace | §6.4 |
+| Hard cache reset on any change of `model`, `effort`, or `version`, independent of elapsed time | §6.6 |
+| Price per request (models/tiers/speed can vary mid-session); honor `service_tier` and `speed` | §6.5 |
+| Gap timing: use the preceding `user` row&#39;s timestamp as request start | §7 |
+| Expiry model is all-or-nothing per gap; this is conservative toward 5m — disclose it in the UI | §7 |
+| Effective TTL comes from `usage.cache_creation` (`ephemeral_5m` / `ephemeral_1h` split), treated as a token-weighted mix | §2 |
+| Unrecognized record types are skipped and counted, surfaced as &#34;N records skipped&#34; | §4 |
+| Warn (don&#39;t fail) when `version` is outside the validated range | §4 |
+
+---
+
+## 3. What the analysis reports
+
+**Headline:** the main-conversation bucket. Cost at 5m vs cost at 1h,
+recommendation, and delta — labelled as *notional cost at published Anthropic
+API rates* with a one-line rationale (subscription users have no per-token
+bill; API-rate framing is what an API/Bedrock/credits user pays and what
+everyone should understand — see decision log).
+
+**Conditionally:** if the session contains sidechain turns, a second section
+for the **subagent bucket** (`subagentPromptCacheTtl`), with its own
+recommendation. When no sidechains exist, this section does not appear, and
+the tool does not imply it evaluated subagent traffic (feasibility doc §3).
+
+**Insights (the educational layer):**
+
+- Timeline of cache events: writes, warm reads, expiries (with the gap that
+  caused each), hard resets (annotated with the cause: model switch, effort
+  change, version upgrade).
+- Counts: cache invalidations, warm-read requests, wasted-write tokens.
+- Observed effective TTL per bucket, and whether the configuration was
+  provably explicit (the two unambiguous patterns from feasibility doc §3) —
+  otherwise no claim about defaults.
+- Session shape summary: request count, span, largest gap, share of gaps in
+  the 5m–1h band (the only band where the choice matters).
+
+---
+
+## 4. Work packages
+
+Sized so each WP is one focused session producing one PR into `main`. Every PR
+passes CI (typecheck, lint, tests, build) and CodeRabbit review.
+
+### WP-01 — Scaffold and tooling
+**Depends on:** nothing. **Blocks:** everything.
+Vite + React + TS app skeleton; Vitest; ESLint + Prettier; `wrangler.jsonc`
+for Workers static assets; npm scripts (`dev`, `build`, `test`, `lint`,
+`typecheck`, `deploy`); README &#34;Development&#34; section filled in.
+*Acceptance:* `npm run build &amp;&amp; npm test` green; `wrangler dev` serves the
+placeholder app.
+
+### WP-02 — Engine contract (do in the same session as WP-01)
+**Depends on:** WP-01. **Blocks:** WP-03, WP-04, WP-05, WP-07, WP-08.
+The frozen TypeScript interfaces everything else codes against:
+`ParsedSession` (deduped request records + skip/warning counts),
+`AnalysisResult` (per-bucket actual/counterfactual costs, recommendation,
+insight events), the Web Worker message protocol (start / progress / cancel /
+result / error), and the `pricing.json` schema. Documented inline; changes
+after freeze require touching this plan.
+*Acceptance:* types compile; a stub engine returning canned data satisfies
+them end-to-end through a stub worker.
+
+### WP-03 — Parser
+**Depends on:** WP-02. **Parallel with:** WP-04, WP-06, WP-09.
+Streaming JSONL parser implementing the correctness rules table (dedup,
+synthetic exclusion, skip-and-count, version warnings, minimal field surface,
+content-poison test).
+*Acceptance:* unit tests for every rule; parses a 100MB synthetic file without
+loading it into one string.
+
+### WP-04 — Pricing config and cost engine
+**Depends on:** WP-02. **Parallel with:** WP-03, WP-06, WP-09.
+`pricing.json` populated from the published pricing page (with `pricesAsOf`);
+actual-cost computation per request (base, cache read, 5m/1h writes, output,
+tier/speed modifiers); unknown-model reporting.
+*Acceptance:* hand-computed unit tests (values worked out on paper, not
+generated by code) for each modifier combination.
+
+### WP-05 — Counterfactual simulator
+**Depends on:** WP-03, WP-04.
+The core product: replay the session under each TTL; per-bucket partition;
+gap-driven expiry; hard resets; insight-event generation (§3 above).
+*Acceptance:* unit tests for reset/expiry/refresh edge cases, plus the golden
+fixtures from WP-06 matching to the cent.
+
+### WP-06 — Fixtures and golden data
+**Depends on:** WP-02 (shapes only). **Parallel with:** WP-03, WP-04.
+Two kinds of fixtures:
+1. **Crafted synthetic JSONL** exercising each trap: content-block
+   duplication, synthetic rows, sidechains, mid-session model switch, effort
+   change, version change, gaps in the 5m–1h band, mixed
+   `ephemeral_5m`/`ephemeral_1h` writes, unknown record types, unknown model.
+2. **Real sessions generated by Claude** enacting scenarios (a tight agent
+   loop where 5m wins; a long gap-heavy session where 1h wins; a session that
+   switches models mid-way) — these double as the bundled samples in
+   `public/samples/` and as end-to-end verification that the tool&#39;s verdicts
+   match intuition.
+
+Extend `prototype-sim.py` to emit expected-output JSON per fixture; commit
+those as golden files with a test harness that runs the TS engine against
+them.
+*Acceptance:* golden files committed; harness wired into `npm test`; samples
+are content-scrubbed (they&#39;ll be public).
+
+### WP-07 — UI shell
+**Depends on:** WP-02; visual design from the Claude Design session.
+**Parallel with:** WP-05.
+Upload (drag-drop + picker), Web Worker wiring with progress bar and cancel,
+in-memory history of this browser session&#39;s analyses, &#34;find your logs&#34;
+instructions (macOS: `~/.claude/projects/...`; Windows path; note
+`CLAUDE_CONFIG_DIR` and the 30-day cleanup), privacy statement with repo
+link, sample-session loader.
+*Acceptance:* full flow works against the WP-02 stub engine; cancel actually
+terminates the worker mid-parse.
+
+### WP-08 — Results and insights UI
+**Depends on:** WP-05, WP-07.
+Recommendation card (with the API-rates framing line and `pricesAsOf` date),
+cost comparison, conditional subagent section, cache-event timeline,
+educational explainers, approximation disclosure (§7 conservatism), skipped
+records / version warnings surfaced.
+*Acceptance:* renders correctly for each WP-06 sample, including the
+no-sidechain and unknown-model cases.
+
+### WP-09 — CI/CD
+**Depends on:** WP-01. **Parallel with:** WP-03, WP-04, WP-06.
+GitHub Actions: PR workflow (typecheck, lint, test, build) required on
+`main`; deploy workflow on push to `main` via `wrangler deploy` using a
+Cloudflare API token secret. Document secret setup in README. Branch
+protection on `main`.
+*Acceptance:* a PR shows the checks; a merge to `main` deploys to
+`workers.dev` and the README&#39;s Live URL is updated.
+
+### WP-10 — Launch polish
+**Depends on:** WP-08, WP-09.
+README rewrite for end users; verify samples load on the deployed site;
+cross-browser pass (Chrome, Safari, Firefox, Edge); Lighthouse/perf sanity
+check with the 100MB fixture; final wording pass on privacy and
+approximation disclosures.
+
+### Dependency graph
+
+```mermaid
+graph LR
+    WP01[WP-01 Scaffold] --&gt; WP02[WP-02 Contract]
+    WP01 --&gt; WP09[WP-09 CI/CD]
+    WP02 --&gt; WP03[WP-03 Parser]
+    WP02 --&gt; WP04[WP-04 Pricing]
+    WP02 --&gt; WP06[WP-06 Fixtures]
+    WP02 --&gt; WP07[WP-07 UI shell]
+    WP03 --&gt; WP05[WP-05 Simulator]
+    WP04 --&gt; WP05
+    WP06 --&gt; WP05
+    WP05 --&gt; WP08[WP-08 Results UI]
+    WP07 --&gt; WP08
+    WP08 --&gt; WP10[WP-10 Launch]
+    WP09 --&gt; WP10
+    Design([Claude Design session]) -.-&gt; WP07
+    Design -.-&gt; WP08
+```
+
+**Suggested waves:** ① WP-01+02 (one session) → ② WP-03, WP-04, WP-06, WP-09,
+and the Claude Design session, all in parallel → ③ WP-05 and WP-07 in
+parallel → ④ WP-08 → ⑤ WP-10.
+
+---
+
+## 5. Testing strategy
+
+- **Unit tests** (Vitest) on parser rules and pricing math, with
+  hand-computed expected values.
+- **Golden-fixture cross-validation:** `prototype-sim.py` is the reference
+  implementation; the TS engine must reproduce its outputs to the cent on
+  every fixture. Independent hand-computed tests exist so a shared logic bug
+  can&#39;t hide in both implementations.
+- **Content-poison test:** proves `message.content` never influences or leaks
+  into output.
+- **Format-drift canary:** fixtures are tagged with the Claude Code `version`
+  they represent; the parser&#39;s validated-version range lives in one constant,
+  and CI fails if a fixture version falls outside it.
+
+---
+
+## 6. Decision log
+
+| # | Decision | Rationale |
+|---|---|---|
+| D1 | Anthropic API feature deferred to post-MVP | Keeps MVP fully static: no backend, no rate limiting, strongest privacy story. (User, 2026-08-30) |
+| D2 | All dollar figures at published Anthropic API rates, clearly labelled | API rates are what usage-billed users pay and what everyone should understand; rationale stated in README and UI. Provider tables (Bedrock/Vertex) deferred. (User) |
+| D3 | One session upload at a time; in-memory history only | Processing time unknown; persistence deferred until the tool proves useful. (User) |
+| D4 | Always partition sidechains in the simulation; headline the main bucket; show a subagent section only when the session contains sidechain turns | Partitioning is required for correctness regardless (§6.4); conditional display gives two-bucket value without confusing the majority whose sessions have no subagents. (Claude&#39;s vote, accepted) |
+| D5 | Rates live in a committed `pricing.json` with a `pricesAsOf` date; unknown models reported to the user | Simple, auditable, no runtime fetch. API-driven rates possible later. (User) |
+| D6 | Fixtures are synthetic + Claude-generated scenario sessions; no personal sessions bundled | Avoids publishing usage patterns; scenarios can be engineered to teach specific lessons and to verify verdicts. (User) |
+| D7 | `prototype-sim.py` is the reference implementation, generating golden fixtures the TS engine must match; plus independent hand-computed tests | Cross-validation between two implementations, with hand-computed values as the tiebreaker. (Claude&#39;s vote) |
+| D8 | Launch on `workers.dev`; pick/purchase a domain later | No name chosen yet; cutover is cheap. (User) |
+| D9 | JSONL input only for MVP | Web-export JSON unverified for `usage` data (feasibility §10). |
+
+## 7. Risks
+
+| Risk | Mitigation |
+|---|---|
+| Log format is officially internal and unstable (feasibility §4) | Minimal field surface; version pinning + warning; skip-and-count; versioned fixtures in CI |
+| Pricing goes stale | `pricesAsOf` shown to users; single-file update path; periodic check noted in README |
+| Counterfactual is approximate (all-or-nothing expiry, feasibility §7) | Conservative direction (understates 1h&#39;s downside cases toward 5m) disclosed in the UI |
+| Subagent path untested against real data | WP-06 must include a real subagent session fixture before WP-05 is called done |
+| Huge session files stall the browser | Streaming parse in a worker; progress + cancel; 100MB perf test in WP-10 |
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-18-506Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-18-506Z" class="timestamp-link"><time datetime="2026-08-30T19:50:18.506Z" data-timestamp="2026-08-30T19:50:18.506Z">2026-08-30T19:50:18.506Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-25-633Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-25-633Z" class="timestamp-link"><time datetime="2026-08-30T19:50:25.633Z" data-timestamp="2026-08-30T19:50:25.633Z">2026-08-30T19:50:25.633Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-25-635Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-25-635Z" class="timestamp-link"><time datetime="2026-08-30T19:50:25.635Z" data-timestamp="2026-08-30T19:50:25.635Z">2026-08-30T19:50:25.635Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The plan already references the Claude Design session in the dependency graph and waves — I'll promote it to a first-class work package so it's explicit.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-31-265Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-31-265Z" class="timestamp-link"><time datetime="2026-08-30T19:50:31.265Z" data-timestamp="2026-08-30T19:50:31.265Z">2026-08-30T19:50:31.265Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_012oupSK8KaDN834uLp74FaA">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">### WP-07 — UI shell
+**Depends on:** WP-02; visual design from the Claude Design session.
+**Parallel with:** WP-05.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">### WP-D — UX design (Claude Design session)
+**Depends on:** nothing (MVP definition in this plan is the brief).
+**Parallel with:** WP-03, WP-04, WP-06, WP-09.
+A dedicated **Claude Design** session produces the visual direction and screen
+designs for the whole flow: landing page (privacy statement, upload,
+&#34;find your logs&#34; instructions, samples), the analyzing state (progress +
+cancel), and the results view (recommendation card, cost comparison,
+conditional subagent section, cache-event timeline, educational explainers,
+session-history strip). It should also cover the empty/error states: unknown
+model, skipped records, version warning, malformed file.
+Exports (screens, and the canvas link) are committed to `docs/design/` so
+WP-07 and WP-08 sessions can implement against them without guessing.
+*Acceptance:* every screen and state listed above has a design in
+`docs/design/`; user has signed off on the direction.
+
+### WP-07 — UI shell
+**Depends on:** WP-02; WP-D (visual design).
+**Parallel with:** WP-05.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-31-298Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-31-298Z" class="timestamp-link"><time datetime="2026-08-30T19:50:31.298Z" data-timestamp="2026-08-30T19:50:31.298Z">2026-08-30T19:50:31.298Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-34-209Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-34-209Z" class="timestamp-link"><time datetime="2026-08-30T19:50:34.209Z" data-timestamp="2026-08-30T19:50:34.209Z">2026-08-30T19:50:34.209Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01YPjidvMpdKyjDhZ4sDJekG">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">### WP-08 — Results and insights UI
+**Depends on:** WP-05, WP-07.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">### WP-08 — Results and insights UI
+**Depends on:** WP-05, WP-07, WP-D.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-34-242Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-34-242Z" class="timestamp-link"><time datetime="2026-08-30T19:50:34.242Z" data-timestamp="2026-08-30T19:50:34.242Z">2026-08-30T19:50:34.242Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-37-388Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-37-388Z" class="timestamp-link"><time datetime="2026-08-30T19:50:37.388Z" data-timestamp="2026-08-30T19:50:37.388Z">2026-08-30T19:50:37.388Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_018VAPBqTWEG6R6cnkKbfYyQ">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
+<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    WP09 --&gt; WP10
+    Design([Claude Design session]) -.-&gt; WP07
+    Design -.-&gt; WP08
+```
+
+**Suggested waves:** ① WP-01+02 (one session) → ② WP-03, WP-04, WP-06, WP-09,
+and the Claude Design session, all in parallel → ③ WP-05 and WP-07 in
+parallel → ④ WP-08 → ⑤ WP-10.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    WP09 --&gt; WP10
+    WPD([WP-D Claude Design]) --&gt; WP07
+    WPD --&gt; WP08
+```
+
+**Suggested waves:** ① WP-01+02 (one session) → ② WP-03, WP-04, WP-06, WP-09,
+and WP-D (the Claude Design session), all in parallel → ③ WP-05 and WP-07 in
+parallel → ④ WP-08 → ⑤ WP-10.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-37-425Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-37-425Z" class="timestamp-link"><time datetime="2026-08-30T19:50:37.425Z" data-timestamp="2026-08-30T19:50:37.425Z">2026-08-30T19:50:37.425Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-40-249Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-40-249Z" class="timestamp-link"><time datetime="2026-08-30T19:50:40.249Z" data-timestamp="2026-08-30T19:50:40.249Z">2026-08-30T19:50:40.249Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TFdr1u83hcm9LmHcRGXGya">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit build plan on docs/build-plan branch</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add docs/PLAN.md &amp;&amp; git commit -m &#34;docs(plan): write MVP build plan and work breakdown
+
+Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-41-926Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-41-926Z" class="timestamp-link"><time datetime="2026-08-30T19:50:41.926Z" data-timestamp="2026-08-30T19:50:41.926Z">2026-08-30T19:50:41.926Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><div class="commit-card"><a href="https://github.com/cebert/cache-ttl-analyzer/commit/d8a911d"><span class="commit-card-hash">d8a911d</span> docs(plan): write MVP build plan and work breakdown</a></div><pre>1 file changed, 302 insertions(+), 3 deletions(-)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-44-037Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-44-037Z" class="timestamp-link"><time datetime="2026-08-30T19:50:44.037Z" data-timestamp="2026-08-30T19:50:44.037Z">2026-08-30T19:50:44.037Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-49-321Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-49-321Z" class="timestamp-link"><time datetime="2026-08-30T19:50:49.321Z" data-timestamp="2026-08-30T19:50:49.321Z">2026-08-30T19:50:49.321Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01JzqQgJFvwndbTo12tk3aBE">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">mvp-decisions.md</span></div>
+<div class="file-tool-fullpath">~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer/memory/mvp-decisions.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">---
+name: mvp-decisions
+description: Locked MVP decisions for cache-ttl-analyzer (2026-08-30) and where the plan lives
+metadata:
+  type: project
+---
+
+The build plan lives in docs/PLAN.md (written 2026-08-30 on branch docs/build-plan); its Decision log (§6) is authoritative. Key locked decisions: MVP is fully static (no backend — Anthropic API feature deferred post-MVP); all dollar figures at published Anthropic API rates, labelled as such; one JSONL session upload at a time, in-memory history only; sidechains always partitioned, subagent-bucket section shown only when sidechains exist; pricing in committed pricing.json with pricesAsOf date; fixtures synthetic + Claude-generated (no personal sessions bundled); prototype-sim.py is the reference implementation generating golden fixtures; launch on workers.dev, domain later; UX comes from a dedicated Claude Design session (WP-D) with exports committed to docs/design/.
+
+Work is decomposed into WPs sized one-per-Claude-session, each one PR into main gated by CI + CodeRabbit. The user runs multiple parallel Opus sessions against this plan.
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-49-357Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-49-357Z" class="timestamp-link"><time datetime="2026-08-30T19:50:49.357Z" data-timestamp="2026-08-30T19:50:49.357Z">2026-08-30T19:50:49.357Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: ~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer/memory/mvp-decisions.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-50-52-084Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-50-52-084Z" class="timestamp-link"><time datetime="2026-08-30T19:50:52.084Z" data-timestamp="2026-08-30T19:50:52.084Z">2026-08-30T19:50:52.084Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01K6niN6dJFoTEebkLwSnSWr">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">MEMORY.md</span></div>
+<div class="file-tool-fullpath">~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer/memory/MEMORY.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># Memory index
+
+- [MVP decisions](mvp-decisions.md) — locked scope/architecture choices; docs/PLAN.md §6 is authoritative
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-30T19-50-52-117Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-50-52-117Z" class="timestamp-link"><time datetime="2026-08-30T19:50:52.117Z" data-timestamp="2026-08-30T19:50:52.117Z">2026-08-30T19:50:52.117Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: ~/.claude/projects/-Users-chrisebert-Code-cache-ttl-analyzer/memory/MEMORY.md (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-30T19-51-05-517Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-51-05-517Z" class="timestamp-link"><time datetime="2026-08-30T19:51:05.517Z" data-timestamp="2026-08-30T19:51:05.517Z">2026-08-30T19:51:05.517Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The plan is written and committed to <code>docs/PLAN.md</code> on a new branch <strong><code>docs/build-plan</code></strong> (commit <code>d8a911d</code>, not pushed). Claude Design is a first-class work package (WP-D), covering every screen and state — landing/upload, analyzing with progress+cancel, results, and the error/empty states — with exports committed to <code>docs/design/</code> so implementation sessions build against real designs instead of guessing.</p>
+<p>The plan's structure:</p>
+<ul>
+<li><strong>MVP definition and explicit non-goals</strong> — fully static Cloudflare deployment (no backend at all, which is itself the privacy story), one JSONL upload at a time, in-memory history, API-rates framing with your rationale stated, everything else deferred with reasons.</li>
+<li><strong>Architecture + a mandatory engine-correctness table</strong> distilled from the feasibility doc — dedup on <code>message.id</code>, synthetic-row exclusion, sidechain partitioning, hard resets on model/effort/version change, the user-row timestamp proxy, and the disclosed all-or-nothing expiry approximation. Any implementing session gets the traps in one table with section references back to the research.</li>
+<li><strong>Eleven work packages</strong> (WP-01…WP-10 plus WP-D), each sized for one Claude session producing one PR into <code>main</code> gated by CI and CodeRabbit, with a mermaid dependency graph and suggested waves: ① scaffold + frozen engine contract (one session) → ② parser, pricing engine, fixtures, CI/CD, and the design session <strong>all in parallel</strong> → ③ simulator + UI shell → ④ results UI → ⑤ launch polish. The WP-02 contract freeze is what makes wave ② safe to parallelize.</li>
+<li><strong>Testing strategy</strong> implementing your accuracy requirement: <code>prototype-sim.py</code> becomes the reference implementation emitting golden fixtures the TypeScript engine must match to the cent, backed by independent hand-computed unit tests, a content-poison test proving <code>message.content</code> never leaks into output, and a format-drift canary tied to the Claude Code <code>version</code> field.</li>
+<li><strong>Decision log</strong> recording all nine decisions from your answers, including the two you delegated: sidechains always partitioned with the subagent section shown only when the session actually has subagent turns (D4), and the prototype-as-reference-implementation approach (D7).</li>
+</ul>
+<p>Two things worth flagging: WP-06 requires capturing a <strong>real subagent session fixture</strong> before the simulator is called done (that path is untested against real data), and the fixtures include Claude-<em>generated</em> real sessions engineered to teach specific lessons — a tight loop where 5m wins, a gap-heavy session where 1h wins — which double as the bundled samples.</p>
+<p>Review <code>docs/PLAN.md</code> and tell me what to adjust. Once you're happy, say the word and I'll push the branch so you can open the PR — and wave ① (WP-01+02) is ready to hand to your first Opus session.</p></div></div></div>
 <div class="message user" id="msg-2026-08-30T19-51-07-435Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T19-51-07-435Z" class="timestamp-link"><time datetime="2026-08-30T19:51:07.435Z" data-timestamp="2026-08-30T19:51:07.435Z">2026-08-30T19:51:07.435Z</time></a></div><div class="message-content">
 <div class="user-content"><p>surprisingly the cacheanalyzer.com domain is freely avaialble so  am going to go and buy it</p></div></div></div>
 <div class="message assistant" id="msg-2026-08-30T19-51-13-761Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-51-13-761Z" class="timestamp-link"><time datetime="2026-08-30T19:51:13.761Z" data-timestamp="2026-08-30T19:51:13.761Z">2026-08-30T19:51:13.761Z</time></a></div><div class="message-content">
@@ -849,333 +1262,6 @@ To update: republish the same file path in this conversation (keeps this URL), o
 <div class="assistant-text"><p>Done — plan and artifact both updated (same URL, commit <code>8904421</code> on <code>docs/build-plan</code>).</p>
 <p>To recap the answer: discarding <code>message.content</code> doesn't degrade the experience because the cost math is entirely token-caching-focused, and the recognition problem is solved by a <strong>session identification card</strong> shown right after parse — session title (from the <code>ai-title</code> record, the one narrow non-content read), <code>cwd</code>, git branch, time span, duration, request count, model(s), and file name. That's typically <em>more</em> recognizable at a glance than a message excerpt, and it keeps the strongest version of the trust claim: the parser provably never touches conversation content. The plan now carries this in §3, the parser exception in §2, and the WP-D and WP-08 scopes.</p>
 <p>One design nuance preserved in the plan: <code>ai-title</code> was present in only 4 of the 7 research sessions, so the card falls back to metadata-only when it's missing, and WP-03 verifies the record's payload shape.</p></div></div></div>
-<div class="message user" id="msg-2026-08-30T19-58-17-748Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-30T19-58-17-748Z" class="timestamp-link"><time datetime="2026-08-30T19:58:17.748Z" data-timestamp="2026-08-30T19:58:17.748Z">2026-08-30T19:58:17.748Z</time></a></div><div class="message-content">
-<div class="user-content"><p>we will want some validation (at least light validation) that the session logs appear valid. Also since we are letting users upload files we will want to make sure the way we are handling these files is secure.</p></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-58-46-756Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-58-46-756Z" class="timestamp-link"><time datetime="2026-08-30T19:58:46.756Z" data-timestamp="2026-08-30T19:58:46.756Z">2026-08-30T19:58:46.756Z</time></a></div><div class="message-content">
-<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-58-48-184Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-58-48-184Z" class="timestamp-link"><time datetime="2026-08-30T19:58:48.184Z" data-timestamp="2026-08-30T19:58:48.184Z">2026-08-30T19:58:48.184Z</time></a></div><div class="message-content">
-<div class="assistant-text"><p>Both good additions — and since the app is client-side with no backend, the security story has a specific shape: the threat is a malicious or corrupted <em>file</em> being processed in the user's own browser, plus being able to <em>prove</em> nothing leaves it. I'll fold validation and file-handling security into the plan.</p></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-58-55-878Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-58-55-878Z" class="timestamp-link"><time datetime="2026-08-30T19:58:55.878Z" data-timestamp="2026-08-30T19:58:55.878Z">2026-08-30T19:58:55.878Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_015iZ7XEvXTDAZ3nja39VNnd">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">### Engine correctness rules (from the feasibility doc — all mandatory)</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">### Input validation and secure file handling
-
-The app is static and client-side, so the threat model is a malicious or
-corrupted **file** being processed in the user&#39;s own browser — plus proving to
-users that nothing is exfiltrated. Rules:
-
-- **Three validation verdicts:** *valid*; *valid with warnings* (skipped
-  records, out-of-range version, unknown model); or *not a session log* — no
-  assistant rows carrying `usage`, or malformed-line share above a threshold
-  (~10%) — with a plain-language error, never a garbage analysis.
-- **Numeric hygiene:** every usage field is checked finite and non-negative
-  before pricing; bad rows are skipped and counted.
-- **Log-derived strings are untrusted input.** Title, `cwd`, `gitBranch`,
-  model IDs render only as text nodes (no `innerHTML` anywhere), length-clamped.
-- **No raw JSON into app state.** The parser copies the needed fields into
-  typed records and discards the parsed object — no spreading of parsed
-  objects, which also neutralizes prototype-pollution keys (`__proto__`,
-  `constructor`).
-- **Resource limits:** file-size cap with a clear message; streaming parse
-  with a per-line length cap so one giant line can&#39;t exhaust tab memory;
-  analysis in a worker so the page stays responsive; cancel always available.
-- **CSP as proof, not just promise:** deploy with a strict
-  Content-Security-Policy (`default-src &#39;self&#39;`; no external `connect-src`)
-  so &#34;your data never leaves the browser&#34; is enforced by the platform and
-  verifiable in devtools — and mention that in the privacy statement.
-- **Nothing persisted:** the file is never written to storage; in-memory
-  history keeps analysis results, not file bytes.
-
-### Engine correctness rules (from the feasibility doc — all mandatory)</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-58-55-910Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-58-55-910Z" class="timestamp-link"><time datetime="2026-08-30T19:58:55.910Z" data-timestamp="2026-08-30T19:58:55.910Z">2026-08-30T19:58:55.910Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-58-59-478Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-58-59-478Z" class="timestamp-link"><time datetime="2026-08-30T19:58:59.478Z" data-timestamp="2026-08-30T19:58:59.478Z">2026-08-30T19:58:59.478Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01463cybt6WwZDxVqYGsXRCu">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Streaming JSONL parser implementing the correctness rules table (dedup,
-synthetic exclusion, skip-and-count, version warnings, minimal field surface,
-content-poison test).
-*Acceptance:* unit tests for every rule; parses a 100MB synthetic file without
-loading it into one string.</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Streaming JSONL parser implementing the correctness rules table (dedup,
-synthetic exclusion, skip-and-count, version warnings, minimal field surface,
-content-poison test) and the validation/security rules (three verdicts,
-numeric hygiene, typed-record copying, line-length cap).
-*Acceptance:* unit tests for every rule, plus adversarial tests: malformed
-lines, prototype-pollution keys, hostile strings in metadata fields, negative
-/ NaN token counts, a single multi-hundred-MB line; parses a 100MB synthetic
-file without loading it into one string.</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-58-59-516Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-58-59-516Z" class="timestamp-link"><time datetime="2026-08-30T19:58:59.516Z" data-timestamp="2026-08-30T19:58:59.516Z">2026-08-30T19:58:59.516Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-01-570Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-01-570Z" class="timestamp-link"><time datetime="2026-08-30T19:59:01.570Z" data-timestamp="2026-08-30T19:59:01.570Z">2026-08-30T19:59:01.570Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01N2yqHJp5ezjk2hStrnvYSy">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">   writes, unknown record types, unknown model.</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">   writes, unknown record types, unknown model — plus adversarial fixtures:
-   a non-session JSONL, malformed lines, hostile metadata strings,
-   prototype-pollution keys, invalid numerics.</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-01-591Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-01-591Z" class="timestamp-link"><time datetime="2026-08-30T19:59:01.591Z" data-timestamp="2026-08-30T19:59:01.591Z">2026-08-30T19:59:01.591Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>&lt;tool_use_error&gt;String to replace not found in file.
-String:    writes, unknown record types, unknown model.&lt;/tool_use_error&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-04-401Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-04-401Z" class="timestamp-link"><time datetime="2026-08-30T19:59:04.401Z" data-timestamp="2026-08-30T19:59:04.401Z">2026-08-30T19:59:04.401Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_013v1rdr8LJEBBCN478q6MCR">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">privacy statement with repo link, sample-session loader.
-*Acceptance:* full flow works against the WP-02 stub engine; cancel actually
-terminates the worker mid-parse.</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">privacy statement with repo link, sample-session loader. File-size cap and
-the three validation verdicts (valid / warnings / not a session log) as
-distinct UI states.
-*Acceptance:* full flow works against the WP-02 stub engine; cancel actually
-terminates the worker mid-parse; a non-session file gets the plain-language
-rejection, not a broken analysis.</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-04-431Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-04-431Z" class="timestamp-link"><time datetime="2026-08-30T19:59:04.431Z" data-timestamp="2026-08-30T19:59:04.431Z">2026-08-30T19:59:04.431Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>&lt;tool_use_error&gt;String to replace not found in file.
-String: privacy statement with repo link, sample-session loader.
-*Acceptance:* full flow works against the WP-02 stub engine; cancel actually
-terminates the worker mid-parse.&lt;/tool_use_error&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-06-513Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-06-513Z" class="timestamp-link"><time datetime="2026-08-30T19:59:06.513Z" data-timestamp="2026-08-30T19:59:06.513Z">2026-08-30T19:59:06.513Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01WFYMYKQtCwNAEDcw9veAp2">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">protection on `main`. Once the domain is in the Cloudflare account, attach</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">protection on `main`. Serve the strict CSP and security headers (via the
-Workers static-assets headers config). Once the domain is in the Cloudflare
-account, attach</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-06-554Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-06-554Z" class="timestamp-link"><time datetime="2026-08-30T19:59:06.554Z" data-timestamp="2026-08-30T19:59:06.554Z">2026-08-30T19:59:06.554Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-08-942Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-08-942Z" class="timestamp-link"><time datetime="2026-08-30T19:59:08.942Z" data-timestamp="2026-08-30T19:59:08.942Z">2026-08-30T19:59:08.942Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01F9i4EwYsLCpw5johmEXPKP">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">| Huge session files stall the browser | Streaming parse in a worker; progress + cancel; 100MB perf test in WP-10 |</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">| Huge session files stall the browser | Streaming parse in a worker; progress + cancel; 100MB perf test in WP-10 |
-| Malicious or corrupted uploads (hostile strings, pollution keys, giant lines, non-session files) | Validation verdicts; text-node-only rendering; typed-record copying; size/line caps; adversarial fixtures in WP-03/WP-06; strict CSP |</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-08-992Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-08-992Z" class="timestamp-link"><time datetime="2026-08-30T19:59:08.992Z" data-timestamp="2026-08-30T19:59:08.992Z">2026-08-30T19:59:08.992Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-12-869Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-12-869Z" class="timestamp-link"><time datetime="2026-08-30T19:59:12.869Z" data-timestamp="2026-08-30T19:59:12.869Z">2026-08-30T19:59:12.869Z</time></a></div><div class="message-content">
-<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-12-870Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-12-870Z" class="timestamp-link"><time datetime="2026-08-30T19:59:12.870Z" data-timestamp="2026-08-30T19:59:12.870Z">2026-08-30T19:59:12.870Z</time></a></div><div class="message-content">
-<div class="assistant-text"><p>Two edits missed on exact wording — let me check the actual text in those spots.</p></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-13-620Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-13-620Z" class="timestamp-link"><time datetime="2026-08-30T19:59:13.620Z" data-timestamp="2026-08-30T19:59:13.620Z">2026-08-30T19:59:13.620Z</time></a></div><div class="message-content">
-<div class="tool-use bash-tool" data-tool-id="toolu_016X5XRg5eSDvKiXd6sBqgy6">
-<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
-<div class="tool-description">Locate exact lines for failed edits</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;unknown record types&#34; ~/Code/cache-ttl-analyzer/docs/PLAN.md; grep -n &#34;sample-session loader&#34; ~/Code/cache-ttl-analyzer/docs/PLAN.md</pre></div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-13-674Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-13-674Z" class="timestamp-link"><time datetime="2026-08-30T19:59:13.674Z" data-timestamp="2026-08-30T19:59:13.674Z">2026-08-30T19:59:13.674Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>217:   `ephemeral_5m`/`ephemeral_1h` writes, unknown record types, unknown model.
-253:link, sample-session loader.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-16-132Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-16-132Z" class="timestamp-link"><time datetime="2026-08-30T19:59:16.132Z" data-timestamp="2026-08-30T19:59:16.132Z">2026-08-30T19:59:16.132Z</time></a></div><div class="message-content">
-<div class="tool-use" data-tool-id="toolu_01Ps69w7wKkL9EvcB15PymLJ"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
-  &#34;file_path&#34;: &#34;~/Code/cache-ttl-analyzer/docs/PLAN.md&#34;,
-  &#34;offset&#34;: 212,
-  &#34;limit&#34;: 50
-}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-16-159Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-16-159Z" class="timestamp-link"><time datetime="2026-08-30T19:59:16.159Z" data-timestamp="2026-08-30T19:59:16.159Z">2026-08-30T19:59:16.159Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>212	**Depends on:** WP-02 (shapes only). **Parallel with:** WP-03, WP-04.
-213	Two kinds of fixtures:
-214	1. **Crafted synthetic JSONL** exercising each trap: content-block
-215	   duplication, synthetic rows, sidechains, mid-session model switch, effort
-216	   change, version change, gaps in the 5m–1h band, mixed
-217	   `ephemeral_5m`/`ephemeral_1h` writes, unknown record types, unknown model.
-218	2. **Real sessions generated by Claude** enacting scenarios (a tight agent
-219	   loop where 5m wins; a long gap-heavy session where 1h wins; a session that
-220	   switches models mid-way) — these double as the bundled samples in
-221	   `public/samples/` and as end-to-end verification that the tool&#x27;s verdicts
-222	   match intuition.
-223	
-224	Extend `prototype-sim.py` to emit expected-output JSON per fixture; commit
-225	those as golden files with a test harness that runs the TS engine against
-226	them.
-227	*Acceptance:* golden files committed; harness wired into `npm test`; samples
-228	are content-scrubbed (they&#x27;ll be public).
-229	
-230	### WP-D — UX design (Claude Design session)
-231	**Depends on:** nothing (MVP definition in this plan is the brief).
-232	**Parallel with:** WP-03, WP-04, WP-06, WP-09.
-233	A dedicated **Claude Design** session produces the visual direction and screen
-234	designs for the whole flow: landing page (privacy statement, upload,
-235	&quot;find your logs&quot; instructions, samples), the analyzing state (progress +
-236	cancel), and the results view (session identification card, recommendation
-237	card, cost comparison,
-238	conditional subagent section, cache-event timeline, educational explainers,
-239	session-history strip). It should also cover the empty/error states: unknown
-240	model, skipped records, version warning, malformed file.
-241	Exports (screens, and the canvas link) are committed to `docs/design/` so
-242	WP-07 and WP-08 sessions can implement against them without guessing.
-243	*Acceptance:* every screen and state listed above has a design in
-244	`docs/design/`; user has signed off on the direction.
-245	
-246	### WP-07 — UI shell
-247	**Depends on:** WP-02; WP-D (visual design).
-248	**Parallel with:** WP-05.
-249	Upload (drag-drop + picker), Web Worker wiring with progress bar and cancel,
-250	in-memory history of this browser session&#x27;s analyses, &quot;find your logs&quot;
-251	instructions (macOS: `~/.claude/projects/...`; Windows path; note
-252	`CLAUDE_CONFIG_DIR` and the 30-day cleanup), privacy statement with repo
-253	link, sample-session loader.
-254	*Acceptance:* full flow works against the WP-02 stub engine; cancel actually
-255	terminates the worker mid-parse.
-256	
-257	### WP-08 — Results and insights UI
-258	**Depends on:** WP-05, WP-07, WP-D.
-259	Session identification card (title/`cwd`/branch/span/models, with
-260	metadata-only fallback when `ai-title` is absent), recommendation card (with
-261	the API-rates framing line and `pricesAsOf` date), cost comparison, conditional subagent section, cache-event timeline,</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-20-469Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-20-469Z" class="timestamp-link"><time datetime="2026-08-30T19:59:20.469Z" data-timestamp="2026-08-30T19:59:20.469Z">2026-08-30T19:59:20.469Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01KDgt5AWRQHVdwbgRz1at2u">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">   `ephemeral_5m`/`ephemeral_1h` writes, unknown record types, unknown model.</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">   `ephemeral_5m`/`ephemeral_1h` writes, unknown record types, unknown model —
-   plus adversarial fixtures: a non-session JSONL, malformed lines, hostile
-   metadata strings, prototype-pollution keys, invalid numerics.</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-20-506Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-20-506Z" class="timestamp-link"><time datetime="2026-08-30T19:59:20.506Z" data-timestamp="2026-08-30T19:59:20.506Z">2026-08-30T19:59:20.506Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-22-594Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-22-594Z" class="timestamp-link"><time datetime="2026-08-30T19:59:22.594Z" data-timestamp="2026-08-30T19:59:22.594Z">2026-08-30T19:59:22.594Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01NDzN4VTuiy7FWH4ATyc6pa">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">link, sample-session loader.
-*Acceptance:* full flow works against the WP-02 stub engine; cancel actually
-terminates the worker mid-parse.</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">link, sample-session loader. File-size cap and the three validation verdicts
-(valid / warnings / not a session log) as distinct UI states.
-*Acceptance:* full flow works against the WP-02 stub engine; cancel actually
-terminates the worker mid-parse; a non-session file gets the plain-language
-rejection, not a broken analysis.</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-22-641Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-22-641Z" class="timestamp-link"><time datetime="2026-08-30T19:59:22.641Z" data-timestamp="2026-08-30T19:59:22.641Z">2026-08-30T19:59:22.641Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-27-072Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-27-072Z" class="timestamp-link"><time datetime="2026-08-30T19:59:27.072Z" data-timestamp="2026-08-30T19:59:27.072Z">2026-08-30T19:59:27.072Z</time></a></div><div class="message-content">
-<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-27-077Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-27-077Z" class="timestamp-link"><time datetime="2026-08-30T19:59:27.077Z" data-timestamp="2026-08-30T19:59:27.077Z">2026-08-30T19:59:27.077Z</time></a></div><div class="message-content">
-<div class="assistant-text"><p>Now adding the Zod note to WP-03 so the investigation isn't lost.</p></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-30-414Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-30-414Z" class="timestamp-link"><time datetime="2026-08-30T19:59:30.414Z" data-timestamp="2026-08-30T19:59:30.414Z">2026-08-30T19:59:30.414Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Vfr1y8RKDwNPcSwF2im7DA">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">PLAN.md</span></div>
-<div class="file-tool-fullpath">~/Code/cache-ttl-analyzer/docs/PLAN.md</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">content-poison test) and the validation/security rules (three verdicts,
-numeric hygiene, typed-record copying, line-length cap).</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">content-poison test) and the validation/security rules (three verdicts,
-numeric hygiene, typed-record copying, line-length cap).
-Investigate **Zod** for the per-record schema validation (v4.5&#39;s compilation
-feature claims large speedups) — but this parser validates millions of lines
-in a hot path, so adopt it only if a benchmark against hand-rolled guards on
-the 100MB fixture shows no meaningful regression; either way the validation
-rules above are the requirement, the library is an implementation choice.</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-30-461Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-30-461Z" class="timestamp-link"><time datetime="2026-08-30T19:59:30.461Z" data-timestamp="2026-08-30T19:59:30.461Z">2026-08-30T19:59:30.461Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file ~/Code/cache-ttl-analyzer/docs/PLAN.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-33-107Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-33-107Z" class="timestamp-link"><time datetime="2026-08-30T19:59:33.107Z" data-timestamp="2026-08-30T19:59:33.107Z">2026-08-30T19:59:33.107Z</time></a></div><div class="message-content">
-<div class="tool-use bash-tool" data-tool-id="toolu_01Bpa5Xziehdpson3qWpXejx">
-<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
-<div class="tool-description">Commit validation/security plan update</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add docs/PLAN.md &amp;&amp; git commit -m &#34;docs(plan): add input validation and secure file-handling requirements
-
-Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;&#34;</pre></div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-34-806Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-34-806Z" class="timestamp-link"><time datetime="2026-08-30T19:59:34.806Z" data-timestamp="2026-08-30T19:59:34.806Z">2026-08-30T19:59:34.806Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><div class="commit-card"><a href="https://github.com/cebert/cache-ttl-analyzer/commit/ed8cd87"><span class="commit-card-hash">ed8cd87</span> docs(plan): add input validation and secure file-handling requirements</a></div><pre>1 file changed, 50 insertions(+), 7 deletions(-)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-36-635Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-36-635Z" class="timestamp-link"><time datetime="2026-08-30T19:59:36.635Z" data-timestamp="2026-08-30T19:59:36.635Z">2026-08-30T19:59:36.635Z</time></a></div><div class="message-content">
-<div class="assistant-text"><p>Now mirroring these changes into the artifact and republishing.</p></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-45-264Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-45-264Z" class="timestamp-link"><time datetime="2026-08-30T19:59:45.264Z" data-timestamp="2026-08-30T19:59:45.264Z">2026-08-30T19:59:45.264Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01QYiwjkSiXz9LAi5TYn3oin">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
-<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    &lt;h3&gt;Engine correctness rules (from the feasibility doc — all mandatory)&lt;/h3&gt;</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    &lt;h3&gt;Input validation and secure file handling&lt;/h3&gt;
-    &lt;p&gt;The app is static and client-side, so the threat model is a malicious or corrupted &lt;strong&gt;file&lt;/strong&gt; being processed in the user&#39;s own browser — plus proving to users that nothing is exfiltrated. Rules:&lt;/p&gt;
-    &lt;ul&gt;
-      &lt;li&gt;&lt;strong&gt;Three validation verdicts:&lt;/strong&gt; &lt;em&gt;valid&lt;/em&gt;; &lt;em&gt;valid with warnings&lt;/em&gt; (skipped records, out-of-range version, unknown model); or &lt;em&gt;not a session log&lt;/em&gt; — no assistant rows carrying &lt;code&gt;usage&lt;/code&gt;, or malformed-line share above a threshold (~10%) — with a plain-language error, never a garbage analysis.&lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;Numeric hygiene:&lt;/strong&gt; every usage field is checked finite and non-negative before pricing; bad rows are skipped and counted.&lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;Log-derived strings are untrusted input.&lt;/strong&gt; Title, &lt;code&gt;cwd&lt;/code&gt;, &lt;code&gt;gitBranch&lt;/code&gt;, model IDs render only as text nodes (no &lt;code&gt;innerHTML&lt;/code&gt; anywhere), length-clamped.&lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;No raw JSON into app state.&lt;/strong&gt; The parser copies the needed fields into typed records and discards the parsed object — no spreading of parsed objects, which also neutralizes prototype-pollution keys (&lt;code&gt;__proto__&lt;/code&gt;, &lt;code&gt;constructor&lt;/code&gt;).&lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;Resource limits:&lt;/strong&gt; file-size cap with a clear message; streaming parse with a per-line length cap so one giant line can&#39;t exhaust tab memory; analysis in a worker so the page stays responsive; cancel always available.&lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;CSP as proof, not just promise:&lt;/strong&gt; deploy with a strict Content-Security-Policy (&lt;code&gt;default-src &#39;self&#39;&lt;/code&gt;; no external &lt;code&gt;connect-src&lt;/code&gt;) so &#34;your data never leaves the browser&#34; is enforced by the platform and verifiable in devtools — and mention that in the privacy statement.&lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;Nothing persisted:&lt;/strong&gt; the file is never written to storage; in-memory history keeps analysis results, not file bytes.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;h3&gt;Engine correctness rules (from the feasibility doc — all mandatory)&lt;/h3&gt;</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-45-295Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-45-295Z" class="timestamp-link"><time datetime="2026-08-30T19:59:45.295Z" data-timestamp="2026-08-30T19:59:45.295Z">2026-08-30T19:59:45.295Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-50-223Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-50-223Z" class="timestamp-link"><time datetime="2026-08-30T19:59:50.223Z" data-timestamp="2026-08-30T19:59:50.223Z">2026-08-30T19:59:50.223Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01NrZKvvbjx2HzwxThzZr5st">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
-<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">        &lt;p&gt;Streaming JSONL parser implementing the correctness-rules table (dedup, synthetic exclusion, skip-and-count, version warnings, minimal field surface, content-poison test).&lt;/p&gt;
-        &lt;p class=&#34;accept&#34;&gt;&lt;strong&gt;Acceptance:&lt;/strong&gt; unit tests for every rule; parses a 100MB synthetic file without loading it into one string.&lt;/p&gt;</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">        &lt;p&gt;Streaming JSONL parser implementing the correctness-rules table (dedup, synthetic exclusion, skip-and-count, version warnings, minimal field surface, content-poison test) and the validation/security rules (three verdicts, numeric hygiene, typed-record copying, line-length cap). Investigate &lt;strong&gt;Zod&lt;/strong&gt; for per-record schema validation (v4.5&#39;s compilation feature claims large speedups) — but this parser validates millions of lines in a hot path, so adopt it only if a benchmark against hand-rolled guards on the 100MB fixture shows no meaningful regression; the validation rules are the requirement, the library is an implementation choice.&lt;/p&gt;
-        &lt;p class=&#34;accept&#34;&gt;&lt;strong&gt;Acceptance:&lt;/strong&gt; unit tests for every rule, plus adversarial tests: malformed lines, prototype-pollution keys, hostile strings in metadata fields, negative / NaN token counts, a single multi-hundred-MB line; parses a 100MB synthetic file without loading it into one string.&lt;/p&gt;</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-50-257Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-50-257Z" class="timestamp-link"><time datetime="2026-08-30T19:59:50.257Z" data-timestamp="2026-08-30T19:59:50.257Z">2026-08-30T19:59:50.257Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-53-026Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-53-026Z" class="timestamp-link"><time datetime="2026-08-30T19:59:53.026Z" data-timestamp="2026-08-30T19:59:53.026Z">2026-08-30T19:59:53.026Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01D41CyHb1ChezUuydBAJNzA">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
-<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">mixed &lt;code&gt;ephemeral_5m&lt;/code&gt;/&lt;code&gt;ephemeral_1h&lt;/code&gt; writes, unknown record types, unknown model.&lt;/li&gt;</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">mixed &lt;code&gt;ephemeral_5m&lt;/code&gt;/&lt;code&gt;ephemeral_1h&lt;/code&gt; writes, unknown record types, unknown model — plus adversarial fixtures: a non-session JSONL, malformed lines, hostile metadata strings, prototype-pollution keys, invalid numerics.&lt;/li&gt;</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-53-061Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-53-061Z" class="timestamp-link"><time datetime="2026-08-30T19:59:53.061Z" data-timestamp="2026-08-30T19:59:53.061Z">2026-08-30T19:59:53.061Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-55-851Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-55-851Z" class="timestamp-link"><time datetime="2026-08-30T19:59:55.851Z" data-timestamp="2026-08-30T19:59:55.851Z">2026-08-30T19:59:55.851Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01MzPanKz3JJ1RjYcesfvKt4">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
-<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">privacy statement with repo link, sample-session loader.&lt;/p&gt;
-        &lt;p class=&#34;accept&#34;&gt;&lt;strong&gt;Acceptance:&lt;/strong&gt; full flow works against the WP-02 stub engine; cancel actually terminates the worker mid-parse.&lt;/p&gt;</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">privacy statement with repo link, sample-session loader. File-size cap and the three validation verdicts (valid / warnings / not a session log) as distinct UI states.&lt;/p&gt;
-        &lt;p class=&#34;accept&#34;&gt;&lt;strong&gt;Acceptance:&lt;/strong&gt; full flow works against the WP-02 stub engine; cancel actually terminates the worker mid-parse; a non-session file gets the plain-language rejection, not a broken analysis.&lt;/p&gt;</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-55-884Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-55-884Z" class="timestamp-link"><time datetime="2026-08-30T19:59:55.884Z" data-timestamp="2026-08-30T19:59:55.884Z">2026-08-30T19:59:55.884Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T19-59-57-967Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T19-59-57-967Z" class="timestamp-link"><time datetime="2026-08-30T19:59:57.967Z" data-timestamp="2026-08-30T19:59:57.967Z">2026-08-30T19:59:57.967Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_018Mc86c1Bfw4kZE3VcdFGnA">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
-<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Branch protection on &lt;code&gt;main&lt;/code&gt;. Once the domain is in the Cloudflare account,</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Branch protection on &lt;code&gt;main&lt;/code&gt;. Serve the strict CSP and security headers (via the Workers static-assets headers config). Once the domain is in the Cloudflare account,</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T19-59-57-995Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T19-59-57-995Z" class="timestamp-link"><time datetime="2026-08-30T19:59:57.995Z" data-timestamp="2026-08-30T19:59:57.995Z">2026-08-30T19:59:57.995Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T20-00-01-094Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-00-01-094Z" class="timestamp-link"><time datetime="2026-08-30T20:00:01.094Z" data-timestamp="2026-08-30T20:00:01.094Z">2026-08-30T20:00:01.094Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Cp821uD3kYDB8jNtUQNbLx">
-<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">build-plan.html</span></div>
-<div class="file-tool-fullpath">/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html</div>
-<div class="truncatable"><div class="truncatable-content">
-<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;Huge session files stall the browser&lt;/td&gt;&lt;td&gt;Streaming parse in a worker; progress + cancel; 100MB perf test in WP-10&lt;/td&gt;&lt;/tr&gt;</pre></div>
-<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">          &lt;tr&gt;&lt;td&gt;Huge session files stall the browser&lt;/td&gt;&lt;td&gt;Streaming parse in a worker; progress + cancel; 100MB perf test in WP-10&lt;/td&gt;&lt;/tr&gt;
-          &lt;tr&gt;&lt;td&gt;Malicious or corrupted uploads (hostile strings, pollution keys, giant lines, non-session files)&lt;/td&gt;&lt;td&gt;Validation verdicts; text-node-only rendering; typed-record copying; size/line caps; adversarial fixtures in WP-03/WP-06; strict CSP&lt;/td&gt;&lt;/tr&gt;</pre></div>
-</div><button class="expand-btn">Show more</button></div>
-</div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T20-00-01-126Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-00-01-126Z" class="timestamp-link"><time datetime="2026-08-30T20:00:01.126Z" data-timestamp="2026-08-30T20:00:01.126Z">2026-08-30T20:00:01.126Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T20-00-05-643Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-00-05-643Z" class="timestamp-link"><time datetime="2026-08-30T20:00:05.643Z" data-timestamp="2026-08-30T20:00:05.643Z">2026-08-30T20:00:05.643Z</time></a></div><div class="message-content">
-<div class="tool-use" data-tool-id="toolu_013APga4fCxnyAzQ2ZrZDmx4"><div class="tool-header"><span class="tool-icon">⚙</span> Artifact</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
-  &#34;file_path&#34;: &#34;/private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html&#34;,
-  &#34;label&#34;: &#34;validation-security&#34;,
-  &#34;note&#34;: &#34;Added the input-validation and secure file-handling subsection (three verdicts, untrusted-string rendering, typed-record copying, resource limits, CSP-as-proof), adversarial fixtures/tests in WP-03/WP-06, validation UI states in WP-07, CSP headers in WP-09, a new risk row, and the Zod v4.5 investigation note in WP-03.&#34;
-}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message tool-reply" id="msg-2026-08-30T20-00-06-641Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-30T20-00-06-641Z" class="timestamp-link"><time datetime="2026-08-30T20:00:06.641Z" data-timestamp="2026-08-30T20:00:06.641Z">2026-08-30T20:00:06.641Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Published /private/tmp/claude-501/-Users-chrisebert-Code-cache-ttl-analyzer/de925854-5278-4226-acc0-3e9f02abab1e/scratchpad/build-plan.html at https://claude.ai/code/artifact/d4208c8b-1236-4dfe-843c-53e47617ecd0
-
-Live subscription: already connected from earlier in this session — this session is notified when this artifact is republished elsewhere; a comment on it sent to Claude also reaches this session while this artifact&#x27;s status row says auto-replies armed, and plain comments never notify — read them with action &quot;comments&quot; when asked.
-
-To update: republish the same file path in this conversation (keeps this URL), or pass the URL as `url` from any other conversation — publishing without `url` from a conversation that didn&#x27;t publish this artifact creates a separate artifact rather than updating this one. Artifacts are private unless shared from the page&#x27;s share menu. To get back to it later: in the Claude Code terminal, /artifacts lists the artifacts you own or were shared (o opens, c copies the link) and ctrl+] (by default) reopens the most recent artifact from this session; on the web, the gallery at claude.ai/code/artifacts lists them.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T20-00-16-047Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-00-16-047Z" class="timestamp-link"><time datetime="2026-08-30T20:00:16.047Z" data-timestamp="2026-08-30T20:00:16.047Z">2026-08-30T20:00:16.047Z</time></a></div><div class="message-content">
-<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
-<div class="message assistant" id="msg-2026-08-30T20-00-16-096Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-30T20-00-16-096Z" class="timestamp-link"><time datetime="2026-08-30T20:00:16.096Z" data-timestamp="2026-08-30T20:00:16.096Z">2026-08-30T20:00:16.096Z</time></a></div><div class="message-content">
-<div class="assistant-text"><p>Both requirements are in the plan now (commit <code>ed8cd87</code>), and the artifact is republished at the same URL. What I added:</p>
-<p><strong>Validation</strong> — a new "Input validation and secure file handling" subsection in the Architecture section. Every upload resolves to one of three verdicts: <em>valid</em>, <em>valid with warnings</em> (skipped records, unknown version/model), or <em>not a session log</em> (no assistant rows with <code>usage</code>, or too many malformed lines) with a plain-language rejection instead of a garbage analysis. Numeric fields are checked finite and non-negative before any pricing math. WP-07 gets these as distinct UI states.</p>
-<p><strong>Secure file handling</strong> — the threat model here is specific: with no backend, the risk is a malicious or corrupted <em>file</em> processed in the user's own browser. So: log-derived strings (title, <code>cwd</code>, branch, model IDs) are treated as untrusted and rendered only as text nodes; the parser copies fields into typed records and discards the raw parsed objects (which also neutralizes prototype-pollution keys); file-size and per-line length caps prevent memory exhaustion; and the deploy ships a strict Content-Security-Policy with no external <code>connect-src</code> — which doubles as <em>proof</em> of the privacy claim, since anyone can open devtools and see the platform itself forbids network egress. WP-03 and WP-06 now require adversarial tests and fixtures (hostile strings, pollution keys, giant lines, non-session files), WP-09 serves the CSP headers, and the risk table has a matching row.</p>
-<p><strong>On Zod</strong> — good instinct, and I've recorded it as a WP-03 investigation rather than a commitment: Zod 4.5's compilation feature is worth benchmarking, but this parser sits in a hot path validating potentially millions of lines, so the plan says adopt it only if it holds up against hand-rolled guards on the 100MB fixture. The validation <em>rules</em> are the requirement; the library is an implementation choice for that session to make with data.</p></div></div></div>
         
 
 <div class="pagination">
@@ -1185,6 +1271,7 @@ To update: republish the same file path in this conversation (keeps this URL), o
 <span class="current">2</span>
 <a href="page-003.html">3</a>
 <a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
 <a href="page-003.html">Next &rarr;</a>
 </div>
 
