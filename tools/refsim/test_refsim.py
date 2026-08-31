@@ -369,9 +369,31 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(r["timestamp"], at(5))
         self.assertEqual(parsed["metadata"]["title"], "last")
         self.assertEqual(parsed["metadata"]["sessionId"], "sess")
+        # `pr-link` is a classified non-billing type: counted, never warned on.
         self.assertEqual(parsed["stats"]["skippedRecordTypes"], {"pr-link": 1})
-        self.assertEqual(parsed["verdict"], "valid-with-warnings")
+        self.assertEqual(parsed["warnings"], [])
+        self.assertEqual(parsed["verdict"], "valid")
         self.assertNotIn("POISON", json.dumps(parsed))
+
+    def test_skipped_types_warn_only_when_unclassified(self):
+        data = jsonl(
+            user("u0", None, at(0)),
+            assistant("a0", "u0", at(3), "msg_0"),
+            {"type": "queue-operation"},
+            {"type": "system"},
+            {"type": "system\u0000"},  # sanitized away -> <other>, not `system`
+            {"type": "never-seen-before"},
+        )
+        parsed, _ = self.parse(data)
+        self.assertEqual(
+            parsed["stats"]["skippedRecordTypes"],
+            {"queue-operation": 1, "system": 1, "<other>": 1, "never-seen-before": 1},
+        )
+        self.assertEqual(
+            parsed["warnings"],
+            [{"kind": "skipped-record-types", "types": {"<other>": 1, "never-seen-before": 1}}],
+        )
+        self.assertEqual(parsed["verdict"], "valid-with-warnings")
 
     def test_fallback_start_synthetic_and_invalid_usage(self):
         bad = {"input_tokens": -1, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0, "output_tokens": 1}
