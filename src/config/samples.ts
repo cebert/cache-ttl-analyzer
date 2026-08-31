@@ -66,6 +66,18 @@ export const SAMPLES: readonly SampleSession[] = [
     cacheHitRate: 0.9335,
   },
   {
+    // The same prompts and gaps as `gap-heavy-1h`, recorded with the TTL set
+    // to 5m: three lapses, two of them partial. 1h wins here only because the
+    // simulator restores partially lapsed prefixes.
+    id: 'gap-heavy-5m',
+    file: 'gap-heavy-5m.jsonl',
+    nameKey: 'samples.names.gapHeavy5m',
+    lesson: 'one-hour-wins',
+    requestCount: 8,
+    spanMs: 1_607_199,
+    cacheHitRate: 0.6563,
+  },
+  {
     id: 'model-switch',
     file: 'model-switch.jsonl',
     nameKey: 'samples.names.modelSwitch',

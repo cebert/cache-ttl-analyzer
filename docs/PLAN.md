@@ -330,7 +330,14 @@ worker). The scenario at the *observed* TTL reproduces the log exactly (the
 only the requests where the two TTL windows disagree, all-or-nothing:
 shortening turns a read after a >5m same-thread gap into a 5m write (the
 feasibility §7 rule), and lengthening turns a re-write after a 5m–1h gap
-back into a read bounded by what was warm after the previous request. The
+back into a read bounded by what was warm after the previous request.
+**Amended 2026-08-30 (partial lapses):** an entry the log only partly read
+back only partly lapsed, so the lapsed share is `warm − read` and
+lengthening restores `min(write, warm − read)` — the `reads == 0` gate is
+gone. The same share names the observed expiry when a gap is dead under
+both TTLs, and wasted-write accounting is bounded by it. Motivated by
+`fixtures/captured/scenarios/gap-heavy-5m`, the only capture that exhibits
+partial invalidation; it is the one golden the change moved. The
 lengthening direction is an addition to the feasibility model, which only
 covered shortening — without it 1h could never win for a 5m-configured
 session. Gaps are measured between request *starts* (F3). Hard resets
@@ -418,11 +425,11 @@ depth 2; main at 1h, subagents at 5m; 1h wins the main bucket $68.91 vs
 $90.31) and the Claude-enacted scenarios under `captured/scenarios/`,
 recorded by `scripts/capture-scenarios.sh` (`claude -p` with
 `CLAUDE_CODE_PROMPT_CACHE_TTL`, one throwaway cwd per scenario so caches
-never cross): `tight-loop-5m` (13 requests at 5m — the 5m-configured capture; 5m wins), `gap-heavy-1h` (6m/8m/12m gaps at 1h; the 5m scenario adds three expiries, 1h wins $0.32 vs $0.70), `gap-heavy-5m` (same gaps at 5m: one full lapse and two *partial* lapses — a stable ~11.8k prefix stayed warm — so the all-or-nothing lengthening rule, which needs `reads == 0`, restores only the full one and 5m wins narrowly $0.562 vs $0.579: a WP-05 modeling limit now pinned by real data, under-selling 1h on 5m sessions with partial lapses; see fixtures/README.md), and `model-switch` (Opus 5 → Sonnet 5, then effort high → medium: two hard resets) Three scenarios plus the real `parallel-subagents` main session (the
+never cross): `tight-loop-5m` (13 requests at 5m — the 5m-configured capture; 5m wins), `gap-heavy-1h` (6m/8m/12m gaps at 1h; the 5m scenario adds three expiries, 1h wins $0.32 vs $0.70), `gap-heavy-5m` (same gaps at 5m: one full lapse and two *partial* lapses — a stable ~11.8k prefix stayed warm — so the lengthening rule as first written needed `reads == 0` and restored only the full one, so 5m won narrowly $0.562 vs $0.579 — the modeling limit the partial-lapse amendment above fixes; with it, 1h wins $0.311 vs $0.562 and the capture ships as a sample; see fixtures/README.md), and `model-switch` (Opus 5 → Sonnet 5, then effort high → medium: two hard resets) All four scenarios plus the real `parallel-subagents` main session (the
 default) ship as `public/samples/` via `scripts/sync-samples.ts`; the UI's
 `SAMPLES` list is the source of truth and the harness checks every card
-number against the fixture. `gap-heavy-5m` joins them once the simulator
-handles partial lapses. Not committed: the multi-hundred-MB
+number against the fixture. `gap-heavy-5m` joined them when the simulator
+learned partial lapses. Not committed: the multi-hundred-MB
 single-line case, which stays a runtime parser test.
 
 ### WP-D — UX design (Claude Design session)

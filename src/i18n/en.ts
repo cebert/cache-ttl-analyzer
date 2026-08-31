@@ -73,6 +73,7 @@ export const en = {
       realSession: 'A real 85-minute session',
       tightLoop: 'Tight agent loop',
       gapHeavy: 'Long and gap-heavy',
+      gapHeavy5m: 'Gap-heavy, run at 5 minutes',
       modelSwitch: 'Model switched',
     },
   },
