@@ -620,13 +620,81 @@ cacheanalyzer.com now serves all eight security headers including the full CSP,
 and carries no `X-Robots-Tag` — that rule is correctly scoped to preview
 hostnames only, leaving production indexable.
 
-### WP-10 — Launch polish
+### WP-10 — Launch polish ✅ complete (PR #27, 2026-08-30)
 **Depends on:** WP-08, WP-09.
 README rewrite for end users; verify samples load on the deployed site;
 cross-browser pass (Chrome plus at least one of Safari/Firefox — the real
 compatibility risk is `File.stream()` in workers; Edge is Chromium); perf
 sanity check with the generated 100MB fixture; final wording pass on privacy
 and approximation disclosures.
+
+**Implementation notes (2026-08-30):**
+
+- **i18n plurals (the one real defect).** i18next selects a plural form from
+  one variable per key (`count`), so a string carrying two counts could not
+  agree with both: `subagentThreads_one` rendered "1 thread, 45 request**s**"
+  correctly only by luck, and `limitSubagentsOnly` / `limitSubagentsPresent`
+  had no plural forms at all. Each count is now a `counts.*` fragment resolved
+  by `useCounted` (`src/i18n/counted.ts`), and the sentence interpolates
+  finished fragments; `CountNoun` is derived from the catalog so a fragment
+  cannot lose its forms silently. Eight strings were wrong this way — the two
+  reported plus `subagentThreads`, `badgeResets` ("1 resets"),
+  `limitUnknownModels` ("1 requests are excluded"), `samples.meta`,
+  `bandSentence`'s `total` and `resetsWaste`'s token count.
+  `src/i18n/plurals.test.ts` carries the durable part: three catalog
+  invariants, the load-bearing one failing any string that puts a
+  non-selector variable immediately before a plural noun. Verified by
+  reintroducing the original bug and watching it fail — the whole class
+  produces copy that still reads like copy, which is why nothing caught it.
+  `bandSentence_one`/`_other` being identical is correct English, not a bug.
+- **The 100MB fixture was over the cap, so the perf check had never been
+  runnable in a browser.** The generator emits a whole turn at a time, so
+  targeting `MAX_FILE_SIZE_BYTES` exactly overshot it — the manifest read
+  104,867,601 bytes against a 104,857,600 cap. Every Node test passed because
+  the parser streams it happily; `file-validation.ts` rejects an over-cap file
+  before a worker exists. It now targets one turn's margin under the cap
+  (the largest file the app will accept, which is the interesting case) and
+  `ensureLargeFixture` throws if that stops holding.
+- **Samples cut to four (D24)** and the heading now names them. WP-D left it
+  as "Or try one of these".
+- **Type ramp and nav (D25)** deviate from WP-D deliberately; see the log.
+- **Well-known files (D26):** `robots.txt`, `sitemap.xml`, `site.webmanifest`
+  (the CSP already permitted `manifest-src 'self'`), an apple-touch-icon
+  rasterized from the brand mark, `.well-known/security.txt` pointing at
+  GitHub advisories rather than publishing an email, plus link-preview
+  metadata and a canonical URL. The og:image is self-hosted like every other
+  asset — an external card host would weaken the claim the CSP exists to
+  prove. **security.txt carries an `Expires` of 2027-08-30 and needs renewing
+  before then.**
+- **Vendor references on About.** The divergences are why the section exists:
+  Bedrock is five-minute-only on Claude 3.7 Sonnet and 3.5 Sonnet v2, and
+  Google Cloud does not support the 1h TTL on four older Claude models, so a
+  one-hour verdict is not actionable for those readers. Every URL fetched and
+  200 on 2026-08-30.
+
+*Verified against the deployed preview* (`pr-27-…workers.dev`, the real
+Workers runtime with the production `_headers`), not just locally:
+
+| Check | Evidence |
+|---|---|
+| All four samples load and render | Each clicked through to its verdict; `gap-heavy-5m` 1h $0.31 vs $0.56, `real-session` 1h saving $21.41 over 126 requests, `tight-loop-5m` 5m, `model-switch` 5m with 2 resets |
+| Deep links resolve | `/find-your-logs`, `/data-policy`, `/about` each served the SPA shell and rendered distinct content |
+| CSP and security headers intact | All eight served, full `connect-src 'self'` CSP |
+| No console errors | Zero errors or warnings across every run, all three engines |
+| 100MB fixture in a real browser | 99.9 MB accepted, **~1s to a rendered verdict**, 9,976 requests, $329.13 (5m) vs $366.54 (1h). Page stayed responsive throughout: rAF p50 20.0ms, p95 20.9ms, 3 frames over 100ms, one 515ms spike at the final results render |
+| Cancel actually terminates | Instrumented `Worker.terminate`: 1 created, 1 terminated; worker messages stopped 447ms after the click and nothing arrived in the following 12s; UI showed "Analysis cancelled" and no verdict |
+| Cross-browser | **Chromium, Firefox and WebKit** all passed the full flow — sample → 100MB upload → cancel — against the https preview, with zero console errors. `File.stream()` in a module worker, the stated risk, works in all three |
+
+Note: WebKit cannot be tested against `http://localhost` — the app's own
+`Strict-Transport-Security` header makes it upgrade to https, which then
+fails TLS locally. Test WebKit against a deployed https URL.
+
+**Deferred out of this WP:** the published transcripts are missing 39
+mid-turn human messages across 9 of 13 sessions. Cause is upstream —
+`claude-code-transcripts` v0.6 `_parse_jsonl_file()` drops every record whose
+type is not `user`/`assistant`, and a message typed while Claude is working is
+logged as `queue-operation`. The content is intact in the committed
+`session.jsonl`; the loss is at render time. Its own PR.
 
 ### Dependency graph
 
@@ -706,7 +774,11 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | D19 | File-size cap **100 MB**, amending the frozen `MAX_FILE_SIZE_BYTES` down from 500 MB | WP-07 is the first code to enforce the cap, and 500 MB predated anyone measuring a session log. Measured over a real `~/.claude/projects` tree (49 logs, the 30-day retention window): 0.15 MB median, 1.8 MB p90, 3.36 MB max; this repo's own committed transcripts, which are long dense engineering sessions, top out at 3.25 MB. 100 MB is ~30x the largest log observed and matches the copy WP-D wrote, so the UI states and enforces one number. Contract amended in place with the measurements recorded. (User, 2026-08-30) |
 | D20 | Public captures are scrubbed to metadata, not redacted: every conversation payload is replaced by a placeholder, keeping only the row structure and the fields the engine reads | The analyzer never reads content, so a fixture never needs it; wholesale replacement is auditable at a glance (list the surviving strings), shrinks the files, and makes the privacy story trivially checkable. Redaction-by-pattern was the alternative and was judged too easy to get wrong for files that ship publicly. (User, 2026-08-30) |
 | D22 | For a file that carries main-conversation traffic, version 1 ships that verdict only and states the subagent bucket rather than sectioning it. A subagent transcript uploaded on its own is the exception: it has no main traffic, so its bucket is the headline and gets a full `subagentPromptCacheTtl` verdict | WP-D deliberately left the two-bucket layout undesigned until real subagent data existed, and on current Claude Code versions a main-session upload carries no sidechain traffic at all (F2), so the section would be absent for nearly every user. The results view says explicitly that `subagentPromptCacheTtl` was not evaluated and where those transcripts live, which is the honesty requirement; rolling both buckets into one verdict needs multi-file upload and is on the README roadmap. (User, 2026-08-30) |
-| D21 | `inference_geo` is not modeled; requests with `inference_geo: "us"` price at the standard published rate | The frozen contract has no field for it and no corpus session used it (every capture shows `not_available`). Stated as an assumption in fixtures/README.md and pinned by a fixture rather than left silent; amend the contract if it starts appearing in real logs. (User, 2026-08-30) |
+| D23 | The contract's mixed-TTL paragraph is amended to match the simulator: the residual split is the server-tool share **only in a 1h-dominant bucket**; in a 5m-dominant bucket a 1h residual is a mid-session config flip and every write is user-controlled | The paragraph called the residual the server-tool share unconditionally and then said nonzero 1h tokens are user-controlled — contradictory for a 5m-dominant bucket with a 1h residual. The simulator has always followed the rationale (WP-05 notes), so this is wording only: no behavior change, and all 60 goldens re-checked unmoved. Flagged "amend when next touched" since WP-05; WP-10 touched it. (User, 2026-08-30) |
+| D24 | Four bundled samples, not five: `gap-heavy-1h` loses its card. Both files stay as fixtures and goldens | `gap-heavy-1h` and `gap-heavy-5m` are the same prompts and gaps recorded at the two TTLs, so a card for each teaches one lesson twice. The 5m one is the keeper: a session actually configured at 5m where 1h wins is the actionable finding the tool exists to surface, and it is the only sample exercising partial lapses. The 1h twin mostly confirms the status quo. (User, 2026-08-30) |
+| D25 | Two deliberate deviations from WP-D's signed-off design: the reading end of the type ramp goes up ~1px (body 13 → 14, and the 10–17px range with it), and the three standing links move from the sidebar footer to just under *Add session* | Type: the ramp read small on both phone and desktop once it was real rather than an artboard; the display sizes (23px+) are unchanged, so the hierarchy WP-D set is intact, and the three fixed-width label columns were widened to match. Nav: the three were not the same kind of link — "Find your logs" is a task link you need *before* you can upload anything, and filing it with two meta links in the footer read as an afterthought. The session list keeps the flexible space below them. (User, 2026-08-30) |
+| D26 | Ship the standard well-known files, with `security.txt` pointing at GitHub security advisories rather than an email address, and a self-hosted og:image | A public site should serve `robots.txt`, a sitemap and a manifest; the CSP already permitted `manifest-src 'self'`, so one had been intended. The advisories URL avoids publishing a personal address for scraping. The og:image is self-hosted because `img-src 'self'` is what the CSP allows and an external card host would weaken the claim the CSP exists to prove. `Expires` on security.txt needs renewing by 2027-08-30. (User, 2026-08-30) |
+| D21 | `inference_geo` is not modeled; requests with `inference_geo: "us"` price at the standard published rate | The frozen contract has no field for it and no corpus session used it (every capture shows `not_available`). Stated as an assumption in fixtures/README.md and pinned by a fixture rather than left silent; amend the contract if it starts appearing in real logs. **Reaffirmed in WP-10** — modelling it means a contract amendment, engine and refsim changes and re-emitting every golden, which is disproportionate for launch polish — but the ~10% understatement is now disclosed in the UI's limits panel and on the About page, not only in fixtures/README.md, since the engine cannot detect the field per request and the line must therefore be unconditional. (User, 2026-08-30) |
 
 ## 7. Risks
 
@@ -716,5 +788,5 @@ parallel → ④ WP-08 → ⑤ WP-10.
 | Pricing goes stale | `pricesAsOf` shown to users; single-file update path; periodic check noted in README |
 | Counterfactual is approximate (all-or-nothing expiry, feasibility §7) | Conservative direction (understates 1h's downside cases toward 5m) disclosed in the UI |
 | ~~Subagent path untested against real data~~ | Done in WP-06: `fixtures/captured/parallel-subagents` (27 real subagent transcripts) is in the golden harness |
-| Huge session files stall the browser | Streaming parse in a worker; progress + cancel; 100MB perf test in WP-10 |
+| ~~Huge session files stall the browser~~ | Closed in WP-10: 99.9 MB analyzed in ~1s in Chromium, Firefox and WebKit on the deployed preview, page responsive throughout (rAF p95 20.9ms), and cancel verified to really terminate the worker |
 | Malicious or corrupted uploads (hostile strings, pollution keys, giant lines, non-session files) | Validation verdicts; text-node-only rendering; typed-record copying; size/line caps; adversarial fixtures in WP-03/WP-06; strict CSP |
