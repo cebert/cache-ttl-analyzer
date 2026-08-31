@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Browser chrome (Android address bar, PWA splash) picks up the app's
+         primary blue rather than painting its own default. -->
+    <meta name="theme-color" content="#2563EB" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Find out whether a Claude Code session would have cost less with a five-minute or a one-hour prompt cache. Analyzed in your browser; nothing is uploaded."
+    />
     <title>Cache TTL Analyzer</title>
   </head>
   <body>
