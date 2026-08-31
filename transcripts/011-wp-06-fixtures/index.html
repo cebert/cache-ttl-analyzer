@@ -164,7 +164,7 @@ details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom
 <a href="page-001.html">Next &rarr;</a>
 </div>
 
-        <p style="color: var(--text-muted); margin-bottom: 24px;">8 prompts · 300 messages · 89 tool calls · 1 commits · 2 pages</p>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">10 prompts · 364 messages · 109 tool calls · 2 commits · 2 pages</p>
         
 <div class="index-item"><a href="page-001.html#msg-2026-08-30T23-47-36-273Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2026-08-30T23:47:36.273Z" data-timestamp="2026-08-30T23:47:36.273Z">2026-08-30T23:47:36.273Z</time></div><div class="index-item-content"><p><command-name>/model</command-name>
             <command-message>model</command-message>
@@ -439,7 +439,7 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
 <li>Do not push unless the user asks. Publishing to a remote is their call, and it
   is the point of no return for anything that slipped through redaction.</li>
 </ul>
-<p>ARGUMENTS: the current session (WP-06 fixtures and golden data, PR #17)</p></div></a><div class="index-item-stats">
+<p>ARGUMENTS: the current session (WP-06 fixtures and golden data, PR #17)</p></div></a><div class="index-item-stats"><span>10 read · 4 bash · 1 askuserquestion</span>
 <div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Base directory for this skill: ~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript</p>
 <h1>Publish a session transcript</h1>
 <p>Turns one Claude Code session for this repo into one committed folder holding
@@ -630,6 +630,26 @@ git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
   is the point of no return for anything that slipped through redaction.</li>
 </ul>
 <p>ARGUMENTS: the current session (WP-06 fixtures and golden data, PR #17)</p></div></div><button class="expand-btn">Show more</button></div></div>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p><strong>Yes — PR #17 is ready to merge.</strong> https://github.com/cebert/cache-ttl-analyzer/pull/17</p>
+<p>All checks are green on the final commit (<code>c360ba4</code>): lint/typecheck/test/build (484 tests, including WP-07's), the new Python step (29 reference-sim tests + <code>golden:check</code> over 60 goldens), the transcripts-site build, and the preview deploy. Working tree is clean and <code>main</code> (PR #18) is merged in.</p>
+<p><strong>What the PR delivers (WP-06):</strong>
+- <code>tools/refsim/</code> — the prototype rewritten to spec parity as an independent Python reference sim, with hand-computed tests; it emits the goldens, it isn't the oracle.
+- 22 synthetic + 6 adversarial fixtures (generated, committed), a scrubbed 27-subagent capture, and four Claude-enacted scenario captures; 60 goldens; a manifest with the trap and expectation per fixture.
+- <code>src/engine/golden.test.ts</code>: engine-vs-golden diff plus the format-drift canary, content-poison, reconciliation, manifest-completeness, and sample-drift checks.
+- <code>public/samples/</code> filled via WP-07's <code>SAMPLES</code> (three samples, one per lesson the landing page teaches), with card numbers asserted against the fixtures.
+- PLAN.md: WP-05/WP-06 complete, D20/D21 (scrub-to-metadata, <code>inference_geo</code> assumption), WP-04 gap closed by assumption.
+- Transcript <code>011-wp-06-fixtures</code> published (email, name, one unrelated project name redacted; paths/username rewritten).</p>
+<p><strong>Two things worth your eyes before or after merging:</strong>
+1. <strong>Partial invalidation, seen live</strong> in <code>gap-heavy-5m</code>: after 8m/12m gaps a ~11.8k stable prefix stayed warm while the tail lapsed. The WP-05 lengthening rule needs <code>reads == 0</code>, so 1h loses a session it should win ($0.562 vs $0.579). I left the simulator unchanged and documented it as a follow-up (fixtures/README.md, PLAN.md) — it's a modeling decision for you, and the golden pins today's behavior so the fix will be visible. That capture ships as a fixture only, not a sample.
+2. The reconciliation property is exact everywhere except a 5m-dominant bucket with flipped 1h writes, by design (hand-checked, $0.004125).</p>
+<p>Housekeeping: I worked from a worktree at <code>../cache-ttl-analyzer-wp06</code> after another session switched branches in the main checkout; the main checkout is back on <code>ci/transcripts-github-pages</code> at its pushed commit, untouched.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div><div class="index-commit"><a href="https://github.com/cebert/cache-ttl-analyzer/commit/c1266fb"><div class="index-commit-header"><span class="index-commit-hash">c1266fb</span><time datetime="2026-08-31T00:51:59.050Z" data-timestamp="2026-08-31T00:51:59.050Z">2026-08-31T00:51:59.050Z</time></div><div class="index-commit-msg">docs(readme): document the reference sim, golden fixtures, and their npm scripts</div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-08-31T00-59-11-030Z"><div class="index-item-header"><span class="index-item-number">#9</span><time datetime="2026-08-31T00:59:11.030Z" data-timestamp="2026-08-31T00:59:11.030Z">2026-08-31T00:59:11.030Z</time></div><div class="index-item-content"><p>this analysis is great, this tool looks useful actually</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Thanks — and I think the captures are the strongest argument for it. Two sessions with the <em>same</em> four prompts and the <em>same</em> three idle gaps came out at $0.32 (1h) versus $0.56 (5m) — a 75% difference on nothing but a config setting nobody sees. The tool's whole job is making that visible from a log file people already have on disk, and the real data says the effect is not subtle.</p>
+<p>The other thing the captures bought you is credibility of the model itself: the partial-invalidation case is exactly the kind of thing a synthetic fixture would never have produced, and now it's pinned in the harness waiting for the simulator fix. When you get to that follow-up, the natural rule is "on a &gt;5m gap with <code>reads &gt; 0</code> and a large write, restore <code>min(write, warm − read)</code> as reads" — and <code>gap-heavy-5m</code>'s golden will flip to 1h wins the moment it's right.</p>
+<p>PR #17 is ready whenever you want to merge.</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2026-08-31T00-59-48-837Z"><div class="index-item-header"><span class="index-item-number">#10</span><time datetime="2026-08-31T00:59:48.837Z" data-timestamp="2026-08-31T00:59:48.837Z">2026-08-31T00:59:48.837Z</time></div><div class="index-item-content"><p>this might be a good example default session to include if people don't have their own</p></div></a><div class="index-item-stats"><span>4 bash · 1 askuserquestion</span>
 </div></div>
         
 
