@@ -24,6 +24,26 @@ describe('createFormatters', () => {
     })
   })
 
+  describe('compact', () => {
+    it('abbreviates large token counts', () => {
+      expect(en.compact(2_410_000)).toBe('2.4M')
+      expect(en.compact(260_000)).toBe('260K')
+    })
+
+    it('leaves counts under a thousand alone', () => {
+      expect(en.compact(999)).toBe('999')
+      expect(en.compact(0)).toBe('0')
+    })
+
+    it('uses the locale\u2019s own abbreviations', () => {
+      expect(de.compact(2_410_000)).toBe('2,4\u00A0Mio.')
+    })
+
+    it('renders nothing for a non-finite value', () => {
+      expect(en.compact(Number.NaN)).toBe('')
+    })
+  })
+
   describe('currency', () => {
     it('always shows two decimals, so a column of costs aligns', () => {
       expect(en.currency(2.1)).toBe('$2.10')

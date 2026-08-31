@@ -50,25 +50,28 @@ export function SampleList() {
       <SheetRule />
       <SheetSection className="flex flex-col gap-3">
         <SectionTitle>{t('samples.title')}</SectionTitle>
-        <ul className="grid gap-0 sm:grid-cols-4">
-          {SAMPLES.map((sample, index) => (
-            <li
-              key={sample.id}
-              className={`border-line-soft ${
-                index > 0 ? 'border-t pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5' : ''
-              } ${index < SAMPLES.length - 1 ? 'pb-3 sm:pr-5 sm:pb-0' : ''}`}
-            >
+        {/*
+          Cards in a wrapping grid rather than fixed columns divided by rules:
+          the catalog grows a row at a time (WP-06 added a fifth), and a
+          hard-coded column count leaves the last card stranded in an empty
+          row the moment the count stops dividing evenly.
+        */}
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {SAMPLES.map((sample) => (
+            <li key={sample.id} className="flex">
               <button
                 type="button"
                 disabled={busy || loadingId !== null}
                 onClick={() => void load(sample)}
-                className="flex w-full flex-col gap-1.5 rounded-[6px] p-1 text-left disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full flex-col gap-2 rounded-[8px] border border-line-soft bg-[#FAFCFE] p-3 text-left transition-colors hover:border-[#C6D3E3] hover:bg-primary-tint disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line-soft disabled:hover:bg-[#FAFCFE]"
               >
-                <span className="flex items-baseline justify-between gap-2.5">
-                  <span className="text-[13.5px] font-semibold">{t(sample.nameKey)}</span>
+                <span className="flex items-start justify-between gap-2.5">
+                  <span className="text-[13.5px] leading-snug font-semibold">
+                    {t(sample.nameKey)}
+                  </span>
                   <LessonBadge sample={sample} />
                 </span>
-                <span className="font-mono text-[10.5px] text-slate-400">
+                <span className="mt-auto font-mono text-[10.5px] text-slate-400">
                   {t('samples.meta', {
                     requests: fmt.integer(sample.requestCount),
                     span: fmt.duration(sample.spanMs),

@@ -25,6 +25,12 @@ export interface Formatters {
   locale: string
   /** Whole number with grouping, e.g. "112,000". */
   integer: (value: number) => string
+  /**
+   * A large count at a glance, e.g. "2.4M". Token totals run to seven
+   * figures and sit in a six-across metric row, where the grouped form
+   * neither fits nor reads; the exact figure goes in the `title`.
+   */
+  compact: (value: number) => string
   /** USD at published Anthropic API rates (decision D2). */
   currency: (usd: number) => string
   /** A 0–1 ratio as a percentage, e.g. 0.61 -> "61%". */
@@ -37,6 +43,8 @@ export interface Formatters {
   date: (iso: string) => string
   /** An ISO timestamp as date and time of day. */
   dateTime: (iso: string) => string
+  /** An ISO timestamp as a time of day alone, e.g. "6:20 PM". */
+  time: (iso: string) => string
   /** A list joined the way the locale joins lists, e.g. "a, b, and c". */
   list: (items: readonly string[]) => string
 }
@@ -52,6 +60,10 @@ function unitFormat(locale: string, unit: string, maximumFractionDigits: number)
 
 export function createFormatters(locale: string): Formatters {
   const integer = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 })
+  const compact = new Intl.NumberFormat(locale, {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  })
   const currency = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'USD',
@@ -60,6 +72,7 @@ export function createFormatters(locale: string): Formatters {
   })
   const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' })
   const dateTime = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' })
+  const time = new Intl.DateTimeFormat(locale, { timeStyle: 'short' })
   const list = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' })
   const seconds = unitFormat(locale, 'second', 0)
   const minutes = unitFormat(locale, 'minute', 0)
@@ -94,6 +107,9 @@ export function createFormatters(locale: string): Formatters {
   return {
     locale,
     integer: (value) => (Number.isFinite(value) ? integer.format(value) : ''),
+    // Below 1000 the compact form is the plain number, so this needs no
+    // special case — `Intl` already returns "999" rather than "1.0K".
+    compact: (value) => (Number.isFinite(value) ? compact.format(value) : ''),
     currency: (usd) => (Number.isFinite(usd) ? currency.format(usd) : ''),
     percent: (ratio, fractionDigits = 0) =>
       Number.isFinite(ratio)
@@ -106,6 +122,7 @@ export function createFormatters(locale: string): Formatters {
     duration,
     date: (iso) => formatInstant(iso, date),
     dateTime: (iso) => formatInstant(iso, dateTime),
+    time: (iso) => formatInstant(iso, time),
     list: (items) => list.format(items),
   }
 }

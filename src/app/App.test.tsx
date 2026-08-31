@@ -137,7 +137,7 @@ describe('the app shell', () => {
     expect(await screen.findByText(en.analyzing.workerNote)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: en.analyzing.cancel })).toBeInTheDocument()
 
-    expect(await screen.findByText(en.results.pendingTitle)).toBeInTheDocument()
+    expect(await screen.findByText(en.results.recommendationEyebrow)).toBeInTheDocument()
     expect(screen.getByText(en.results.recommendation1h)).toBeInTheDocument()
 
     // The sidebar is the history (WP-D): the finished run is in it.
@@ -168,7 +168,7 @@ describe('the app shell', () => {
     expect(await main().findByText(en.status.cancelled)).toBeInTheDocument()
     expect(workers).toHaveLength(1)
     await waitFor(() => expect(workers[0].terminated()).toBe(true))
-    expect(screen.queryByText(en.results.pendingTitle)).not.toBeInTheDocument()
+    expect(screen.queryByText(en.results.recommendationEyebrow)).not.toBeInTheDocument()
   })
 
   it('rejects a file that is not a session log in plain language, not with a broken analysis', async () => {
@@ -182,7 +182,7 @@ describe('the app shell', () => {
 
     expect(await main().findByText(en.rejected.title)).toBeInTheDocument()
     expect(main().getByText(en.rejected.malformedLines)).toBeInTheDocument()
-    expect(screen.queryByText(en.results.pendingTitle)).not.toBeInTheDocument()
+    expect(screen.queryByText(en.results.recommendationEyebrow)).not.toBeInTheDocument()
 
     // And there is a way back to the upload screen.
     await user.click(screen.getByRole('button', { name: en.rejected.tryAnother }))
@@ -206,7 +206,7 @@ describe('the app shell', () => {
 
     drop(new File(['{"type":"user"}\n'], 'dropped.jsonl'))
 
-    expect(await main().findByText(en.results.pendingTitle)).toBeInTheDocument()
+    expect(await main().findByText(en.results.recommendationEyebrow)).toBeInTheDocument()
     expect(workers).toHaveLength(1)
   })
 
@@ -220,7 +220,7 @@ describe('the app shell', () => {
     expect(workers).toHaveLength(0)
 
     await user.click(screen.getByRole('button', { name: en.uploadError.addAnyway }))
-    expect(await main().findByText(en.results.pendingTitle)).toBeInTheDocument()
+    expect(await main().findByText(en.results.recommendationEyebrow)).toBeInTheDocument()
     expect(workers).toHaveLength(1)
   })
 
@@ -235,14 +235,25 @@ describe('the app shell', () => {
     expect(await screen.findByText(en.upload.dropTitle)).toBeInTheDocument()
   })
 
-  it('reaches the find-your-logs page from the dropzone, with both platform paths', async () => {
+  it('reaches the find-your-logs page from the dropzone, with every platform', async () => {
     const { user } = renderApp()
 
     await user.click(screen.getByRole('button', { name: en.upload.whereAreLogs }))
 
     expect(await screen.findByText(en.findLogs.subagentsNote)).toBeInTheDocument()
-    expect(screen.getByText(en.findLogs.macosPath)).toBeInTheDocument()
-    expect(screen.getByText(en.findLogs.windowsPath)).toBeInTheDocument()
+    for (const platform of [en.findLogs.mac, en.findLogs.linux, en.findLogs.windows] as const) {
+      expect(screen.getByRole('heading', { name: platform.name })).toBeInTheDocument()
+    }
+    // macOS and Linux share a path, so this is the pair plus Windows.
+    expect(screen.getAllByText(en.findLogs.mac.path)).toHaveLength(2)
+    expect(screen.getByText(en.findLogs.windows.path)).toBeInTheDocument()
+  })
+
+  it('does not repeat the log locations on the landing screen, where the button owns them', () => {
+    renderApp()
+
+    expect(screen.getByRole('button', { name: en.upload.whereAreLogs })).toBeInTheDocument()
+    expect(screen.queryByText(en.findLogs.windows.path)).not.toBeInTheDocument()
   })
 
   it('reports a worker that fails to start rather than hanging on "analyzing"', async () => {

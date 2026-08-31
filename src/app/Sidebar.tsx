@@ -9,19 +9,34 @@ import { NavLink, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useSessions } from '../state/sessions-context'
+import { useGoHome } from './use-go-home'
 import { Button } from '../ui/Button'
 import { ClockIcon, PlusIcon, ShieldCheckIcon } from '../ui/Icon'
 import { Eyebrow } from '../ui/Sheet'
 import { SessionRow } from './SessionRow'
 import { ROUTES } from './routes'
 
-export function SidebarBrand() {
+/**
+ * The wordmark, which is also the way home — clicking a product's name to get
+ * back to its front page is the one navigation every reader already knows,
+ * and it is reachable from the mobile header as well as the sidebar.
+ */
+export function SidebarBrand({ onNavigate }: { onNavigate?: () => void } = {}) {
   const { t } = useTranslation()
+  const goHome = useGoHome()
   return (
-    <span className="flex items-center gap-[9px]">
-      <ClockIcon size={18} className="text-primary" />
-      <span className="text-[14px] font-semibold tracking-[-0.02em]">{t('app.name')}</span>
-    </span>
+    <button
+      type="button"
+      onClick={() => {
+        goHome()
+        onNavigate?.()
+      }}
+      className="flex min-w-0 items-center gap-[9px] rounded-[6px] py-1 transition-opacity hover:opacity-70"
+    >
+      <ClockIcon size={18} className="shrink-0 text-primary" />
+      <span className="truncate text-[14px] font-semibold tracking-[-0.02em]">{t('app.name')}</span>
+      <span className="sr-only">{t('nav.home')}</span>
+    </button>
   )
 }
 
@@ -29,6 +44,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { state, select } = useSessions()
+  const goHome = useGoHome()
 
   function openSession(id: string) {
     select(id)
@@ -37,17 +53,14 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   function addSession() {
-    // Deselecting is what returns the main pane to the upload screen; the
-    // session stays in the list.
-    select(null)
-    void navigate(ROUTES.home)
+    goHome()
     onNavigate?.()
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
       <div className="hidden h-[52px] shrink-0 items-center border-b border-line-soft px-4 md:flex">
-        <SidebarBrand />
+        <SidebarBrand onNavigate={onNavigate} />
       </div>
 
       <div className="p-3">

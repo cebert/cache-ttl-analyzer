@@ -1,16 +1,17 @@
 /**
  * The landing screen: the question the tool answers, the way to hand it a
- * file, the captured samples, and — side by side below — where to find a log
- * and why handing one over is safe.
+ * file, the captured samples, and the reason handing one over is safe.
  *
- * Those last two sit at the same level on purpose: a user who has never seen
- * this tool needs both answers before they will use it.
+ * Finding a log is deliberately NOT explained here. It used to be, in a panel
+ * beside the privacy note, which put the same three paths on screen as the
+ * "Where are my logs?" button one row above it — two answers to one question,
+ * competing for the same glance. The button owns it now; this screen stays a
+ * drop target and a promise.
  */
 
 import { useTranslation } from 'react-i18next'
 
 import { Sheet, SheetSection } from '../../ui/Sheet'
-import { FindLogsPanel } from '../FindLogsPanel'
 import { Dropzone } from '../upload/Dropzone'
 import { PrivacyPanel } from '../upload/PrivacyPanel'
 import { SampleList } from '../upload/SampleList'
@@ -35,15 +36,9 @@ export function UploadScreen({ onWhereAreLogs }: { onWhereAreLogs: () => void })
       </Sheet>
 
       <Sheet>
-        <div className="flex flex-col lg:flex-row lg:items-stretch">
-          <SheetSection className="min-w-0 flex-1">
-            <FindLogsPanel />
-          </SheetSection>
-          <div className="h-px w-full shrink-0 bg-line-soft lg:h-auto lg:w-px" />
-          <SheetSection className="lg:w-[372px] lg:shrink-0">
-            <PrivacyPanel />
-          </SheetSection>
-        </div>
+        <SheetSection>
+          <PrivacyPanel />
+        </SheetSection>
       </Sheet>
     </div>
   )
