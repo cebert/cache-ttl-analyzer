@@ -21,6 +21,7 @@ const outDir = join(repoRoot, 'site')
 const SITE_TITLE = 'Cache TTL Analyzer — session transcripts'
 const REPO_URL = 'https://github.com/cebert/cache-ttl-analyzer'
 const APP_URL = 'https://cacheanalyzer.com'
+const SITE_URL = 'https://cebert.github.io/cache-ttl-analyzer/'
 
 interface Session {
   date: string
@@ -108,6 +109,22 @@ function escapeHtml(text: string): string {
 }
 
 /**
+ * True for a link target safe to put in an `href`. Escaping the URL does not
+ * defuse it — `javascript:` and `data:` targets execute when clicked — so a
+ * scheme the browser would treat as code is rejected outright, and the link is
+ * rendered as plain text instead. Relative targets resolve against the site
+ * and come back `https:`.
+ */
+function isSafeHref(href: string): boolean {
+  try {
+    const { protocol } = new URL(href, SITE_URL)
+    return protocol === 'https:' || protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
+/**
  * Renders the small slice of markdown the map cells actually use: links and
  * inline code. Everything else is escaped and left as literal text — this is a
  * table of one-line summaries, not a general markdown document.
@@ -115,6 +132,7 @@ function escapeHtml(text: string): string {
 function renderInline(markdown: string): string {
   return escapeHtml(markdown)
     .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_match, text: string, href: string) => {
+      if (!isSafeHref(href)) return text
       // Relative links in the table point at sibling transcript folders, which
       // sit at the same depth on the site as they do in the repo.
       return `<a href="${href}">${text}</a>`
