@@ -20,6 +20,7 @@ import {
   mkdirSync,
   openSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
   writeSync,
@@ -82,7 +83,12 @@ export function ensureLargeFixture(
       if (
         manifest.generatorVersion === GENERATOR_VERSION &&
         manifest.targetBytes === targetBytes &&
-        statSync(path).size === manifest.bytes
+        statSync(path).size === manifest.bytes &&
+        // Checked on the reuse path too, not just after generating: an
+        // oversized run throws but leaves its artifacts behind, and without
+        // this the next call would hand them back unexamined — returning
+        // exactly the file the guard exists to prevent.
+        manifest.bytes <= MAX_FILE_SIZE_BYTES
       ) {
         return manifest
       }
@@ -94,6 +100,10 @@ export function ensureLargeFixture(
   // The whole point of the margin above: a fixture over the cap is one the app
   // would refuse, so it could not exercise the browser path it exists for.
   if (manifest.bytes > MAX_FILE_SIZE_BYTES) {
+    // Leave nothing reusable behind, so a later run regenerates rather than
+    // finding a stale oversized fixture.
+    rmSync(path, { force: true })
+    rmSync(manifestPath, { force: true })
     throw new Error(
       `large fixture is ${manifest.bytes} bytes, over MAX_FILE_SIZE_BYTES ` +
         `(${MAX_FILE_SIZE_BYTES}) — raise TURN_MARGIN_BYTES`,

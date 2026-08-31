@@ -184,6 +184,20 @@ describe('rendered plural forms', () => {
     )
   })
 
+  it('formats both counts in the band sentence through the locale', () => {
+    const band = (inBand: number, total: number) =>
+      t('results.bandSentence', {
+        count: inBand,
+        formattedCount: fmt.integer(inBand),
+        total: counted('gaps', total),
+      })
+    // `count` only selects the form; a raw {{count}} would render "1234"
+    // beside a grouped "9,999" in the same sentence.
+    expect(band(1234, 9999)).toContain('1,234 of 9,999 gaps fell')
+    expect(band(1, 1)).toContain('1 of 1 gap fell')
+    expect(band(2, 12)).toContain('2 of 12 gaps fell')
+  })
+
   it('pluralizes the existing count-bearing strings it already had', () => {
     expect(t('analyzing.requestsSeen', { count: 1 })).toBe('1 request so far')
     expect(t('analyzing.requestsSeen', { count: 2 })).toBe('2 requests so far')

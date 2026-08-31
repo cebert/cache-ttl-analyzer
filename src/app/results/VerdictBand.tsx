@@ -104,6 +104,7 @@ export function VerdictBand({
               ? t('results.bandSentenceNone')
               : t('results.bandSentence', {
                   count: bucket.shape.gapsIn5mTo1hBand,
+                  formattedCount: fmt.integer(bucket.shape.gapsIn5mTo1hBand),
                   total: counted('gaps', totalGaps(bucket)),
                 })}
           </p>

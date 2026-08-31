@@ -213,9 +213,9 @@ export const en = {
     // Pluralized on the in-band count; `total` is the second count and
     // arrives already pluralized (counts.gaps), so "1 of 1 gap" reads right.
     bandSentence_one:
-      '{{count}} of {{total}} fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+      '{{formattedCount}} of {{total}} fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
     bandSentence_other:
-      '{{count}} of {{total}} fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+      '{{formattedCount}} of {{total}} fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
     bandSentenceNone:
       'No gap fell between 5 minutes and 1 hour, the only band where the setting changes anything.',
     notional: 'Notional, at published API rates · {{date}}',
