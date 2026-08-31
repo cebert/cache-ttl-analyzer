@@ -1,0 +1,27 @@
+{
+  "source": {
+    "sessionId": "6ac945cc-ea0e-4093-9652-5853170f5003",
+    "claudeCodeVersions": [
+      "2.1.251"
+    ]
+  },
+  "description": "Claude-enacted scenario with the main cache TTL set to 5m (CLAUDE_CODE_PROMPT_CACHE_TTL=5m): the same four prompts and six/eight/twelve-minute gaps, so the log itself shows the prefix lapsing and being re-written before every turn.",
+  "title": "Gap-heavy session at 5m",
+  "scrubRulesVersion": 1,
+  "scrubbedValues": 314,
+  "files": [
+    {
+      "file": "session.jsonl",
+      "lines": 60,
+      "recordTypes": {
+        "queue-operation": 8,
+        "user": 11,
+        "attachment": 16,
+        "atis-latch": 3,
+        "assistant": 16,
+        "last-prompt": 5,
+        "mode": 1
+      }
+    }
+  ]
+}

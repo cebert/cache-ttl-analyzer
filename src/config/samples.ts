@@ -33,6 +33,48 @@ export interface SampleSession {
   hardResets?: number
 }
 
-export const SAMPLES: readonly SampleSession[] = []
+export const SAMPLES: readonly SampleSession[] = [
+  // Captures from fixtures/captured/ (WP-06). The numbers are checked against
+  // the fixture and its golden by src/engine/golden.test.ts.
+  {
+    // The default: a real 85-minute build session at ordinary human pacing,
+    // not a scenario enacted to make a point.
+    id: 'parallel-subagents',
+    file: 'real-session.jsonl',
+    nameKey: 'samples.names.realSession',
+    lesson: 'one-hour-wins',
+    requestCount: 126,
+    spanMs: 5_080_750,
+    cacheHitRate: 0.9865,
+  },
+  {
+    id: 'tight-loop-5m',
+    file: 'tight-loop-5m.jsonl',
+    nameKey: 'samples.names.tightLoop',
+    lesson: 'five-minute-wins',
+    requestCount: 13,
+    spanMs: 93_361,
+    cacheHitRate: 0.9467,
+  },
+  {
+    id: 'gap-heavy-1h',
+    file: 'gap-heavy-1h.jsonl',
+    nameKey: 'samples.names.gapHeavy',
+    lesson: 'one-hour-wins',
+    requestCount: 9,
+    spanMs: 1_607_031,
+    cacheHitRate: 0.9335,
+  },
+  {
+    id: 'model-switch',
+    file: 'model-switch.jsonl',
+    nameKey: 'samples.names.modelSwitch',
+    lesson: 'hard-resets',
+    requestCount: 10,
+    spanMs: 46_204,
+    cacheHitRate: 0.8325,
+    hardResets: 2,
+  },
+]
 
 export const SAMPLES_BASE_PATH = '/samples/'

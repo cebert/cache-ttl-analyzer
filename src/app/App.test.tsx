@@ -120,9 +120,12 @@ describe('the app shell', () => {
     expect(screen.getByText(en.nav.sessionsEmpty)).toBeInTheDocument()
   })
 
-  it('offers no samples until WP-06 lands them, rather than advertising an empty list', () => {
+  it('offers the captured sample sessions', () => {
     renderApp()
-    expect(screen.queryByText(en.samples.title)).not.toBeInTheDocument()
+    expect(screen.getByText(en.samples.title)).toBeInTheDocument()
+    for (const name of Object.values(en.samples.names)) {
+      expect(screen.getByText(name)).toBeInTheDocument()
+    }
   })
 
   it('carries a file through analysis to a result, and remembers it in the sidebar', async () => {

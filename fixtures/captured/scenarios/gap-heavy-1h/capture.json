@@ -1,0 +1,27 @@
+{
+  "source": {
+    "sessionId": "43683dcc-f061-4748-af9d-95d384e4fd1a",
+    "claudeCodeVersions": [
+      "2.1.251"
+    ]
+  },
+  "description": "Claude-enacted scenario at the 1h TTL: four prompts against a toy project separated by six, eight and twelve minutes of idle time \u2014 the human-think-time shape where a 5m cache would lapse before every turn.",
+  "title": "Gap-heavy session at 1h",
+  "scrubRulesVersion": 1,
+  "scrubbedValues": 320,
+  "files": [
+    {
+      "file": "session.jsonl",
+      "lines": 63,
+      "recordTypes": {
+        "queue-operation": 8,
+        "user": 12,
+        "attachment": 17,
+        "atis-latch": 3,
+        "assistant": 17,
+        "last-prompt": 5,
+        "mode": 1
+      }
+    }
+  ]
+}

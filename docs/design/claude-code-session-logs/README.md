@@ -6,12 +6,12 @@ carry enough data to price prompt-cache TTL counterfactuals.
 | File | What it is |
 |---|---|
 | [feasibility.md](feasibility.md) | The findings: schema, available fields, the two TTL settings, pricing math, parsing traps, limits, open questions, and a linked source list. **Start here.** |
-| [prototype-sim.py](prototype-sim.py) | Throwaway simulator used to confirm the findings by execution. Reads `~/.claude/projects/*/*.jsonl`, prices each session at both TTLs. Not production code — it is the evidence behind the numbers in `feasibility.md`. |
+| ~~prototype-sim.py~~ | The throwaway simulator that confirmed the findings by execution (the numbers in `feasibility.md` §8) has been retired. Its spec-parity successor is [`tools/refsim/`](../../../tools/refsim/) — the independently written reference implementation that emits the golden fixtures (WP-06). |
 
-Run the prototype:
+Price a session with the reference simulator:
 
 ```sh
-python3 prototype-sim.py '~/.claude/projects/*/*.jsonl'
+python3 tools/refsim/refsim.py analyze ~/.claude/projects/<project>/<session-id>.jsonl
 ```
 
 ## Key external references

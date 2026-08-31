@@ -1,0 +1,27 @@
+{
+  "source": {
+    "sessionId": "ec39529f-7fe8-4ba3-8bab-e7c23851201e",
+    "claudeCodeVersions": [
+      "2.1.251"
+    ]
+  },
+  "description": "Claude-enacted scenario at 1h: two turns on Opus 5, then /model to Sonnet 5, then effort dropped from high to medium \u2014 three hard cache resets that no elapsed time explains.",
+  "title": "Mid-session model and effort switch",
+  "scrubRulesVersion": 1,
+  "scrubbedValues": 331,
+  "files": [
+    {
+      "file": "session.jsonl",
+      "lines": 74,
+      "recordTypes": {
+        "queue-operation": 12,
+        "user": 13,
+        "attachment": 19,
+        "atis-latch": 3,
+        "assistant": 19,
+        "last-prompt": 7,
+        "mode": 1
+      }
+    }
+  ]
+}

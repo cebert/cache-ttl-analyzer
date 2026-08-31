@@ -40,6 +40,20 @@ jobs:
       - name: Test
         run: npm test
 
+      # The Python reference sim is the independent second implementation
+      # behind the golden fixtures (docs/PLAN.md §5, D7): run its own
+      # hand-computed tests, then prove the committed goldens are what it
+      # emits today, so a golden can never drift from the sim that owns it.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Reference sim tests
+        run: npm run test:refsim
+
+      - name: Golden files are current
+        run: npm run golden:check
+
       - name: Build
         run: npm run build
 
