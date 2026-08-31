@@ -26,3 +26,6 @@ npm-debug.log*
 
 # Generated test fixtures (100MB synthetic session, built at test time)
 fixtures/generated/
+
+# Python bytecode (reference sim)
+__pycache__/
