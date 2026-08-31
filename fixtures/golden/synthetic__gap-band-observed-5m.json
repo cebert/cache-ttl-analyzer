@@ -1,0 +1,324 @@
+{
+  "$schema": "cache-ttl-analyzer/golden/v1",
+  "fixture": "synthetic/gap-band-observed-5m",
+  "outcome": "analysis",
+  "metadata": {
+    "sessionId": "f1c7a000-0000-4000-8000-000000000001",
+    "cwd": "/home/user/projects/fixture-project",
+    "gitBranch": "main",
+    "models": [
+      "claude-opus-5"
+    ],
+    "versions": [
+      "2.1.251"
+    ],
+    "efforts": [
+      "high"
+    ],
+    "firstTimestamp": "2026-08-30T12:00:00.000Z",
+    "lastTimestamp": "2026-08-30T14:27:13.000Z"
+  },
+  "parseStats": {
+    "totalLines": 21,
+    "nonEmptyLines": 21,
+    "malformedLines": 0,
+    "skippedRecordTypes": {},
+    "assistantRows": 7,
+    "dedupedRequests": 7,
+    "syntheticRowsExcluded": 0,
+    "invalidUsageRowsSkipped": 0
+  },
+  "parseWarnings": [],
+  "buckets": [
+    {
+      "bucket": "main",
+      "threadCount": 1,
+      "requestCount": 7,
+      "actualCost": {
+        "baseInputUsd": 0.00014,
+        "cacheReadUsd": 0.023475,
+        "cacheWrite5mUsd": 0.7512499999999999,
+        "cacheWrite1hUsd": 0.0,
+        "outputUsd": 0.020999999999999998,
+        "totalUsd": 0.7958649999999999
+      },
+      "observedWriteSplit": {
+        "fiveMinuteWriteTokens": 120200,
+        "oneHourWriteTokens": 0
+      },
+      "observedTtl": "5m",
+      "configExplicitness": "unknown",
+      "scenarios": {
+        "fiveMinute": {
+          "ttl": "5m",
+          "cost": {
+            "baseInputUsd": 0.00014,
+            "cacheReadUsd": 0.023475,
+            "cacheWrite5mUsd": 0.7512499999999999,
+            "cacheWrite1hUsd": 0.0,
+            "outputUsd": 0.020999999999999998,
+            "totalUsd": 0.7958649999999999
+          },
+          "events": [
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 22000,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T12:00:00.000Z",
+              "threadId": "main",
+              "messageId": "msg_000"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 22000,
+              "timestamp": "2026-08-30T12:00:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_001"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 700,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T12:00:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_001"
+            },
+            {
+              "kind": "expiry",
+              "gapMs": 360000,
+              "expiryClass": "user-controlled",
+              "rewrittenTokens": 22700,
+              "timestamp": "2026-08-30T12:06:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_002"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 23350,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T12:06:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_002"
+            },
+            {
+              "kind": "expiry",
+              "gapMs": 1200000,
+              "expiryClass": "user-controlled",
+              "rewrittenTokens": 23350,
+              "timestamp": "2026-08-30T12:26:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_003"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 24250,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T12:26:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_003"
+            },
+            {
+              "kind": "expiry",
+              "gapMs": 3540000,
+              "expiryClass": "user-controlled",
+              "rewrittenTokens": 24250,
+              "timestamp": "2026-08-30T13:25:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_004"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 24650,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T13:25:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_004"
+            },
+            {
+              "kind": "expiry",
+              "gapMs": 3660000,
+              "expiryClass": "user-controlled",
+              "rewrittenTokens": 24650,
+              "timestamp": "2026-08-30T14:26:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_005"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 24950,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T14:26:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_005"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 24950,
+              "timestamp": "2026-08-30T14:27:10.000Z",
+              "threadId": "main",
+              "messageId": "msg_006"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "5m",
+              "tokens": 300,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T14:27:10.000Z",
+              "threadId": "main",
+              "messageId": "msg_006"
+            }
+          ],
+          "cacheExpiries": 4,
+          "hardResets": 0,
+          "warmReadRequests": 2,
+          "wastedWriteTokens": 72950
+        },
+        "oneHour": {
+          "ttl": "1h",
+          "cost": {
+            "baseInputUsd": 0.00014,
+            "cacheReadUsd": 0.058625,
+            "cacheWrite5mUsd": 0.0,
+            "cacheWrite1hUsd": 0.499,
+            "outputUsd": 0.020999999999999998,
+            "totalUsd": 0.5787650000000001
+          },
+          "events": [
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 22000,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T12:00:00.000Z",
+              "threadId": "main",
+              "messageId": "msg_000"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 22000,
+              "timestamp": "2026-08-30T12:00:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_001"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 700,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T12:00:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_001"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 22700,
+              "timestamp": "2026-08-30T12:06:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_002"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 650,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T12:06:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_002"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 23350,
+              "timestamp": "2026-08-30T12:26:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_003"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 900,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T12:26:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_003"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 24250,
+              "timestamp": "2026-08-30T13:25:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_004"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 400,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T13:25:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_004"
+            },
+            {
+              "kind": "expiry",
+              "gapMs": 3660000,
+              "expiryClass": "user-controlled",
+              "rewrittenTokens": 24650,
+              "timestamp": "2026-08-30T14:26:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_005"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 24950,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T14:26:30.000Z",
+              "threadId": "main",
+              "messageId": "msg_005"
+            },
+            {
+              "kind": "warm-read",
+              "tokens": 24950,
+              "timestamp": "2026-08-30T14:27:10.000Z",
+              "threadId": "main",
+              "messageId": "msg_006"
+            },
+            {
+              "kind": "cache-write",
+              "ttl": "1h",
+              "tokens": 300,
+              "expiryClass": "user-controlled",
+              "timestamp": "2026-08-30T14:27:10.000Z",
+              "threadId": "main",
+              "messageId": "msg_006"
+            }
+          ],
+          "cacheExpiries": 1,
+          "hardResets": 0,
+          "warmReadRequests": 5,
+          "wastedWriteTokens": 400
+        }
+      },
+      "recommendation": "1h",
+      "savingsUsd": 0.21709999999999985,
+      "verdictSuppressed": false,
+      "unpricedTokenShare": 0.0,
+      "shape": {
+        "requestCount": 7,
+        "spanMs": 8833000,
+        "largestGapMs": 3660000,
+        "gapsIn5mTo1hBand": 3
+      }
+    }
+  ],
+  "unknownModels": {
+    "models": [],
+    "excludedRequests": 0,
+    "excludedTotalTokens": 0
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "cache-ttl-analyzer/golden/v1",
+  "fixture": "adversarial/not-a-session",
+  "outcome": "rejected",
+  "rejection": {
+    "reason": "no-assistant-usage-rows",
+    "stats": {
+      "totalLines": 40,
+      "nonEmptyLines": 40,
+      "malformedLines": 0,
+      "skippedRecordTypes": {
+        "request": 32
+      },
+      "assistantRows": 0,
+      "dedupedRequests": 0,
+      "syntheticRowsExcluded": 0,
+      "invalidUsageRowsSkipped": 0
+    }
+  }
+}

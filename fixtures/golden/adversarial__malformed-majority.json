@@ -1,0 +1,18 @@
+{
+  "$schema": "cache-ttl-analyzer/golden/v1",
+  "fixture": "adversarial/malformed-majority",
+  "outcome": "rejected",
+  "rejection": {
+    "reason": "malformed-lines-exceed-threshold",
+    "stats": {
+      "totalLines": 10,
+      "nonEmptyLines": 10,
+      "malformedLines": 4,
+      "skippedRecordTypes": {},
+      "assistantRows": 2,
+      "dedupedRequests": 2,
+      "syntheticRowsExcluded": 0,
+      "invalidUsageRowsSkipped": 0
+    }
+  }
+}

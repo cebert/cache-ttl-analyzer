@@ -13,6 +13,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -b",
+    "test:refsim": "python3 -m unittest discover -s tools/refsim",
+    "fixtures:build": "node scripts/build-synthetic-fixtures.ts",
+    "golden:emit": "python3 tools/refsim/refsim.py emit",
+    "golden:check": "python3 tools/refsim/refsim.py check",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
