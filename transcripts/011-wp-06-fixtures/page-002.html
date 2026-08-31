@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 2</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 2/2</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+        
+<div class="message user" id="msg-2026-08-31T00-30-25-897Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-31T00-30-25-897Z" class="timestamp-link"><time datetime="2026-08-31T00:30:25.897Z" data-timestamp="2026-08-31T00:30:25.897Z">2026-08-31T00:30:25.897Z</time></a></div><div class="message-content">
+<div class="user-content"><p>ready to merge?</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-34-598Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-34-598Z" class="timestamp-link"><time datetime="2026-08-31T00:30:34.598Z" data-timestamp="2026-08-31T00:30:34.598Z">2026-08-31T00:30:34.598Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-36-440Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-36-440Z" class="timestamp-link"><time datetime="2026-08-31T00:30:36.440Z" data-timestamp="2026-08-31T00:30:36.440Z">2026-08-31T00:30:36.440Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01PgCNo5iuaVTzjn1A49cstF">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check capture progress</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">tail -6 /private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/captures/run.log; echo &#34;--- summary so far&#34;; cat /private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/captures/summary.txt 2&gt;/dev/null; date -u +%H:%M:%S</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-30-36-485Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-30-36-485Z" class="timestamp-link"><time datetime="2026-08-31T00:30:36.485Z" data-timestamp="2026-08-31T00:30:36.485Z">2026-08-31T00:30:36.485Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>00:20:17 [model-switch] turn (ttl=1h model=claude-sonnet-5 effort=high): Which function name is least clear? Propose a better one and…
+00:20:21 [model-switch] turn (ttl=1h model=claude-sonnet-5 effort=high): Does test_evicts_oldest actually prove LRU ordering? Answer …
+00:20:26 [model-switch] turn (ttl=1h model=claude-sonnet-5 effort=medium): Suggest one additional unit test for the TTL behavior, as a …
+00:20:30 [model-switch] turn (ttl=1h model=claude-sonnet-5 effort=medium): Give a one-line summary of this project suitable for a packa…
+00:26:04 [gap-heavy-5m] turn (ttl=5m model=claude-opus-5 effort=medium): List every TODO comment in the project with its file and lin…
+00:26:07 [gap-heavy-1h] turn (ttl=1h model=claude-opus-5 effort=medium): List every TODO comment in the project with its file and lin…
+--- summary so far
+tight-loop-5m	5157a050-81f0-4ca7-98f5-3f98f7c0b582	~/.claude/projects/-private-tmp-claude-501--Users-user-Code-cache-ttl-analyzer-2436569a-e3cb-4e8e-877b-af31a990660c-scratchpad-captures-tight-loop-5m/5157a050-81f0-4ca7-98f5-3f98f7c0b582.jsonl
+model-switch	ec39529f-7fe8-4ba3-8bab-e7c23851201e	~/.claude/projects/-private-tmp-claude-501--Users-user-Code-cache-ttl-analyzer-2436569a-e3cb-4e8e-877b-af31a990660c-scratchpad-captures-model-switch/ec39529f-7fe8-4ba3-8bab-e7c23851201e.jsonl
+00:30:36</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-41-638Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-41-638Z" class="timestamp-link"><time datetime="2026-08-31T00:30:41.638Z" data-timestamp="2026-08-31T00:30:41.638Z">2026-08-31T00:30:41.638Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-42-736Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-42-736Z" class="timestamp-link"><time datetime="2026-08-31T00:30:42.736Z" data-timestamp="2026-08-31T00:30:42.736Z">2026-08-31T00:30:42.736Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Two of the four scenario captures (tight-loop-5m, model-switch) are done while the other two gap-heavy runs finish their ~20-minute sleeps; I'll scrub and sanity-check the completed captures now to keep the final wrap-up short.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-47-736Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-47-736Z" class="timestamp-link"><time datetime="2026-08-31T00:30:47.736Z" data-timestamp="2026-08-31T00:30:47.736Z">2026-08-31T00:30:47.736Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Eyh4jGJevs7rAGax8ChpS8">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Scrub the two finished captures and check their verdicts</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; S=/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/captures/summary.txt
+TL=$(awk -F&#39;\t&#39; &#39;$1==&#34;tight-loop-5m&#34;{print $3}&#39; $S); MS=$(awk -F&#39;\t&#39; &#39;$1==&#34;model-switch&#34;{print $3}&#39; $S)
+python3 scripts/scrub-capture.py &#34;$TL&#34; fixtures/captured/scenarios/tight-loop-5m --title &#34;Tight agent loop at 5m&#34; --description &#34;Claude-enacted scenario: eight back-to-back prompts against a toy project with the main cache TTL set to 5m (CLAUDE_CODE_PROMPT_CACHE_TTL=5m). Every gap is well under five minutes, so the doubled 1h write price would buy nothing.&#34; | tail -1
+python3 scripts/scrub-capture.py &#34;$MS&#34; fixtures/captured/scenarios/model-switch --title &#34;Mid-session model and effort switch&#34; --description &#34;Claude-enacted scenario at 1h: two turns on Opus 5, then /model to Sonnet 5, then effort dropped from high to medium — three hard cache resets that no elapsed time explains.&#34; | tail -1
+for n in tight-loop-5m model-switch; do echo &#34;== $n&#34;; python3 tools/refsim/refsim.py analyze fixtures/captured/scenarios/$n/session.jsonl | python3 -c &#34;
+import json,sys; g=json.load(sys.stdin); st=g[&#39;parseStats&#39;]
+for b in g[&#39;buckets&#39;]:
+  f,o=b[&#39;scenarios&#39;][&#39;fiveMinute&#39;],b[&#39;scenarios&#39;][&#39;oneHour&#39;]
+  print(b[&#39;bucket&#39;],&#39;req&#39;,b[&#39;requestCount&#39;],&#39;obs&#39;,b[&#39;observedTtl&#39;],&#39;rec&#39;,b[&#39;recommendation&#39;],&#39;act %.4f 5m %.4f (exp %d rst %d) 1h %.4f (exp %d rst %d)&#39;%(b[&#39;actualCost&#39;][&#39;totalUsd&#39;],f[&#39;cost&#39;][&#39;totalUsd&#39;],f[&#39;cacheExpiries&#39;],f[&#39;hardResets&#39;],o[&#39;cost&#39;][&#39;totalUsd&#39;],o[&#39;cacheExpiries&#39;],o[&#39;hardResets&#39;]),&#39;largestGap&#39;,b[&#39;shape&#39;][&#39;largestGapMs&#39;]//1000,&#39;s&#39;, &#39;models&#39;,g[&#39;metadata&#39;][&#39;models&#39;],&#39;efforts&#39;,g[&#39;metadata&#39;][&#39;efforts&#39;],&#39;warn&#39;,[w[&#39;kind&#39;] for w in g[&#39;parseWarnings&#39;]])
+print([ (e[&#39;cause&#39;],e[&#39;from&#39;],e[&#39;to&#39;]) for e in g[&#39;buckets&#39;][0][&#39;scenarios&#39;][&#39;oneHour&#39;][&#39;events&#39;] if e[&#39;kind&#39;]==&#39;hard-reset&#39;])&#34;; done</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-30-49-546Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-30-49-546Z" class="timestamp-link"><time datetime="2026-08-31T00:30:49.546Z" data-timestamp="2026-08-31T00:30:49.546Z">2026-08-31T00:30:49.546Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>scrubbed 1 file(s), 351 values → ~/Code/cache-ttl-analyzer-wp06/fixtures/captured/scenarios/tight-loop-5m
+scrubbed 1 file(s), 331 values → ~/Code/cache-ttl-analyzer-wp06/fixtures/captured/scenarios/model-switch
+== tight-loop-5m
+main req 13 obs 5m rec 5m act 0.4062 5m 0.4062 (exp 0 rst 0) 1h 0.4725 (exp 0 rst 0) largestGap 18 s models [&#x27;claude-opus-5&#x27;] efforts [&#x27;medium&#x27;] warn [&#x27;skipped-record-types&#x27;]
+[]
+== model-switch
+main req 10 obs 1h rec 5m act 0.4273 5m 0.3212 (exp 0 rst 2) 1h 0.4273 (exp 0 rst 2) largestGap 9 s models [&#x27;claude-opus-5&#x27;, &#x27;claude-sonnet-5&#x27;] efforts [&#x27;high&#x27;, &#x27;medium&#x27;] warn [&#x27;skipped-record-types&#x27;]
+[(&#x27;model-change&#x27;, &#x27;claude-opus-5&#x27;, &#x27;claude-sonnet-5&#x27;), (&#x27;effort-change&#x27;, &#x27;high&#x27;, &#x27;medium&#x27;)]
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-55-069Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-55-069Z" class="timestamp-link"><time datetime="2026-08-31T00:30:55.069Z" data-timestamp="2026-08-31T00:30:55.069Z">2026-08-31T00:30:55.069Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-56-214Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-56-214Z" class="timestamp-link"><time datetime="2026-08-31T00:30:56.214Z" data-timestamp="2026-08-31T00:30:56.214Z">2026-08-31T00:30:56.214Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Both captures confirm expectations: the tight loop favors 5m windows (13 requests, $0.406 vs $0.473), and the model-switch scenario shows 10 requests at 1h with two hard resets. I'll check whether the scratchpad path's embedded username means <code>cwd</code> needs rewriting.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-56-218Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-56-218Z" class="timestamp-link"><time datetime="2026-08-31T00:30:56.218Z" data-timestamp="2026-08-31T00:30:56.218Z">2026-08-31T00:30:56.218Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DvmfrpetnRbB6AZJ9vv4Yf">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check cwd values in the scrubbed scenario captures</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; grep -oh &#39;&#34;cwd&#34;: *&#34;[^&#34;]*&#34;&#39; fixtures/captured/scenarios/*/session.jsonl | sort | uniq -c; grep -c &#34;user&#34; fixtures/captured/scenarios/*/session.jsonl</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-30-57-632Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-30-57-632Z" class="timestamp-link"><time datetime="2026-08-31T00:30:57.632Z" data-timestamp="2026-08-31T00:30:57.632Z">2026-08-31T00:30:57.632Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>  51 &quot;cwd&quot;: &quot;/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/captures/model-switch&quot;
+  63 &quot;cwd&quot;: &quot;/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/captures/tight-loop-5m&quot;
+fixtures/captured/scenarios/tight-loop-5m/session.jsonl:63
+fixtures/captured/scenarios/model-switch/session.jsonl:51
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-30-59-928Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-30-59-928Z" class="timestamp-link"><time datetime="2026-08-31T00:30:59.928Z" data-timestamp="2026-08-31T00:30:59.928Z">2026-08-31T00:30:59.928Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-31-09-017Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-31-09-017Z" class="timestamp-link"><time datetime="2026-08-31T00:31:09.017Z" data-timestamp="2026-08-31T00:31:09.017Z">2026-08-31T00:31:09.017Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01FUfAD1aV8sdzmGJNwutA34">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Add --cwd override and username guard to the scrubber; re-scrub</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; python3 - &lt;&lt;&#39;PYEOF&#39;
+from pathlib import Path
+p = Path(&#39;scripts/scrub-capture.py&#39;); s = p.read_text()
+def rep(old, new):
+    global s; assert s.count(old) == 1, old[:50]; s = s.replace(old, new)
+rep(&#39;&#39;&#39;- `cwd` is rewritten to `~/…` and `ai-title` gets the title you pass.&#39;&#39;&#39;,
+    &#39;&#39;&#39;- `cwd` is rewritten to `~/…` (or replaced outright with `--cwd`) and
+  `ai-title` gets the title you pass.
+- Finally the output is grepped for the local username; a hit fails the run.&#39;&#39;&#39;)
+rep(&#39;&#39;&#39;            if k == &#34;cwd&#34; and isinstance(v, str):
+                out[k] = HOME_RE.sub(&#34;~&#34;, v)
+                continue&#39;&#39;&#39;, &#39;&#39;&#39;            if k == &#34;cwd&#34; and isinstance(v, str):
+                out[k] = ctx[&#34;cwd&#34;] if ctx[&#34;cwd&#34;] is not None else HOME_RE.sub(&#34;~&#34;, v)
+                continue&#39;&#39;&#39;)
+rep(&#39;&#39;&#39;    ap.add_argument(&#34;--name&#34;, default=&#34;session.jsonl&#34;, help=&#34;output file name for the main log&#34;)&#39;&#39;&#39;,
+    &#39;&#39;&#39;    ap.add_argument(&#34;--name&#34;, default=&#34;session.jsonl&#34;, help=&#34;output file name for the main log&#34;)
+    ap.add_argument(&#34;--cwd&#34;, default=None, help=&#34;replace every cwd with this value (e.g. ~/projects/tinycache)&#34;)&#39;&#39;&#39;)
+rep(&#39;&#39;&#39;    ctx = {&#34;title&#34;: args.title, &#34;scrubbed&#34;: 0, &#34;out_dir&#34;: out_dir}&#39;&#39;&#39;,
+    &#39;&#39;&#39;    ctx = {&#34;title&#34;: args.title, &#34;scrubbed&#34;: 0, &#34;out_dir&#34;: out_dir, &#34;cwd&#34;: args.cwd}&#39;&#39;&#39;)
+rep(&#39;&#39;&#39;    (out_dir / &#34;capture.json&#34;).write_text(json.dumps(capture, indent=2) + &#34;\\n&#34;, encoding=&#34;utf-8&#34;)
+    print(f&#34;scrubbed {len(files)} file(s), {ctx[&#39;scrubbed&#39;]} values → {out_dir}&#34;)
+    return 0&#39;&#39;&#39;, &#39;&#39;&#39;    (out_dir / &#34;capture.json&#34;).write_text(json.dumps(capture, indent=2) + &#34;\\n&#34;, encoding=&#34;utf-8&#34;)
+
+    # Belt and braces: the local username must not survive anywhere (paths
+    # inside ids, slugs, or fields the allowlist did not anticipate).
+    username = os.environ.get(&#34;USER&#34;) or os.environ.get(&#34;USERNAME&#34;) or &#34;&#34;
+    if len(username) &gt;= 3:
+        for path in out_dir.rglob(&#34;*&#34;):
+            if path.is_file() and username in path.read_text(encoding=&#34;utf-8&#34;, errors=&#34;replace&#34;):
+                print(f&#34;error: username survives in {path}; pass --cwd or extend the scrub rules&#34;, file=sys.stderr)
+                return 1
+    print(f&#34;scrubbed {len(files)} file(s), {ctx[&#39;scrubbed&#39;]} values → {out_dir}&#34;)
+    return 0&#39;&#39;&#39;)
+p.write_text(s)
+print(&#39;patched&#39;)
+PYEOF
+S=/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/captures/summary.txt
+TL=$(awk -F&#39;\t&#39; &#39;$1==&#34;tight-loop-5m&#34;{print $3}&#39; $S); MS=$(awk -F&#39;\t&#39; &#39;$1==&#34;model-switch&#34;{print $3}&#39; $S)
+python3 scripts/scrub-capture.py &#34;$TL&#34; fixtures/captured/scenarios/tight-loop-5m --cwd &#34;~/projects/tinycache&#34; --title &#34;Tight agent loop at 5m&#34; --description &#34;Claude-enacted scenario: eight back-to-back prompts against a toy project with the main cache TTL set to 5m (CLAUDE_CODE_PROMPT_CACHE_TTL=5m). Every gap is well under five minutes, so the doubled 1h write price would buy nothing.&#34; | tail -1
+python3 scripts/scrub-capture.py &#34;$MS&#34; fixtures/captured/scenarios/model-switch --cwd &#34;~/projects/tinycache&#34; --title &#34;Mid-session model and effort switch&#34; --description &#34;Claude-enacted scenario at 1h: two turns on Opus 5, then /model to Sonnet 5, then effort dropped from high to medium — three hard cache resets that no elapsed time explains.&#34; | tail -1
+grep -rc &#34;user&#34; fixtures/captured/scenarios/ ; grep -oh &#39;&#34;cwd&#34;: *&#34;[^&#34;]*&#34;&#39; fixtures/captured/scenarios/*/session.jsonl | sort -u</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-31-10-515Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-31-10-515Z" class="timestamp-link"><time datetime="2026-08-31T00:31:10.515Z" data-timestamp="2026-08-31T00:31:10.515Z">2026-08-31T00:31:10.515Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>patched
+scrubbed 1 file(s), 351 values → ~/Code/cache-ttl-analyzer-wp06/fixtures/captured/scenarios/tight-loop-5m
+scrubbed 1 file(s), 331 values → ~/Code/cache-ttl-analyzer-wp06/fixtures/captured/scenarios/model-switch
+fixtures/captured/scenarios/model-switch/capture.json:0
+fixtures/captured/scenarios/tight-loop-5m/capture.json:0
+fixtures/captured/scenarios/model-switch/session.jsonl:0
+fixtures/captured/scenarios/tight-loop-5m/session.jsonl:0
+&quot;cwd&quot;: &quot;~/projects/tinycache&quot;
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-31-14-446Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-31-14-446Z" class="timestamp-link"><time datetime="2026-08-31T00:31:14.446Z" data-timestamp="2026-08-31T00:31:14.446Z">2026-08-31T00:31:14.446Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-31-15-333Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-31-15-333Z" class="timestamp-link"><time datetime="2026-08-31T00:31:15.333Z" data-timestamp="2026-08-31T00:31:15.333Z">2026-08-31T00:31:15.333Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I've cleaned the output and confirmed the username guard is active. Next, I'll re-verify the earlier subagent capture against this guard and add the <code>captured/scenarios</code> manifest entry while the gap-heavy runs finish.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-31-17-995Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-31-17-995Z" class="timestamp-link"><time datetime="2026-08-31T00:31:17.995Z" data-timestamp="2026-08-31T00:31:17.995Z">2026-08-31T00:31:17.995Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_017vdWLiVYx8tsErSFKnQwXT">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Verify subagent capture has no username; add scenarios manifest entry</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; echo &#34;username hits in parallel-subagents: $(grep -rl user fixtures/captured/parallel-subagents | wc -l)&#34; &amp;&amp; python3 - &lt;&lt;&#39;EOF&#39;
+import json
+from pathlib import Path
+p = Path(&#39;fixtures/fixtures.json&#39;); m = json.loads(p.read_text())
+m[&#39;fixtures&#39;].append({
+  &#34;path&#34;: &#34;captured/scenarios&#34;,
+  &#34;trap&#34;: &#34;Claude-enacted scenario sessions recorded by scripts/capture-scenarios.sh (claude -p, one cwd each), content scrubbed; they double as public/samples/&#34;,
+  &#34;expect&#34;: &#34;tight-loop-5m: observed 5m, 5m wins, no expiries; gap-heavy-1h: observed 1h, 5m scenario adds expiries, 1h wins; gap-heavy-5m: observed 5m with real lapses, 1h restores them and wins; model-switch: two hard resets (model, effort)&#34;
+})
+p.write_text(json.dumps(m, indent=2, ensure_ascii=False) + &#39;\n&#39;)
+print(&#39;manifest entries:&#39;, len(m[&#39;fixtures&#39;]))
+EOF
+tail -3 /private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/captures/run.log</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-31-19-518Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-31-19-518Z" class="timestamp-link"><time datetime="2026-08-31T00:31:19.518Z" data-timestamp="2026-08-31T00:31:19.518Z">2026-08-31T00:31:19.518Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>username hits in parallel-subagents:        0
+manifest entries: 30
+00:20:30 [model-switch] turn (ttl=1h model=claude-sonnet-5 effort=medium): Give a one-line summary of this project suitable for a packa…
+00:26:04 [gap-heavy-5m] turn (ttl=5m model=claude-opus-5 effort=medium): List every TODO comment in the project with its file and lin…
+00:26:07 [gap-heavy-1h] turn (ttl=1h model=claude-opus-5 effort=medium): List every TODO comment in the project with its file and lin…
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-31-24-492Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-31-24-492Z" class="timestamp-link"><time datetime="2026-08-31T00:31:24.492Z" data-timestamp="2026-08-31T00:31:24.492Z">2026-08-31T00:31:24.492Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-31-24-515Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-31-24-515Z" class="timestamp-link"><time datetime="2026-08-31T00:31:24.515Z" data-timestamp="2026-08-31T00:31:24.515Z">2026-08-31T00:31:24.515Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>Not ready to merge yet</strong> — here's where it stands:</p>
+<ul>
+<li>Two of the four scenario captures are in and behave as intended (tight loop at 5m → 5m wins; model switch → two hard resets). They're scrubbed, username-checked (I added a <code>--cwd</code> override and a hard username guard to the scrubber after spotting the scratchpad path in <code>cwd</code>), and listed in the manifest.</li>
+<li>The two gap-heavy captures are on their 6m/8m/12m sleeps — last turn lands around 00:46 UTC, ~15 minutes from now.</li>
+<li>After that: scrub → emit goldens → sync <code>public/samples/</code> → fill the PLAN placeholder → full check → push → mark the PR ready → publish the transcript. About 15 minutes of work once the captures land.</li>
+</ul>
+<p>CI is already green on the draft (including the new Python step). I'll pick up automatically when the background run completes and report the final verdicts then.</p></div></div></div>
+<div class="message user" id="msg-2026-08-31T00-46-34-293Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-31T00-46-34-293Z" class="timestamp-link"><time datetime="2026-08-31T00:46:34.293Z" data-timestamp="2026-08-31T00:46:34.293Z">2026-08-31T00:46:34.293Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>bj2htzh2v</task-id>
+<tool-use-id>toolu_01FEqH8qDx3HwMs6AW3motsQ</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/tasks/bj2htzh2v.output</output-file>
+<status>completed</status></p>
+<summary>Background command "Run all four scenario captures in the background" completed (exit code 0)</summary>
+<p></task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-46-47-336Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-46-47-336Z" class="timestamp-link"><time datetime="2026-08-31T00:46:47.336Z" data-timestamp="2026-08-31T00:46:47.336Z">2026-08-31T00:46:47.336Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The capture run finished. Scrubbing the two gap-heavy sessions and checking their verdicts.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-46-53-182Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-46-53-182Z" class="timestamp-link"><time datetime="2026-08-31T00:46:53.182Z" data-timestamp="2026-08-31T00:46:53.182Z">2026-08-31T00:46:53.182Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01PopmRbYUXZAPrnneMPjPjK">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Scrub gap-heavy captures and check verdicts</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; S=/private/tmp/claude-501/-Users-user-Code-cache-ttl-analyzer/2436569a-e3cb-4e8e-877b-af31a990660c/scratchpad/captures/summary.txt; cat $S | cut -f1,2
+G1=$(awk -F&#39;\t&#39; &#39;$1==&#34;gap-heavy-1h&#34;{print $3}&#39; $S); G5=$(awk -F&#39;\t&#39; &#39;$1==&#34;gap-heavy-5m&#34;{print $3}&#39; $S)
+python3 scripts/scrub-capture.py &#34;$G1&#34; fixtures/captured/scenarios/gap-heavy-1h --cwd &#34;~/projects/tinycache&#34; --title &#34;Gap-heavy session at 1h&#34; --description &#34;Claude-enacted scenario at the 1h TTL: four prompts against a toy project separated by six, eight and twelve minutes of idle time — the human-think-time shape where a 5m cache would lapse before every turn.&#34; | tail -1
+python3 scripts/scrub-capture.py &#34;$G5&#34; fixtures/captured/scenarios/gap-heavy-5m --cwd &#34;~/projects/tinycache&#34; --title &#34;Gap-heavy session at 5m&#34; --description &#34;Claude-enacted scenario with the main cache TTL set to 5m (CLAUDE_CODE_PROMPT_CACHE_TTL=5m): the same four prompts and six/eight/twelve-minute gaps, so the log itself shows the prefix lapsing and being re-written before every turn.&#34; | tail -1
+for n in gap-heavy-1h gap-heavy-5m; do echo &#34;== $n&#34;; python3 tools/refsim/refsim.py analyze fixtures/captured/scenarios/$n/session.jsonl | python3 -c &#34;
+import json,sys; g=json.load(sys.stdin)
+for b in g[&#39;buckets&#39;]:
+  f,o=b[&#39;scenarios&#39;][&#39;fiveMinute&#39;],b[&#39;scenarios&#39;][&#39;oneHour&#39;]
+  print(b[&#39;bucket&#39;],&#39;req&#39;,b[&#39;requestCount&#39;],&#39;obs&#39;,b[&#39;observedTtl&#39;],&#39;rec&#39;,b[&#39;recommendation&#39;],&#39;act %.4f 5m %.4f (exp %d warm %d) 1h %.4f (exp %d warm %d)&#39;%(b[&#39;actualCost&#39;][&#39;totalUsd&#39;],f[&#39;cost&#39;][&#39;totalUsd&#39;],f[&#39;cacheExpiries&#39;],f[&#39;warmReadRequests&#39;],o[&#39;cost&#39;][&#39;totalUsd&#39;],o[&#39;cacheExpiries&#39;],o[&#39;warmReadRequests&#39;]),&#39;largestGap&#39;,b[&#39;shape&#39;][&#39;largestGapMs&#39;]//1000,&#39;s band&#39;,b[&#39;shape&#39;][&#39;gapsIn5mTo1hBand&#39;],&#39;split&#39;,b[&#39;observedWriteSplit&#39;])&#34;; done</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-46-54-861Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-46-54-861Z" class="timestamp-link"><time datetime="2026-08-31T00:46:54.861Z" data-timestamp="2026-08-31T00:46:54.861Z">2026-08-31T00:46:54.861Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>tight-loop-5m	5157a050-81f0-4ca7-98f5-3f98f7c0b582
+model-switch	ec39529f-7fe8-4ba3-8bab-e7c23851201e
+gap-heavy-1h	43683dcc-f061-4748-af9d-95d384e4fd1a
+gap-heavy-5m	6ac945cc-ea0e-4093-9652-5853170f5003
+scrubbed 1 file(s), 320 values → ~/Code/cache-ttl-analyzer-wp06/fixtures/captured/scenarios/gap-heavy-1h
+scrubbed 1 file(s), 314 values → ~/Code/cache-ttl-analyzer-wp06/fixtures/captured/scenarios/gap-heavy-5m
+== gap-heavy-1h
+main req 9 obs 1h rec 1h act 0.3208 5m 0.7033 (exp 3 warm 6) 1h 0.3208 (exp 0 warm 9) largestGap 728 s band 3 split {&#x27;fiveMinuteWriteTokens&#x27;: 0, &#x27;oneHourWriteTokens&#x27;: 14511}
+== gap-heavy-5m
+main req 8 obs 5m rec 5m act 0.5622 5m 0.5622 (exp 1 warm 7) 1h 0.5793 (exp 0 warm 8) largestGap 729 s band 3 split {&#x27;fiveMinuteWriteTokens&#x27;: 67878, &#x27;oneHourWriteTokens&#x27;: 0}
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-47-06-881Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-47-06-881Z" class="timestamp-link"><time datetime="2026-08-31T00:47:06.881Z" data-timestamp="2026-08-31T00:47:06.881Z">2026-08-31T00:47:06.881Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-47-06-893Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-47-06-893Z" class="timestamp-link"><time datetime="2026-08-31T00:47:06.893Z" data-timestamp="2026-08-31T00:47:06.893Z">2026-08-31T00:47:06.893Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Status: all four captures are in. Three verdicts match intuition; the fourth needs a look before I call it done. Checking the per-request shape of <code>gap-heavy-5m</code>.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-47-09-712Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-47-09-712Z" class="timestamp-link"><time datetime="2026-08-31T00:47:09.712Z" data-timestamp="2026-08-31T00:47:09.712Z">2026-08-31T00:47:09.712Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01K4dcwSMQoy6tF86i1hQxys">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Print per-request usage for both gap-heavy captures</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; for n in gap-heavy-5m gap-heavy-1h; do echo &#34;== $n&#34;; python3 - &#34;$n&#34; &lt;&lt;&#39;EOF&#39;
+import json, sys, datetime
+seen=set(); prev=None
+for line in open(f&#39;fixtures/captured/scenarios/{sys.argv[1]}/session.jsonl&#39;):
+    d=json.loads(line)
+    if d.get(&#39;type&#39;)!=&#39;assistant&#39;: continue
+    m=d[&#39;message&#39;]; mid=m[&#39;id&#39;]
+    if mid in seen or m.get(&#39;model&#39;)==&#39;&lt;synthetic&gt;&#39;: continue
+    seen.add(mid); u=m[&#39;usage&#39;]; cc=u.get(&#39;cache_creation&#39;) or {}
+    ts=datetime.datetime.fromisoformat(d[&#39;timestamp&#39;].replace(&#39;Z&#39;,&#39;+00:00&#39;))
+    gap=(ts-prev).total_seconds() if prev else 0; prev=ts
+    print(f&#34;gap {gap:6.0f}s  in {u[&#39;input_tokens&#39;]:4d} read {u[&#39;cache_read_input_tokens&#39;]:6d} write {u[&#39;cache_creation_input_tokens&#39;]:6d} (5m {cc.get(&#39;ephemeral_5m_input_tokens&#39;,0)} 1h {cc.get(&#39;ephemeral_1h_input_tokens&#39;,0)}) out {u[&#39;output_tokens&#39;]}&#34;)
+EOF
+done</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-47-11-117Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-47-11-117Z" class="timestamp-link"><time datetime="2026-08-31T00:47:11.117Z" data-timestamp="2026-08-31T00:47:11.117Z">2026-08-31T00:47:11.117Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>== gap-heavy-5m
+gap      0s  in    2 read  11808 write  10675 (5m 10675 1h 0) out 171
+gap      5s  in    2 read  22483 write    392 (5m 392 1h 0) out 247
+gap      2s  in    2 read  22875 write    542 (5m 542 1h 0) out 541
+gap     10s  in    2 read  23417 write   1577 (5m 1577 1h 0) out 433
+gap    364s  in    2 read      0 write  25469 (5m 25469 1h 0) out 248
+gap      5s  in    2 read  25469 write    329 (5m 329 1h 0) out 166
+gap    487s  in    2 read  11808 write  14207 (5m 14207 1h 0) out 429
+gap    730s  in    2 read  11808 write  14687 (5m 14687 1h 0) out 688
+== gap-heavy-1h
+gap      0s  in    2 read  11683 write  10675 (5m 0 1h 10675) out 175
+gap      5s  in    2 read  22358 write    396 (5m 0 1h 396) out 202
+gap      1s  in    2 read  22754 write    196 (5m 0 1h 196) out 58
+gap      3s  in    2 read  22950 write    110 (5m 0 1h 110) out 641
+gap     11s  in    2 read  23060 write   1677 (5m 0 1h 1677) out 512
+gap    364s  in    2 read  24737 write    554 (5m 0 1h 554) out 145
+gap      3s  in    2 read  25291 write    226 (5m 0 1h 226) out 163
+gap    487s  in    2 read  25517 write    214 (5m 0 1h 214) out 412
+gap    729s  in    2 read  25731 write    463 (5m 0 1h 463) out 634
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-47-26-319Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-47-26-319Z" class="timestamp-link"><time datetime="2026-08-31T00:47:26.319Z" data-timestamp="2026-08-31T00:47:26.319Z">2026-08-31T00:47:26.319Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-47-27-767Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-47-27-767Z" class="timestamp-link"><time datetime="2026-08-31T00:47:27.767Z" data-timestamp="2026-08-31T00:47:27.767Z">2026-08-31T00:47:27.767Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The 5m capture reveals a real WP-05 limitation: partial-invalidation gaps (where a stable prefix stays warm) aren't recovered by the lengthening rule since it only triggers on <code>reads == 0</code>, causing it to under-sell 1h on 5m-configured sessions — I'll document this as a finding rather than fix the simulator here. Now updating the manifest/README/PLAN, emitting goldens, syncing samples, and running the full check.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-47-42-076Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-47-42-076Z" class="timestamp-link"><time datetime="2026-08-31T00:47:42.076Z" data-timestamp="2026-08-31T00:47:42.076Z">2026-08-31T00:47:42.076Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Bp9Ho5swziwGCFtZ3kwQET">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update docs, emit goldens, sync samples, run every check</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; python3 - &lt;&lt;&#39;PYEOF&#39;
+import json
+from pathlib import Path
+# manifest
+p = Path(&#39;fixtures/fixtures.json&#39;); m = json.loads(p.read_text())
+for e in m[&#39;fixtures&#39;]:
+    if e[&#39;path&#39;] == &#39;captured/scenarios&#39;:
+        e[&#39;expect&#39;] = (&#34;tight-loop-5m: observed 5m, 5m wins, no expiries; gap-heavy-1h: observed 1h, the 5m scenario adds three expiries, 1h wins ($0.32 vs $0.70); &#34;
+                       &#34;gap-heavy-5m: observed 5m, one full lapse and two PARTIAL lapses (an ~11.8k stable prefix stayed warm) — the all-or-nothing model restores only the full one, so 5m wins narrowly ($0.562 vs $0.579); see fixtures/README.md; &#34;
+                       &#34;model-switch: observed 1h, two hard resets (model, effort)&#34;)
+p.write_text(json.dumps(m, indent=2, ensure_ascii=False) + &#39;\n&#39;)
+
+# fixtures/README captured table + finding
+p = Path(&#39;fixtures/README.md&#39;); s = p.read_text()
+old = &#34;| `captured/parallel-subagents/` |&#34;
+i = s.index(old); j = s.index(&#39;\n&#39;, i)
+rows = s[i:j] + &#34;&#34;&#34;
+| `captured/scenarios/tight-loop-5m/` | Claude-enacted: eight back-to-back prompts on a toy project with `CLAUDE_CODE_PROMPT_CACHE_TTL=5m` (13 requests, largest gap 18s). | The 5m-configured capture the plan asked for. 5m wins ($0.406 vs $0.473); no expiries in either scenario. |
+| `captured/scenarios/gap-heavy-1h/` | Four prompts at 1h separated by 6m / 8m / 12m of idle time (9 requests). | The shortening direction on real data: the 5m scenario adds three expiries; 1h wins ($0.32 vs $0.70). |
+| `captured/scenarios/gap-heavy-5m/` | The same prompts and gaps with the TTL set to 5m (8 requests). | The lapse-heavy path on real data — and a **partial-invalidation** finding, below. 5m wins narrowly ($0.562 vs $0.579). |
+| `captured/scenarios/model-switch/` | Two turns on Opus 5, `/model` to Sonnet 5, then effort high → medium, all at 1h (10 requests). | Two hard resets (`model-change`, `effort-change`) that no elapsed time explains; per-request pricing across two models. |
+
+The scenarios were recorded by `scripts/capture-scenarios.sh`, which drives
+`claude -p` in one throwaway directory per scenario (the cache is scoped to
+machine + directory, so scenarios must not share one) with read-only tools,
+then scrubbed like any other capture. They double as the app&#39;s bundled
+samples: `scripts/sync-samples.ts` copies them to `public/samples/` and
+derives `index.json` (title, description, expected verdict) from each
+capture&#39;s `capture.json` and golden, and the harness asserts the copies are
+byte-identical.
+
+### Finding: partial invalidation, live
+
+`gap-heavy-5m` shows what feasibility §7 predicted but no corpus session had
+exhibited. After the first long gap (364s) the log has `read 0` and a full
+re-write (25,469 tokens) — the all-or-nothing lapse. After the next two gaps
+(487s, 730s) it has `read 11,808` *and* a ~14k re-write: a stable prefix
+breakpoint stayed warm while the conversation tail lapsed. The WP-05
+lengthening rule only restores a re-write when the request read nothing, so
+the 1h counterfactual recovers the full lapse but not the two partial ones —
+and 1h loses a session that, by the 1h run&#39;s numbers, it should win. That is
+a modeling limit to revisit in the simulator (restore `min(write, warm −
+read)` on partial lapses, or similar); until then the tool under-sells 1h on
+5m-configured sessions with partial lapses, which is the opposite direction
+from the §7 conservatism disclosed in the UI. The golden pins today&#39;s
+behavior so the change, when made, is visible.&#34;&#34;&#34;
+s = s[:i] + rows + s[j:]
+p.write_text(s)
+
+# PLAN placeholder
+p = Path(&#39;docs/PLAN.md&#39;); s = p.read_text()
+old = &#34;never cross): &lt;!-- CAPTURES --&gt;.&#34;
+new = (&#34;never cross): `tight-loop-5m` (13 requests at 5m — the 5m-configured capture; 5m wins), &#34;
+       &#34;`gap-heavy-1h` (6m/8m/12m gaps at 1h; the 5m scenario adds three expiries, 1h wins $0.32 vs $0.70), &#34;
+       &#34;`gap-heavy-5m` (same gaps at 5m: one full lapse and two *partial* lapses — a stable ~11.8k prefix stayed warm — &#34;
+       &#34;so the all-or-nothing lengthening rule, which needs `reads == 0`, restores only the full one and 5m wins narrowly $0.562 vs $0.579: &#34;
+       &#34;a WP-05 modeling limit now pinned by real data, under-selling 1h on 5m sessions with partial lapses; see fixtures/README.md), &#34;
+       &#34;and `model-switch` (Opus 5 → Sonnet 5, then effort high → medium: two hard resets)&#34;)
+assert s.count(old) == 1
+p.write_text(s.replace(old, new))
+print(&#39;docs patched&#39;)
+PYEOF
+python3 tools/refsim/refsim.py emit | grep -c wrote &amp;&amp; node scripts/sync-samples.ts | tail -1 &amp;&amp; cat public/samples/index.json | python3 -c &#34;import json,sys; [print(x[&#39;file&#39;], x[&#39;observedTtl&#39;], &#39;-&gt;&#39;, x[&#39;expectedRecommendation&#39;], x[&#39;requestCount&#39;]) for x in json.load(sys.stdin)[&#39;samples&#39;]]&#34; &amp;&amp; npx vitest run 2&gt;&amp;1 | grep -E &#34;Tests|Files&#34; &amp;&amp; npm run lint 2&gt;&amp;1 | grep -ciE &#34;warning|error&#34;; npm run typecheck 2&gt;&amp;1 | grep -c error; npm run format:check 2&gt;&amp;1 | tail -1; python3 tools/refsim/refsim.py check | tail -1; npm run test:refsim 2&gt;&amp;1 | tail -1; du -sh public/samples fixtures</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-47-47-374Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-47-47-374Z" class="timestamp-link"><time datetime="2026-08-31T00:47:47.374Z" data-timestamp="2026-08-31T00:47:47.374Z">2026-08-31T00:47:47.374Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>docs patched
+60
+wrote public/samples/index.json (4 samples)
+gap-heavy-1h.jsonl 1h -&gt; 1h 9
+gap-heavy-5m.jsonl 5m -&gt; 5m 8
+model-switch.jsonl 1h -&gt; 5m 10
+tight-loop-5m.jsonl 5m -&gt; 5m 13
+ Test Files  9 passed (9)
+      Tests  424 passed (424)
+0
+0
+All matched files use Prettier code style!
+60 goldens checked, 0 problems
+OK
+212K	public/samples
+104M	fixtures
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-47-51-967Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-47-51-967Z" class="timestamp-link"><time datetime="2026-08-31T00:47:51.967Z" data-timestamp="2026-08-31T00:47:51.967Z">2026-08-31T00:47:51.967Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-47-51-969Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-47-51-969Z" class="timestamp-link"><time datetime="2026-08-31T00:47:51.969Z" data-timestamp="2026-08-31T00:47:51.969Z">2026-08-31T00:47:51.969Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All green: 424 tests (17 new golden cases for the scenarios), 60 goldens current, four samples bundled. Committing, pushing, and taking the PR out of draft.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-07-275Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-07-275Z" class="timestamp-link"><time datetime="2026-08-31T00:48:07.275Z" data-timestamp="2026-08-31T00:48:07.275Z">2026-08-31T00:48:07.275Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_017N46JdSUqoreLiE7iHM7dt">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit scenario captures, push, mark PR ready, update PR body</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; git add -A fixtures public/samples scripts docs/PLAN.md package.json src/engine/golden.test.ts &amp;&amp; git status --short | grep -v &#34;^A  fixtures/\|^A  public/samples/&#34; ; git commit -q -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+feat(fixtures): add the Claude-enacted scenario captures and bundle them as samples
+
+Four sessions recorded by scripts/capture-scenarios.sh (claude -p under
+CLAUDE_CODE_PROMPT_CACHE_TTL, one throwaway cwd each) and scrubbed to
+metadata: a tight loop at 5m (the 5m-configured capture the plan asked
+for), gap-heavy runs at 1h and at 5m, and a mid-session model + effort
+switch. Their goldens join the harness; scripts/sync-samples.ts copies
+them to public/samples/ with an index.json whose expected verdicts come
+from the goldens, and the harness asserts the copies cannot drift.
+
+The scrubber gains a --cwd override and a hard username guard (the
+scenarios ran under a path that embedded the account name).
+
+Finding pinned by gap-heavy-5m: partial invalidation, live. A stable
+~11.8k prefix stayed warm across the 487s/730s gaps while the tail
+lapsed, and the WP-05 lengthening rule (reads == 0) restores only the
+full lapse, so 1h loses a session it should win. Documented in
+fixtures/README.md and docs/PLAN.md as a simulator follow-up; the
+simulator is unchanged here.
+
+Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;
+EOF
+)&#34; &amp;&amp; git push -q 2&gt;&amp;1 | grep -v &#34;^remote:&#34; | tail -1; git log --oneline -1 &amp;&amp; gh pr ready 17 2&gt;&amp;1 | tail -1 &amp;&amp; gh pr edit 17 --body &#34;$(cat &lt;&lt;&#39;EOF&#39;
+## Summary
+
+WP-06 — fixtures and golden data (docs/PLAN.md §4 WP-06, §5).
+
+- **`tools/refsim/`** — the feasibility prototype rewritten to full spec parity as an independently written Python reference implementation (parser, pricing, counterfactual replay), with 29 hand-computed `unittest` cases. It emits the goldens; it is not the oracle (D7).
+- **`fixtures/`** — 22 synthetic sessions (one correctness-rule trap each) + 6 adversarial inputs, generated by `scripts/build-synthetic-fixtures.ts`; real captures scrubbed to metadata by `scripts/scrub-capture.py` (D17): a v2.1.251 session with **27 parallel + nested subagent transcripts**, and four **Claude-enacted scenarios** recorded by `scripts/capture-scenarios.sh` (tight loop at 5m, gap-heavy at 1h and at 5m, model + effort switch); 60 goldens; a manifest with the trap and expectation per fixture.
+- **`public/samples/`** — the four scenarios, bundled by `scripts/sync-samples.ts` with an `index.json` whose expected verdicts come from the goldens (for WP-07&#39;s sample loader).
+- **`src/engine/golden.test.ts`** — runs the engine over every fixture and diffs against its golden (float tolerance 1e-10), plus the format-drift canary (one exempt fixture), the content-poison property, the reconciliation property, manifest completeness, and sample/fixture byte-identity.
+- **CI** — a Python step runs the sim&#39;s tests and `refsim.py check`, so goldens cannot drift from the sim.
+- PLAN.md: WP-05/WP-06 marked complete, D17/D18 added, WP-04 `inference_geo` gap resolved by stated assumption.
+
+## Findings worth a look
+
+1. **Partial invalidation, live** (`captured/scenarios/gap-heavy-5m`). At 5m, the first 6m gap lapsed everything (`read 0`, 25k re-write); the 8m and 12m gaps lapsed only the tail — an ~11.8k stable prefix stayed warm. The WP-05 lengthening rule restores a re-write only when `reads == 0`, so the 1h counterfactual recovers the full lapse but not the partial ones, and 1h loses ($0.562 vs $0.579) a session the 1h run shows it should win ($0.32 vs $0.70). Documented as a simulator follow-up in fixtures/README.md and PLAN.md; **the simulator is unchanged here** — that&#39;s a modeling decision.
+2. **Reconciliation** (PLAN §5) holds exactly for every bucket except a 5m-dominant bucket that also carries 1h writes (a config flip): the &#34;5m&#34; scenario reprices the flipped writes by design. `synthetic/mixed-ttl-5m-dominant-flip` pins it; hand check 1100 × ($10 − $6.25)/MTok = $0.004125, exactly the delta.
+3. `inference_geo: &#34;us&#34;` priced at standard rates by stated assumption (D18); `synthetic/inference-geo-us` pins it.
+4. First cross-validation run agreed on 225/227 cases; the two misses were a refsim clamp bug (code points vs UTF-16 units) and finding 2.
+
+## Scenario verdicts
+
+| Capture | Observed | Requests | 5m | 1h | Verdict |
+|---|---|---|---|---|---|
+| tight-loop-5m | 5m | 13 | $0.406 | $0.473 | **5m** |
+| gap-heavy-1h | 1h | 9 | $0.703 (3 expiries) | $0.321 | **1h** |
+| gap-heavy-5m | 5m | 8 | $0.562 | $0.579 | 5m (see finding 1) |
+| model-switch | 1h | 10 | $0.321 | $0.427 | 5m; 2 hard resets |
+| parallel-subagents (main file) | 1h | 126 | $90.31 (4 expiries) | $68.91 | **1h** |
+
+## Test plan
+
+- [x] `npm test` — 424 tests (244 golden-harness cases across 60 fixtures)
+- [x] `npm run test:refsim` — 29 hand-computed cases
+- [x] `npm run golden:check`, lint, typecheck, format
+- [x] Every surviving string in the scrubbed captures reviewed; username guard passes
+- [ ] CI green
+- [ ] Session transcript published
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)&#34; 2&gt;&amp;1 | tail -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-48-12-978Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-48-12-978Z" class="timestamp-link"><time datetime="2026-08-31T00:48:12.978Z" data-timestamp="2026-08-31T00:48:12.978Z">2026-08-31T00:48:12.978Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>M  docs/PLAN.md
+M  fixtures/README.md
+M  fixtures/fixtures.json
+M  package.json
+M  scripts/scrub-capture.py
+A  scripts/sync-samples.ts
+M  src/engine/golden.test.ts
+ M tools/refsim/__pycache__/refsim.cpython-314.pyc
+ M tools/refsim/__pycache__/test_refsim.cpython-314.pyc
+aa061f8 feat(fixtures): add the Claude-enacted scenario captures and bundle them as samples
+✓ Pull request cebert/cache-ttl-analyzer#17 is marked as &quot;ready for review&quot;
+https://github.com/cebert/cache-ttl-analyzer/pull/17
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-18-299Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-18-299Z" class="timestamp-link"><time datetime="2026-08-31T00:48:18.299Z" data-timestamp="2026-08-31T00:48:18.299Z">2026-08-31T00:48:18.299Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-19-259Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-19-259Z" class="timestamp-link"><time datetime="2026-08-31T00:48:19.259Z" data-timestamp="2026-08-31T00:48:19.259Z">2026-08-31T00:48:19.259Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I noticed some stray .pyc files got included in the first commit, so I'll clean those up. Then I'll merge main into this branch now that PR #18 is in, and check how WP-07's sample loader expects <code>public/samples/</code> structured.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-20-192Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-20-192Z" class="timestamp-link"><time datetime="2026-08-31T00:48:20.192Z" data-timestamp="2026-08-31T00:48:20.192Z">2026-08-31T00:48:20.192Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_011Gd9TakDfPsgUgPVuEZ9sb">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Untrack pyc files, merge main, inspect WP-07 sample loader</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; git rm -rq --cached tools/refsim/__pycache__ &amp;&amp; printf &#39;\n# Python bytecode (reference sim)\n__pycache__/\n&#39; &gt;&gt; .gitignore &amp;&amp; git add .gitignore &amp;&amp; git commit -q -m &#34;chore: untrack Python bytecode from tools/refsim
+
+Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;&#34; &amp;&amp; git fetch -q origin &amp;&amp; git merge --no-edit origin/main 2&gt;&amp;1 | tail -3; git status --short | head; echo &#34;--- samples usage in main&#34;; grep -rn &#34;samples&#34; src --include=*.ts --include=*.tsx -l | head; grep -rn &#34;samples/&#34; src --include=*.ts --include=*.tsx | head -8</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-48-22-443Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-48-22-443Z" class="timestamp-link"><time datetime="2026-08-31T00:48:22.443Z" data-timestamp="2026-08-31T00:48:22.443Z">2026-08-31T00:48:22.443Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>CONFLICT (content): Merge conflict in docs/PLAN.md
+Auto-merging package.json
+Automatic merge failed; fix conflicts and then commit the result.
+M  .claude/skills/publish-transcript/SKILL.md
+A  .github/workflows/pages.yml
+UU .gitignore
+UU .prettierignore
+UU README.md
+UU docs/PLAN.md
+M  package-lock.json
+M  package.json
+A  scripts/build-transcripts-site.ts
+M  src/App.tsx
+--- samples usage in main
+(eval):3: no matches found: --include=*.ts
+(eval):3: no matches found: --include=*.ts
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-26-116Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-26-116Z" class="timestamp-link"><time datetime="2026-08-31T00:48:26.116Z" data-timestamp="2026-08-31T00:48:26.116Z">2026-08-31T00:48:26.116Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012YArcXJjNTPHWHwFSnhrEt">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Inspect merge conflicts and sample-loader usage</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; for f in .gitignore .prettierignore README.md; do echo &#34;=== $f&#34;; git diff &#34;$f&#34; | grep -n &#34;^[-+ ]*[&lt;=&gt;]\{7\}\|^[-+ ]*site\|^[-+ ]*__pycache__\|^[-+ ]*fixtures\|^[-+ ]*transcripts\|^[-+ ]*\*\.md&#34; | head -20; done; echo &#34;=== PLAN conflict hunks&#34;; grep -n &#34;^&lt;&lt;&lt;&lt;&lt;&lt;&lt;\|^=======\|^&gt;&gt;&gt;&gt;&gt;&gt;&gt;&#34; docs/PLAN.md; echo &#34;=== samples in src&#34;; grep -rln &#34;samples&#34; src | head; grep -rn &#34;samples/&#34; src | head -8</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-48-27-542Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-48-27-542Z" class="timestamp-link"><time datetime="2026-08-31T00:48:27.542Z" data-timestamp="2026-08-31T00:48:27.542Z">2026-08-31T00:48:27.542Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== .gitignore
+7:  fixtures/generated/
+9:++&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+11: +__pycache__/
+12:++=======
+14:+ site
+15:++&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+=== .prettierignore
+9:++&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+12: +fixtures/
+13:++=======
+14:+ site
+15:++&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+=== README.md
+10: +fixtures — not needed to build or run the app.
+50:++&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+61:++=======
+63:++&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+=== PLAN conflict hunks
+657:&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+660:=======
+664:&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+=== samples in src
+src/app/pages/UploadScreen.tsx
+src/app/App.test.tsx
+src/app/upload/SampleList.tsx
+src/config/samples.ts
+src/i18n/en.ts
+src/engine/golden.test.ts
+src/config/samples.ts:3: * real ones, scrubs them, and drops the files into `public/samples/`; adding a
+src/config/samples.ts:24:  /** File name under `public/samples/`. */
+src/config/samples.ts:38:export const SAMPLES_BASE_PATH = &#x27;/samples/&#x27;
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-30-464Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-30-464Z" class="timestamp-link"><time datetime="2026-08-31T00:48:30.464Z" data-timestamp="2026-08-31T00:48:30.464Z">2026-08-31T00:48:30.464Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-31-642Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-31-642Z" class="timestamp-link"><time datetime="2026-08-31T00:48:31.642Z" data-timestamp="2026-08-31T00:48:31.642Z">2026-08-31T00:48:31.642Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RDXcagESPagmP3K2iEewUR">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show conflict text and WP-07&#39;s samples config</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; echo &#34;=== README conflict&#34;; awk &#39;/^&lt;&lt;&lt;&lt;&lt;&lt;&lt; /,/^&gt;&gt;&gt;&gt;&gt;&gt;&gt; /&#39; README.md; echo &#34;=== PLAN conflict&#34;; sed -n 655,665p docs/PLAN.md | cut -c1-160; echo &#34;=== samples.ts&#34;; cat src/config/samples.ts; echo &#34;=== SampleList usage&#34;; grep -n &#34;SAMPLES\|sample&#34; src/app/upload/SampleList.tsx | head -12; grep -n &#34;sample&#34; src/i18n/en.ts | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-48-33-135Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-48-33-135Z" class="timestamp-link"><time datetime="2026-08-31T00:48:33.135Z" data-timestamp="2026-08-31T00:48:33.135Z">2026-08-31T00:48:33.135Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== README conflict
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+The engine is also cross-validated against **golden fixtures**: every
+session under `fixtures/` (crafted traps, adversarial inputs, and scrubbed
+real captures) is priced by an independently written Python reference
+simulator, and `src/engine/golden.test.ts` diffs the engine&#x27;s output against
+those goldens — with the format-drift canary and content-poison checks on
+top. CI runs the sim&#x27;s own tests and `golden:check`, so a committed golden
+can never drift from the sim. [fixtures/README.md](fixtures/README.md) has
+the details and the add-a-fixture recipe.
+
+### Debug logging
+=======
+`npm test` runs the full test suite, including a generated ~100 MB synthetic session used to exercise large-file processing.
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+=== PLAN conflict
+| D15 | ~~Deploys via Cloudflare Workers Builds, not a GitHub-stored API token~~ **Revised 2026-08-30 (WP-09):** deploys and PR previews run from GitHub Actions
+| D16 | No post-deploy smoke check asserting security headers against the live site | WP-09 originally required one so a misconfigured `_headers` file would fai
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+| D17 | Public captures are scrubbed to metadata, not redacted: every conversation payload is replaced by a placeholder, keeping only the row structure and the 
+| D18 | `inference_geo` is not modeled; requests with `inference_geo: &quot;us&quot;` price at the standard published rate | The frozen contract has no field for it and n
+=======
+| D17 | i18n via **react-i18next**, with the string catalog as a typed TypeScript module rather than JSON | The plan left the choice to WP-07. The library bring
+| D18 | **Tailwind v4** for styling, with WP-D&#x27;s palette as `@theme` variables | WP-D&#x27;s palette sheet was already written as a Tailwind mapping (five stock acce
+| D19 | File-size cap **100 MB**, amending the frozen `MAX_FILE_SIZE_BYTES` down from 500 MB | WP-07 is the first code to enforce the cap, and 500 MB predated a
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+
+=== samples.ts
+/**
+ * The bundled sample sessions offered on the landing page. WP-06 captures the
+ * real ones, scrubs them, and drops the files into `public/samples/`; adding a
+ * row here is all the UI needs — the &quot;Or start with a captured session&quot;
+ * region renders only when this list has entries, so the shell ships honestly
+ * empty until then.
+ *
+ * A sample is fetched from our own origin (`connect-src &#x27;self&#x27;` permits that
+ * and nothing else) and handed to the same worker as an uploaded file, so
+ * samples exercise exactly the path a user&#x27;s own log takes.
+ */
+
+import type { en } from &#x27;../i18n/en&#x27;
+
+/** Which of the three lessons the sample was captured to teach. */
+export type SampleLesson = &#x27;five-minute-wins&#x27; | &#x27;one-hour-wins&#x27; | &#x27;hard-resets&#x27;
+
+/** A sample&#x27;s display name is catalog copy, so it is a checked i18n key. */
+export type SampleNameKey = `samples.names.${keyof typeof en.samples.names}`
+
+export interface SampleSession {
+  /** Stable id, used as the React key and in the sample&#x27;s URL. */
+  id: string
+  /** File name under `public/samples/`. */
+  file: string
+  nameKey: SampleNameKey
+  lesson: SampleLesson
+  /** Headline numbers shown on the card, from the captured session. */
+  requestCount: number
+  spanMs: number
+  cacheHitRate: number
+  /** Only meaningful for the `hard-resets` lesson. */
+  hardResets?: number
+}
+
+export const SAMPLES: readonly SampleSession[] = []
+
+export const SAMPLES_BASE_PATH = &#x27;/samples/&#x27;
+=== SampleList usage
+2: * The captured sample sessions. A sample is fetched from our own origin and
+4: * worker handoff as a log the user picked — the samples exercise the real
+7: * Renders nothing while `SAMPLES` is empty (WP-06 fills it), so the shell
+8: * never advertises samples it cannot load.
+14:import { SAMPLES, SAMPLES_BASE_PATH, type SampleSession } from &#x27;../../config/samples&#x27;
+21:const log = createLogger(&#x27;samples&#x27;)
+30:  if (SAMPLES.length === 0) return null
+32:  async function load(sample: SampleSession) {
+33:    setLoadingId(sample.id)
+36:      const response = await fetch(`${SAMPLES_BASE_PATH}${sample.file}`)
+37:      if (!response.ok) throw new Error(`sample responded ${response.status}`)
+39:      analyze(new File([blob], sample.file, { type: &#x27;application/jsonl&#x27; }))
+61:  samples: {
+67:    loadFailed: &#x27;That sample could not be loaded. Reload the page and try again.&#x27;,
+70:    // a sample it adds under a new id adds its name here too.
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-43-679Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-43-679Z" class="timestamp-link"><time datetime="2026-08-31T00:48:43.679Z" data-timestamp="2026-08-31T00:48:43.679Z">2026-08-31T00:48:43.679Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-44-669Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-44-669Z" class="timestamp-link"><time datetime="2026-08-31T00:48:44.669Z" data-timestamp="2026-08-31T00:48:44.669Z">2026-08-31T00:48:44.669Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I'll populate <code>SAMPLES</code> in <code>src/config/samples.ts</code> from the goldens and validate it against <code>index.json</code> so the two can't drift. Then I'll check how the card and README's Tests section use these numbers before resolving the four conflicts.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-48-44-691Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-48-44-691Z" class="timestamp-link"><time datetime="2026-08-31T00:48:44.691Z" data-timestamp="2026-08-31T00:48:44.691Z">2026-08-31T00:48:44.691Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RFDFnqPxnN13Jp9qK9frLB">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Inspect sample card rendering, i18n keys, README merge region</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; sed -n 40,80p src/app/upload/SampleList.tsx; echo &#34;=== en.ts samples&#34;; awk &#39;/^  samples: \{/,/^  \},/&#39; src/i18n/en.ts; echo &#34;=== README 30-75&#34;; sed -n 30,75p README.md | cut -c1-120; echo &#34;=== App.test samples&#34;; grep -n &#34;SAMPLES\|sample&#34; src/app/App.test.tsx | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-48-46-057Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-48-46-057Z" class="timestamp-link"><time datetime="2026-08-31T00:48:46.057Z" data-timestamp="2026-08-31T00:48:46.057Z">2026-08-31T00:48:46.057Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>    } catch (error) {
+      log.error(&#x27;sample load failed&#x27;, error instanceof Error ? error.name : typeof error)
+      setFailed(true)
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  return (
+    &lt;&gt;
+      &lt;SheetRule /&gt;
+      &lt;SheetSection className=&quot;flex flex-col gap-3&quot;&gt;
+        &lt;SectionTitle&gt;{t(&#x27;samples.title&#x27;)}&lt;/SectionTitle&gt;
+        &lt;ul className=&quot;grid gap-0 sm:grid-cols-3&quot;&gt;
+          {SAMPLES.map((sample, index) =&gt; (
+            &lt;li
+              key={sample.id}
+              className={`border-line-soft ${
+                index &gt; 0 ? &#x27;border-t pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5&#x27; : &#x27;&#x27;
+              } ${index &lt; SAMPLES.length - 1 ? &#x27;pb-3 sm:pr-5 sm:pb-0&#x27; : &#x27;&#x27;}`}
+            &gt;
+              &lt;button
+                type=&quot;button&quot;
+                disabled={busy || loadingId !== null}
+                onClick={() =&gt; void load(sample)}
+                className=&quot;flex w-full flex-col gap-1.5 rounded-[6px] p-1 text-left disabled:cursor-not-allowed disabled:opacity-60&quot;
+              &gt;
+                &lt;span className=&quot;flex items-baseline justify-between gap-2.5&quot;&gt;
+                  &lt;span className=&quot;text-[13.5px] font-semibold&quot;&gt;{t(sample.nameKey)}&lt;/span&gt;
+                  &lt;LessonBadge sample={sample} /&gt;
+                &lt;/span&gt;
+                &lt;span className=&quot;font-mono text-[10.5px] text-slate-400&quot;&gt;
+                  {t(&#x27;samples.meta&#x27;, {
+                    requests: fmt.integer(sample.requestCount),
+                    span: fmt.duration(sample.spanMs),
+                    hitRate: fmt.percent(sample.cacheHitRate),
+                  })}
+                &lt;/span&gt;
+              &lt;/button&gt;
+            &lt;/li&gt;
+          ))}
+=== en.ts samples
+  samples: {
+    title: &#x27;Or start with a captured session&#x27;,
+    meta: &#x27;{{requests}} requests · {{span}} · {{hitRate}} hits&#x27;,
+    badge5m: &#x27;5 min wins&#x27;,
+    badge1h: &#x27;1 hour wins&#x27;,
+    badgeResets: &#x27;{{count}} resets&#x27;,
+    loadFailed: &#x27;That sample could not be loaded. Reload the page and try again.&#x27;,
+    // Sample names are our copy, not log-derived, so they are translatable
+    // strings like everything else. WP-06 captures the sessions these name;
+    // a sample it adds under a new id adds its name here too.
+    // Consumed by `SampleSession.nameKey`; WP-06 adds the sessions these name.
+    names: {
+      tightLoop: &#x27;Tight agent loop&#x27;,
+      gapHeavy: &#x27;Long and gap-heavy&#x27;,
+      modelSwitch: &#x27;Model switched&#x27;,
+    },
+  },
+=== README 30-75
+Many excellent tools are already available to trace and review coding harness sessions, such as [Datadog Lapdog](https:/
+
+### Background Motivation
+
+The organization I work for is moving from a legacy Claude Code Enterprise plan with subsidized tokens to API-based bill
+
+A secondary goal of this tool is to increase developer awareness of cost drivers. From my experience, many developers ar
+
+## Repo map
+
+| Path | What&#x27;s in it |
+|---|---|
+| `docs/PLAN.md` | Build plan and phases |
+| `docs/design/` | Claude Design exports, screenshots |
+| `transcripts/` | The AI sessions that built this project ([map](transcripts/README.md)) |
+| `src/` | Application source |
+| `public/samples/` | Bundled demo session logs so the tool works without your own data |
+| `.coderabbit.yaml` | [CodeRabbit](https://coderabbit.ai) AI review settings for pull requests |
+
+## Development
+
+Prerequisites: [Node.js](https://nodejs.org/) 22+ (developed on 26) and npm.
+Python 3.10+ (standard library only) for the reference simulator and golden
+fixtures — not needed to build or run the app.
+
+```sh
+npm  install
+npm  run  dev  # Vite dev server with HMR
+```
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Vite dev server |
+| `npm run build` | Typecheck (`tsc -b`) + production build to `dist/` |
+| `npm test` | Vitest, single run (`npm run test:watch` for watch mode) |
+| `npm run lint` | [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) |
+| `npm run format` | Prettier, write mode (`format:check` in CI) |
+| `npm run typecheck` | `tsc -b` only |
+| `npm run test:refsim` | Hand-computed unit tests for the Python reference simulator (`tools/refsim/`) |
+| `npm run golden:emit` / `golden:check` | Regenerate / verify the golden fixtures the engine is cross-validated against
+| `npm run fixtures:build` | Regenerate the synthetic fixture sessions from `scripts/build-synthetic-fixtures.ts` |
+| `npm run preview` | Serve the production build via Vite |
+| `npx wrangler dev` | Serve the production build the way Cloudflare Workers will (build first) |
+| `npm run deploy` | Build and deploy to Cloudflare Workers (manual escape hatch; CI deploys `main` automatically) |
+
+### Architecture
+=== App.test samples
+123:  it(&#x27;offers no samples until WP-06 lands them, rather than advertising an empty list&#x27;, () =&gt; {
+125:    expect(screen.queryByText(en.samples.title)).not.toBeInTheDocument()
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-49-01-350Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-49-01-350Z" class="timestamp-link"><time datetime="2026-08-31T00:49:01.350Z" data-timestamp="2026-08-31T00:49:01.350Z">2026-08-31T00:49:01.350Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-49-04-623Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-49-04-623Z" class="timestamp-link"><time datetime="2026-08-31T00:49:04.623Z" data-timestamp="2026-08-31T00:49:04.623Z">2026-08-31T00:49:04.623Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RxYFLv945NSYRVbC9Rss2X">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read README/App.test regions and compute sample card numbers</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; echo &#34;=== README 76-100&#34;; sed -n 76,100p README.md | cut -c1-110; echo &#34;=== App.test 115-135&#34;; sed -n 115,135p src/app/App.test.tsx; echo &#34;=== stats&#34;; python3 - &lt;&lt;&#39;EOF&#39;
+import json, sys
+sys.path.insert(0, &#39;tools/refsim&#39;); import refsim
+P = refsim.load_pricing()
+for n in [&#39;tight-loop-5m&#39;,&#39;gap-heavy-1h&#39;,&#39;gap-heavy-5m&#39;,&#39;model-switch&#39;]:
+    data = open(f&#39;fixtures/captured/scenarios/{n}/session.jsonl&#39;,&#39;rb&#39;).read()
+    parsed, _ = refsim.parse_session_bytes(data, &#39;s.jsonl&#39;)
+    reqs = parsed[&#39;requests&#39;]
+    inp = sum(r[&#39;usage&#39;][&#39;inputTokens&#39;] for r in reqs); rd = sum(r[&#39;usage&#39;][&#39;cacheReadInputTokens&#39;] for r in reqs); wr = sum(r[&#39;usage&#39;][&#39;cacheCreationInputTokens&#39;] for r in reqs)
+    g = json.load(open(f&#39;fixtures/golden/captured__scenarios__{n}__session.json&#39;))[&#39;buckets&#39;][0]
+    print(n, &#39;req&#39;, g[&#39;requestCount&#39;], &#39;spanMs&#39;, g[&#39;shape&#39;][&#39;spanMs&#39;], &#39;hardResets&#39;, g[&#39;scenarios&#39;][&#39;oneHour&#39;][&#39;hardResets&#39;], &#39;hit&#39;, round(rd/(inp+rd+wr),4), &#39;rec&#39;, g[&#39;recommendation&#39;])
+EOF</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-49-06-008Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-49-06-008Z" class="timestamp-link"><time datetime="2026-08-31T00:49:06.008Z" data-timestamp="2026-08-31T00:49:06.008Z">2026-08-31T00:49:06.008Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== README 76-100
+
+Analysis runs entirely in the browser so uploaded Claude Code session data does not need to be sent to an exte
+
+The engine consists of parsing, cost calculation, and cache simulation components under `src/engine/`. Its sha
+
+### Testing and debugging
+
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+The engine is also cross-validated against **golden fixtures**: every
+session under `fixtures/` (crafted traps, adversarial inputs, and scrubbed
+real captures) is priced by an independently written Python reference
+simulator, and `src/engine/golden.test.ts` diffs the engine&#x27;s output against
+those goldens — with the format-drift canary and content-poison checks on
+top. CI runs the sim&#x27;s own tests and `golden:check`, so a committed golden
+can never drift from the sim. [fixtures/README.md](fixtures/README.md) has
+the details and the add-a-fixture recipe.
+
+### Debug logging
+=======
+`npm test` runs the full test suite, including a generated ~100 MB synthetic session used to exercise large-fi
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+
+Application logging goes through `src/lib/logger.ts` and is console-only. Production defaults to `warn`. Enabl
+
+- `?debug=1` in the URL
+=== App.test 115-135
+    renderApp()
+    expect(screen.getByRole(&#x27;heading&#x27;, { name: en.upload.headline })).toBeInTheDocument()
+    expect(screen.getByText(en.upload.dropTitle)).toBeInTheDocument()
+    expect(screen.getByText(en.privacy.title)).toBeInTheDocument()
+    expect(screen.getByText(en.privacy.csp)).toBeInTheDocument()
+    expect(screen.getByText(en.nav.sessionsEmpty)).toBeInTheDocument()
+  })
+
+  it(&#x27;offers no samples until WP-06 lands them, rather than advertising an empty list&#x27;, () =&gt; {
+    renderApp()
+    expect(screen.queryByText(en.samples.title)).not.toBeInTheDocument()
+  })
+
+  it(&#x27;carries a file through analysis to a result, and remembers it in the sidebar&#x27;, async () =&gt; {
+    const { user } = renderApp()
+
+    await user.upload(fileInput(), sessionLog())
+
+    // The analyzing screen, with the cancel the plan requires always available.
+    expect(await screen.findByText(en.analyzing.workerNote)).toBeInTheDocument()
+    expect(screen.getByRole(&#x27;button&#x27;, { name: en.analyzing.cancel })).toBeInTheDocument()
+=== stats
+tight-loop-5m req 13 spanMs 93361 hardResets 0 hit 0.9467 rec 5m
+gap-heavy-1h req 9 spanMs 1607031 hardResets 0 hit 0.9335 rec 1h
+gap-heavy-5m req 8 spanMs 1607199 hardResets 0 hit 0.6563 rec 5m
+model-switch req 10 spanMs 46204 hardResets 2 hit 0.8325 rec 5m
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-49-19-785Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-49-19-785Z" class="timestamp-link"><time datetime="2026-08-31T00:49:19.785Z" data-timestamp="2026-08-31T00:49:19.785Z">2026-08-31T00:49:19.785Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-49-21-158Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-49-21-158Z" class="timestamp-link"><time datetime="2026-08-31T00:49:21.158Z" data-timestamp="2026-08-31T00:49:21.158Z">2026-08-31T00:49:21.158Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I'm resolving the four conflicts and filling WP-07's <code>SAMPLES</code> with its three matching samples, keeping <code>gap-heavy-5m</code> as fixture-only due to its unclear verdict. Then I'll re-point the sync script and harness to <code>SAMPLES</code> so it's the single source of truth instead of my <code>index.json</code>.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-49-43-319Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-49-43-319Z" class="timestamp-link"><time datetime="2026-08-31T00:49:43.319Z" data-timestamp="2026-08-31T00:49:43.319Z">2026-08-31T00:49:43.319Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_015rNULkNhkvWZrCfpkQ6Zdc">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Resolve conflicts, fill SAMPLES, rewire sync and harness, run all checks</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; python3 - &lt;&lt;&#39;PYEOF&#39;
+from pathlib import Path
+import re
+def rep(p, old, new, count=1):
+    s = p.read_text(); assert s.count(old) == count, (p, old[:60], s.count(old)); p.write_text(s.replace(old, new))
+
+# --- conflicts
+p = Path(&#39;.gitignore&#39;); s = p.read_text()
+s = re.sub(r&#39;&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD\n(.*?)=======\n(.*?)&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main\n&#39;, lambda m: m.group(1) + m.group(2), s, flags=re.S); p.write_text(s)
+p = Path(&#39;.prettierignore&#39;); s = p.read_text()
+s = re.sub(r&#39;&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD\n(.*?)=======\n(.*?)&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main\n&#39;, lambda m: m.group(2) + m.group(1), s, flags=re.S); p.write_text(s)
+p = Path(&#39;README.md&#39;); s = p.read_text()
+m = re.search(r&#39;&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD\n(.*?)=======\n(.*?)&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main\n&#39;, s, flags=re.S)
+mine = m.group(1).replace(&#39;\n### Debug logging\n&#39;, &#39;&#39;)
+s = s[:m.start()] + m.group(2) + &#39;\n&#39; + mine + s[m.end():]
+p.write_text(s)
+p = Path(&#39;docs/PLAN.md&#39;); s = p.read_text()
+m = re.search(r&#39;&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD\n(.*?)=======\n(.*?)&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main\n&#39;, s, flags=re.S)
+mine = m.group(1).replace(&#39;| D17 |&#39;, &#39;| D20 |&#39;).replace(&#39;| D18 |&#39;, &#39;| D21 |&#39;)
+s = s[:m.start()] + m.group(2) + mine + s[m.end():]
+s = s.replace(&#39;**WP-06 decision (D18):**&#39;, &#39;**WP-06 decision (D21):**&#39;).replace(&#39;`scripts/scrub-capture.py` (D17):&#39;, &#39;`scripts/scrub-capture.py` (D20):&#39;)
+assert &#39;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&#39; not in s
+p.write_text(s)
+for f in [&#39;.gitignore&#39;, &#39;.prettierignore&#39;, &#39;README.md&#39;]:
+    assert &#39;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&#39; not in Path(f).read_text(), f
+
+# --- SAMPLES
+rep(Path(&#39;src/config/samples.ts&#39;), &#34;export const SAMPLES: readonly SampleSession[] = []\n&#34;, &#34;&#34;&#34;export const SAMPLES: readonly SampleSession[] = [
+  // Scenario captures from fixtures/captured/scenarios/ (WP-06). The numbers
+  // are checked against the fixture and its golden by src/engine/golden.test.ts.
+  {
+    id: &#39;tight-loop-5m&#39;,
+    file: &#39;tight-loop-5m.jsonl&#39;,
+    nameKey: &#39;samples.names.tightLoop&#39;,
+    lesson: &#39;five-minute-wins&#39;,
+    requestCount: 13,
+    spanMs: 93_361,
+    cacheHitRate: 0.9467,
+  },
+  {
+    id: &#39;gap-heavy-1h&#39;,
+    file: &#39;gap-heavy-1h.jsonl&#39;,
+    nameKey: &#39;samples.names.gapHeavy&#39;,
+    lesson: &#39;one-hour-wins&#39;,
+    requestCount: 9,
+    spanMs: 1_607_031,
+    cacheHitRate: 0.9335,
+  },
+  {
+    id: &#39;model-switch&#39;,
+    file: &#39;model-switch.jsonl&#39;,
+    nameKey: &#39;samples.names.modelSwitch&#39;,
+    lesson: &#39;hard-resets&#39;,
+    requestCount: 10,
+    spanMs: 46_204,
+    cacheHitRate: 0.8325,
+    hardResets: 2,
+  },
+]
+&#34;&#34;&#34;)
+
+# --- App.test
+rep(Path(&#39;src/app/App.test.tsx&#39;), &#34;&#34;&#34;  it(&#39;offers no samples until WP-06 lands them, rather than advertising an empty list&#39;, () =&gt; {
+    renderApp()
+    expect(screen.queryByText(en.samples.title)).not.toBeInTheDocument()
+  })
+&#34;&#34;&#34;, &#34;&#34;&#34;  it(&#39;offers the captured sample sessions&#39;, () =&gt; {
+    renderApp()
+    expect(screen.getByText(en.samples.title)).toBeInTheDocument()
+    for (const name of Object.values(en.samples.names)) {
+      expect(screen.getByText(name)).toBeInTheDocument()
+    }
+  })
+&#34;&#34;&#34;)
+
+# --- sync-samples.ts rewrite
+Path(&#39;scripts/sync-samples.ts&#39;).write_text(&#39;&#39;&#39;/**
+ * WP-06 — publish the scenario captures the UI lists as bundled samples.
+ *
+ * `src/config/samples.ts` (WP-07) is the source of truth for WHICH captures
+ * ship and what their cards say; this script copies each listed sample&#39;s
+ * `fixtures/captured/scenarios/&lt;id&gt;/session.jsonl` to `public/samples/&lt;file&gt;`
+ * and removes anything else there. `src/engine/golden.test.ts` asserts the
+ * copies are byte-identical and that every number on a card matches the
+ * fixture and its golden.
+ *
+ * Run: `node scripts/sync-samples.ts` (also `npm run samples:sync`).
+ */
+
+import { copyFileSync, mkdirSync, readdirSync, rmSync } from &#39;node:fs&#39;
+import { join } from &#39;node:path&#39;
+import { SAMPLES } from &#39;../src/config/samples.ts&#39;
+
+export const SCENARIOS_DIR = join(&#39;fixtures&#39;, &#39;captured&#39;, &#39;scenarios&#39;)
+export const SAMPLES_DIR = join(&#39;public&#39;, &#39;samples&#39;)
+
+export function sampleSource(id: string): string {
+  return join(SCENARIOS_DIR, id, &#39;session.jsonl&#39;)
+}
+
+function main(): void {
+  mkdirSync(SAMPLES_DIR, { recursive: true })
+  const wanted = new Set(SAMPLES.map((s) =&gt; s.file))
+  for (const name of readdirSync(SAMPLES_DIR)) {
+    if (name.endsWith(&#39;.jsonl&#39;) &amp;&amp; !wanted.has(name)) {
+      rmSync(join(SAMPLES_DIR, name))
+      console.log(`removed ${join(SAMPLES_DIR, name)}`)
+    }
+  }
+  for (const sample of SAMPLES) {
+    copyFileSync(sampleSource(sample.id), join(SAMPLES_DIR, sample.file))
+    console.log(`copied ${sampleSource(sample.id)} -&gt; ${join(SAMPLES_DIR, sample.file)}`)
+  }
+}
+
+// Only run when executed directly, so the test can import the helpers.
+if (process.argv[1]?.endsWith(&#39;sync-samples.ts&#39;)) main()
+&#39;&#39;&#39;)
+
+# --- harness samples test
+p = Path(&#39;src/engine/golden.test.ts&#39;); s = p.read_text()
+s = s.replace(&#34;import { buildSamplesIndex, renderIndex, SAMPLES_DIR, SAMPLES_INDEX } from &#39;../../scripts/sync-samples.ts&#39;\n&#34;,
+              &#34;import { SAMPLES } from &#39;../config/samples&#39;\nimport { SAMPLES_DIR, sampleSource } from &#39;../../scripts/sync-samples.ts&#39;\n&#34;)
+i = s.index(&#34;describe(&#39;bundled samples (public/samples)&#39;&#34;)
+s = s[:i] + &#34;&#34;&#34;describe(&#39;bundled samples (public/samples)&#39;, () =&gt; {
+  // The scenario captures double as the app&#39;s samples (PLAN WP-06). The UI&#39;s
+  // `SAMPLES` list is the source of truth for which ship and what the cards
+  // say; prove the shipped copies and the card numbers cannot drift from the
+  // fixtures the goldens cover.
+  it(&#39;ships exactly the SAMPLES entries, byte-identical to their fixtures&#39;, () =&gt; {
+    expect(SAMPLES.length).toBeGreaterThan(0)
+    for (const sample of SAMPLES) {
+      expect(readFileSync(join(SAMPLES_DIR, sample.file))).toEqual(readFileSync(sampleSource(sample.id)))
+    }
+    const shipped = readdirSync(SAMPLES_DIR)
+      .filter((name) =&gt; name.endsWith(&#39;.jsonl&#39;))
+      .sort()
+    expect(shipped).toEqual(SAMPLES.map((s) =&gt; s.file).sort())
+  })
+
+  it.each(SAMPLES.map((s) =&gt; [s.id, s] as const))(&#39;%s card numbers come from the data&#39;, async (_id, sample) =&gt; {
+    const { parsed, result } = await runEngine(sampleSource(sample.id))
+    expect(result).toBeDefined()
+    const main = result!.buckets.find((b) =&gt; b.bucket === &#39;main&#39;)!
+    expect(sample.requestCount).toBe(main.requestCount)
+    expect(sample.spanMs).toBe(main.shape.spanMs)
+    expect(sample.hardResets ?? 0).toBe(main.scenarios.oneHour.hardResets)
+    let input = 0
+    let read = 0
+    let write = 0
+    for (const r of parsed.requests) {
+      input += r.usage.inputTokens
+      read += r.usage.cacheReadInputTokens
+      write += r.usage.cacheCreationInputTokens
+    }
+    expect(sample.cacheHitRate).toBeCloseTo(read / (input + read + write), 3)
+    const lesson =
+      main.scenarios.oneHour.hardResets &gt; 0
+        ? &#39;hard-resets&#39;
+        : main.recommendation === &#39;5m&#39;
+          ? &#39;five-minute-wins&#39;
+          : &#39;one-hour-wins&#39;
+    expect(sample.lesson).toBe(lesson)
+  })
+})
+&#34;&#34;&#34;
+p.write_text(s)
+
+# --- docs
+rep(Path(&#39;fixtures/README.md&#39;), &#34;&#34;&#34;then scrubbed like any other capture. They double as the app&#39;s bundled
+samples: `scripts/sync-samples.ts` copies them to `public/samples/` and
+derives `index.json` (title, description, expected verdict) from each
+capture&#39;s `capture.json` and golden, and the harness asserts the copies are
+byte-identical.&#34;&#34;&#34;, &#34;&#34;&#34;then scrubbed like any other capture. Three of them double as the app&#39;s
+bundled samples — one per lesson the landing page teaches (`SAMPLES` in
+`src/config/samples.ts`: tight loop → 5 min wins, gap-heavy at 1h → 1 hour
+wins, model switch → resets); `scripts/sync-samples.ts` copies them to
+`public/samples/`, and the harness asserts the copies are byte-identical and
+every number on a card matches the fixture. `gap-heavy-5m` stays a fixture
+only: its verdict is the modeling finding below, not a lesson to teach yet.&#34;&#34;&#34;)
+Path(&#39;public/samples/index.json&#39;).unlink(missing_ok=True)
+Path(&#39;public/samples/gap-heavy-5m.jsonl&#39;).unlink(missing_ok=True)
+print(&#39;patched&#39;)
+PYEOF
+node scripts/sync-samples.ts | tail -1 &amp;&amp; ls public/samples &amp;&amp; npx prettier --write src/engine/golden.test.ts scripts/sync-samples.ts src/config/samples.ts src/app/App.test.tsx README.md &gt;/dev/null; npx vitest run 2&gt;&amp;1 | grep -E &#34;Tests |Files |FAIL|✗|×&#34; | head; npm run lint 2&gt;&amp;1 | grep -ciE &#34;warning|error&#34;; npm run typecheck 2&gt;&amp;1 | grep -c &#34;error&#34;; npm run format:check 2&gt;&amp;1 | tail -1; python3 tools/refsim/refsim.py check | tail -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-49-48-643Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-49-48-643Z" class="timestamp-link"><time datetime="2026-08-31T00:49:48.643Z" data-timestamp="2026-08-31T00:49:48.643Z">2026-08-31T00:49:48.643Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>patched
+copied fixtures/captured/scenarios/model-switch/session.jsonl -&gt; public/samples/model-switch.jsonl
+gap-heavy-1h.jsonl
+model-switch.jsonl
+tight-loop-5m.jsonl
+3
+114
+All matched files use Prettier code style!
+60 goldens checked, 0 problems
+Shell cwd was reset to ~/Code/cache-ttl-analyzer
+[This command modified 1 file you&#x27;ve previously read: ../cache-ttl-analyzer-wp06/scripts/sync-samples.ts. Call Read before editing.]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-49-52-492Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-49-52-492Z" class="timestamp-link"><time datetime="2026-08-31T00:49:52.492Z" data-timestamp="2026-08-31T00:49:52.492Z">2026-08-31T00:49:52.492Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-49-52-498Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-49-52-498Z" class="timestamp-link"><time datetime="2026-08-31T00:49:52.498Z" data-timestamp="2026-08-31T00:49:52.498Z">2026-08-31T00:49:52.498Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Typecheck errors are almost certainly the merged WP-07 deps missing from this worktree's <code>node_modules</code>. Reinstalling and rerunning.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-49-53-802Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-49-53-802Z" class="timestamp-link"><time datetime="2026-08-31T00:49:53.802Z" data-timestamp="2026-08-31T00:49:53.802Z">2026-08-31T00:49:53.802Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01H7NuaH3NEgXcAECeMfcRmf">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Reinstall deps after merging main and rerun checks</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; npm ci --silent 2&gt;&amp;1 | tail -1; npx vitest run 2&gt;&amp;1 | grep -E &#34;Tests |Files |FAIL&#34; | head; echo &#34;--- lint&#34;; npm run lint 2&gt;&amp;1 | grep -E &#34;warning|error|Found&#34; | head -5; echo &#34;--- typecheck&#34;; npm run typecheck 2&gt;&amp;1 | grep &#34;error&#34; | head -5; echo &#34;--- format&#34;; npm run format:check 2&gt;&amp;1 | tail -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-50-06-153Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-50-06-153Z" class="timestamp-link"><time datetime="2026-08-31T00:50:06.153Z" data-timestamp="2026-08-31T00:50:06.153Z">2026-08-31T00:50:06.153Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre> FAIL  src/engine/golden.test.ts [ src/engine/golden.test.ts ]
+ Test Files  1 failed | 13 passed (14)
+      Tests  237 passed (237)
+--- lint
+src/engine/golden.test.ts:32:3: warning eslint(no-unused-vars): Identifier &#x27;buildSamplesIndex&#x27; is imported but never used. help: Consider removing this import.
+src/engine/golden.test.ts:33:3: warning eslint(no-unused-vars): Identifier &#x27;renderIndex&#x27; is imported but never used. help: Consider removing this import.
+src/engine/golden.test.ts:35:3: warning eslint(no-unused-vars): Identifier &#x27;SAMPLES_INDEX&#x27; is imported but never used. help: Consider removing this import.
+--- typecheck
+src/engine/golden.test.ts(32,3): error TS2305: Module &#x27;&quot;../../scripts/sync-samples.ts&quot;&#x27; has no exported member &#x27;buildSamplesIndex&#x27;.
+src/engine/golden.test.ts(32,3): error TS6133: &#x27;buildSamplesIndex&#x27; is declared but its value is never read.
+src/engine/golden.test.ts(33,3): error TS2305: Module &#x27;&quot;../../scripts/sync-samples.ts&quot;&#x27; has no exported member &#x27;renderIndex&#x27;.
+src/engine/golden.test.ts(33,3): error TS6133: &#x27;renderIndex&#x27; is declared but its value is never read.
+src/engine/golden.test.ts(35,3): error TS2305: Module &#x27;&quot;../../scripts/sync-samples.ts&quot;&#x27; has no exported member &#x27;SAMPLES_INDEX&#x27;.
+--- format
+All matched files use Prettier code style!
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-50-09-057Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-50-09-057Z" class="timestamp-link"><time datetime="2026-08-31T00:50:09.057Z" data-timestamp="2026-08-31T00:50:09.057Z">2026-08-31T00:50:09.057Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-50-09-062Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-50-09-062Z" class="timestamp-link"><time datetime="2026-08-31T00:50:09.062Z" data-timestamp="2026-08-31T00:50:09.062Z">2026-08-31T00:50:09.062Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The old multi-line import survived my string replace (prettier had reflowed it). Fixing that import and rerunning.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-50-11-513Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-50-11-513Z" class="timestamp-link"><time datetime="2026-08-31T00:50:11.513Z" data-timestamp="2026-08-31T00:50:11.513Z">2026-08-31T00:50:11.513Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01QZZcJfeCdWCQDDKNfbD9iV">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Fix harness import; rerun tests, lint, typecheck, build</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; python3 - &lt;&lt;&#39;EOF&#39;
+from pathlib import Path
+import re
+p = Path(&#39;src/engine/golden.test.ts&#39;); s = p.read_text()
+s, n = re.subn(r&#34;import \{[^}]*buildSamplesIndex[^}]*\} from &#39;\.\./\.\./scripts/sync-samples\.ts&#39;\n&#34;, &#34;import { SAMPLES } from &#39;../config/samples&#39;\nimport { SAMPLES_DIR, sampleSource } from &#39;../../scripts/sync-samples.ts&#39;\n&#34;, s, flags=re.S)
+assert n == 1
+assert s.count(&#34;import { SAMPLES } from &#39;../config/samples&#39;&#34;) == 1
+p.write_text(s)
+EOF
+npx prettier --write src/engine/golden.test.ts &gt;/dev/null; npx vitest run 2&gt;&amp;1 | grep -E &#34;Tests |Files |FAIL|AssertionError&#34; | head; echo &#34;--- lint&#34;; npm run lint 2&gt;&amp;1 | grep -cE &#34;warning|error&#34;; echo &#34;--- typecheck&#34;; npm run typecheck 2&gt;&amp;1 | grep -c &#34;error&#34;; npm run format:check 2&gt;&amp;1 | tail -1; npm run build 2&gt;&amp;1 | tail -2</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-50-21-714Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-50-21-714Z" class="timestamp-link"><time datetime="2026-08-31T00:50:21.714Z" data-timestamp="2026-08-31T00:50:21.714Z">2026-08-31T00:50:21.714Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre> Test Files  14 passed (14)
+      Tests  484 passed (484)
+--- lint
+0
+--- typecheck
+0
+All matched files use Prettier code style!
+
+✓ built in 548ms
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-50-25-514Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-50-25-514Z" class="timestamp-link"><time datetime="2026-08-31T00:50:25.514Z" data-timestamp="2026-08-31T00:50:25.514Z">2026-08-31T00:50:25.514Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-50-25-518Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-50-25-518Z" class="timestamp-link"><time datetime="2026-08-31T00:50:25.518Z" data-timestamp="2026-08-31T00:50:25.518Z">2026-08-31T00:50:25.518Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All green on the merged tree: 484 tests (mine plus WP-07's), lint, typecheck, format, and a production build. Committing the merge and pushing.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-50-29-865Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-50-29-865Z" class="timestamp-link"><time datetime="2026-08-31T00:50:29.865Z" data-timestamp="2026-08-31T00:50:29.865Z">2026-08-31T00:50:29.865Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01C1ujepPSwDtM8VdEyqPDSt">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit the merge, push, and check CI</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd ~/Code/cache-ttl-analyzer-wp06 &amp;&amp; git add -A &amp;&amp; git status --short | grep -v &#34;^M  \|^A  \|^D  &#34; ; git commit -q -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+feat(samples): merge main (WP-07 UI shell) and fill the bundled samples
+
+Resolve the merge with the UI shell (PR #18): decision-log rows renumber
+to D20/D21 after WP-07&#39;s D17–D19, and both branches&#39; ignore entries and
+README sections are kept.
+
+WP-07 made src/config/samples.ts the source of truth for which captures
+ship and what their cards say, so fill SAMPLES with three scenario
+captures — one per lesson the landing page teaches (tight loop → 5 min
+wins, gap-heavy at 1h → 1 hour wins, model switch → resets) — and drop
+the parallel index.json. scripts/sync-samples.ts now copies exactly the
+SAMPLES files; the golden harness asserts the copies are byte-identical
+to their fixtures and that every card number (requests, span, hit rate,
+resets, lesson) matches the fixture and its golden. gap-heavy-5m stays a
+fixture only: its verdict is the partial-invalidation finding, not a
+lesson to teach yet.
+
+Co-Authored-By: Claude Fable 5 &lt;noreply@anthropic.com&gt;
+EOF
+)&#34; &amp;&amp; git push -q 2&gt;&amp;1 | grep -v &#34;^remote:&#34; | tail -1; git log --oneline -3; sleep 45; gh pr checks 17 2&gt;&amp;1 | cut -f1,2 | head -6</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-51-19-157Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-51-19-157Z" class="timestamp-link"><time datetime="2026-08-31T00:51:19.157Z" data-timestamp="2026-08-31T00:51:19.157Z">2026-08-31T00:51:19.157Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>cc80bf0 feat(samples): merge main (WP-07 UI shell) and fill the bundled samples
+7fe148b chore: untrack Python bytecode from tools/refsim
+aa061f8 feat(fixtures): add the Claude-enacted scenario captures and bundle them as samples
+Deploy to GitHub Pages	skipping
+Lint, typecheck, test, build	pending
+Build transcripts site	pass
+Shell cwd was reset to ~/Code/cache-ttl-analyzer</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-51-22-474Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-51-22-474Z" class="timestamp-link"><time datetime="2026-08-31T00:51:22.474Z" data-timestamp="2026-08-31T00:51:22.474Z">2026-08-31T00:51:22.474Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-51-22-491Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-51-22-491Z" class="timestamp-link"><time datetime="2026-08-31T00:51:22.491Z" data-timestamp="2026-08-31T00:51:22.491Z">2026-08-31T00:51:22.491Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Pushed; CI is running. Publishing the session transcript now (independent of CI), then I'll confirm CI.</p></div></div></div>
+<div class="message assistant" id="msg-2026-08-31T00-51-22-590Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-08-31T00-51-22-590Z" class="timestamp-link"><time datetime="2026-08-31T00:51:22.590Z" data-timestamp="2026-08-31T00:51:22.590Z">2026-08-31T00:51:22.590Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_015G72UQHXM9o8J5QcNL2smi"><div class="tool-header"><span class="tool-icon">⚙</span> Skill</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;skill&#34;: &#34;publish-transcript&#34;,
+  &#34;args&#34;: &#34;the current session (WP-06 fixtures and golden data, PR #17)&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-08-31T00-51-22-622Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-08-31T00-51-22-622Z" class="timestamp-link"><time datetime="2026-08-31T00:51:22.622Z" data-timestamp="2026-08-31T00:51:22.622Z">2026-08-31T00:51:22.622Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Launching skill: publish-transcript</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message user" id="msg-2026-08-31T00-51-22-620Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-08-31T00-51-22-620Z" class="timestamp-link"><time datetime="2026-08-31T00:51:22.620Z" data-timestamp="2026-08-31T00:51:22.620Z">2026-08-31T00:51:22.620Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Base directory for this skill: ~/Code/cache-ttl-analyzer/.claude/skills/publish-transcript</p>
+<h1>Publish a session transcript</h1>
+<p>Turns one Claude Code session for this repo into one committed folder holding
+both published forms:</p>
+<pre><code>transcripts/&lt;NNN-slug&gt;/
+  session.jsonl    the redacted session log
+  index.html       rendered via simonw/claude-code-transcripts
+  page-001.html
+</code></pre>
+<p><strong>The HTML is rendered from the redacted JSONL, never from the original.</strong>
+Redact once at the source and both outputs stay consistent — never redact the
+rendered HTML separately.</p>
+<p><code>to_text.py</code> renders a session as plain text for <em>your</em> review in step 2. That
+rendering is a working file: it is never committed. Only <code>session.jsonl</code> and the
+rendered HTML go into the repo.</p>
+<h2>Prerequisites</h2>
+<p><code>claude-code-transcripts</code> must be on PATH. If <code>which claude-code-transcripts</code>
+comes up empty, run it via <code>uvx claude-code-transcripts</code> instead, or install with
+<code>uv tool install claude-code-transcripts</code>.</p>
+<p>Scripts live in <code>.claude/skills/publish-transcript/scripts/</code>. Below, <code>$S</code> means
+that directory and <code>$W</code> a scratch working directory (use the session scratchpad,
+not the repo — intermediate files must never be committed).</p>
+<h2>Step 1 — Pick the session</h2>
+<pre><code class="language-bash">python3 $S/list_sessions.py --limit 20
+</code></pre>
+<p>Show the list and ask the user which session to publish, unless they already
+named one (by session id, by "the current session", or by describing its topic
+clearly enough to match exactly one row).</p>
+<p><strong>Publishing the current session:</strong> the JSONL is still being written, so it will
+not contain this final turn. That is expected and fine — say so, and offer to
+re-run later if they want the tail included. Note that the skill is loaded at
+session start, so a session that <em>created or edited</em> the skill cannot invoke it
+by name; follow these steps directly instead.</p>
+<h2>Step 2 — Stage and render for review</h2>
+<pre><code class="language-bash">mkdir -p $W
+cp ~/.claude/projects/&lt;project-slug&gt;/&lt;session-id&gt;.jsonl $W/original.jsonl
+python3 $S/to_text.py $W/original.jsonl -o $W/review.txt --max-tool-output 4000
+</code></pre>
+<p><code>list_sessions.py</code> prints the absolute source path — copy it from there rather
+than reconstructing it.</p>
+<h2>Step 3 — Find sensitive material</h2>
+<p>Two passes, both required. The regex pass catches well-shaped secrets; the
+reading pass catches everything shaped like ordinary prose.</p>
+<p><strong>Pass A — regex triage:</strong></p>
+<pre><code class="language-bash">python3 $S/scan_secrets.py $W/original.jsonl
+</code></pre>
+<p><strong>Pass B — read the transcript.</strong> Read <code>$W/review.txt</code> in full. For a long
+session, read it in chunks — do not skim, and do not delegate this to a subagent
+that only reports back a summary. You are looking for things a regex cannot
+match:</p>
+<ul>
+<li>Credentials, tokens, API keys, passwords, connection strings — including ones
+  pasted mid-sentence or shown in command output</li>
+<li>Real names, emails, phone numbers, addresses of anyone (the user included)</li>
+<li>Customer, client, or employer names the user may not want public</li>
+<li>Internal hostnames, private URLs, ticket IDs, Slack/DM links, S3 buckets</li>
+<li><strong>Names of the user's other projects.</strong> A session that ran <code>ls ~/.claude/projects</code>,
+  <code>git remote -v</code> elsewhere, or any directory listing above the repo will name
+  unrelated work. A regex cannot catch this — it is the single most likely real
+  leak in an otherwise clean session.</li>
+<li>Unreleased or confidential product details discussed in passing</li>
+<li><code>.env</code> file contents, private keys, or <code>~/.aws/credentials</code> echoed by a tool</li>
+<li>Anything in a file the repo's <code>.gitignore</code> excludes (this repo ignores
+  <code>.env</code>, <code>.env.*</code>) — if its contents appear in the transcript, redact them</li>
+</ul>
+<p>Judgment calls to raise with the user rather than decide alone:</p>
+<ul>
+<li><strong>The user's own name and email.</strong> They are already in the git history of this
+  repo, so redacting them is usually pointless — but ask, don't assume.</li>
+<li><strong>Home directory paths</strong> (<code>/Users/&lt;name&gt;/...</code>). Low risk, but they leak a
+  username and local layout. Offer to rewrite them to <code>~/</code>.</li>
+<li><strong>Third parties' names.</strong> Default to redacting these; a person who was
+  mentioned in a session did not consent to being published.</li>
+</ul>
+<h2>Step 4 — Propose redactions</h2>
+<p>Write <code>$W/redactions.json</code> — a list of rules, each with a <code>reason</code>:</p>
+<pre><code class="language-json">[
+  {&quot;find&quot;: &quot;sk-ant-api03-REAL-KEY&quot;, &quot;replace&quot;: &quot;[REDACTED_API_KEY]&quot;, &quot;reason&quot;: &quot;Anthropic API key in tool output&quot;},
+  {&quot;find&quot;: &quot;coworker@example.com&quot;, &quot;replace&quot;: &quot;[REDACTED_EMAIL]&quot;, &quot;reason&quot;: &quot;third party PII&quot;},
+  {&quot;find&quot;: &quot;~&quot;, &quot;replace&quot;: &quot;~&quot;, &quot;reason&quot;: &quot;local home path&quot;}
+]
+</code></pre>
+<p>Rules are literal by default; add <code>"regex": true</code> for a pattern. Use
+<code>[REDACTED_&lt;KIND&gt;]</code> placeholders so a reader can tell <em>what</em> was removed.</p>
+<p><strong>Redact the shortest distinctive token, not the full prefixed value.</strong> A
+transcript contains <em>truncated</em> copies of its own content — tool output gets cut
+off, scanner context windows clip mid-value, and prose refers to values with an
+ellipsis. A rule for <code>sk-ant-api03-&lt;key&gt;</code> will sail past <code>...-api03-&lt;key&gt;</code> and
+<code>sk-ant-api03-&lt;pre&gt;...</code>, leaving fragments behind. Add a rule for the bare core
+(<code>&lt;key&gt;</code>) as well as the full value, and for a multi-part name like
+<code>acme-widget-service</code> add one for <code>acme</code> too.</p>
+<p><strong>Watch for self-reference.</strong> Once a session discusses its own redaction, the
+sensitive strings appear in the discussion — in your grep commands, your
+findings summary, and your questions to the user. Re-copying the source JSONL
+after that point pulls those in, and each re-copy adds more. Copy the source
+once, redact and verify against that snapshot, and stop; do not chase the tail.</p>
+<p>Present the proposed list to the user — grouped by category, with the reason and
+match count for each — and get approval before applying. <strong>If you find a live
+credential, tell the user plainly that it should be rotated</strong>, since it existed
+in plaintext on disk regardless of what gets published.</p>
+<p>If both passes come up clean, say so explicitly and confirm they want to publish
+unredacted rather than silently proceeding.</p>
+<h2>Step 5 — Apply and verify</h2>
+<pre><code class="language-bash">python3 $S/apply_redactions.py $W/original.jsonl $W/redactions.json \
+    -o $W/redacted.jsonl --verify
+python3 $S/scan_secrets.py $W/redacted.jsonl
+</code></pre>
+<p><code>--verify</code> fails if any literal target survived. Investigate a <code>NO MATCHES</code>
+warning before continuing — it usually means a typo'd rule, which means
+something you meant to redact is still in the file.</p>
+<p>The second scan is the real check: re-read its output and confirm every
+remaining hit is something you and the user consciously decided to keep.</p>
+<h2>Step 6 — Render the two artifacts</h2>
+<p>Name the session <code>NNN-short-topic</code>: a zero-padded counter one higher than the
+highest folder already in <code>transcripts/</code>, plus a kebab-case topic — e.g.
+<code>002-cost-model</code>.</p>
+<p><code>--json</code> copies the JSONL into the output directory alongside the HTML, naming
+it after the input file. Rename the redacted file to <code>session.jsonl</code> first so it
+lands with the right name, and the whole folder is produced in one command:</p>
+<pre><code class="language-bash">SLUG=&lt;NNN-short-topic&gt;
+mv $W/redacted.jsonl $W/session.jsonl
+claude-code-transcripts json $W/session.jsonl -o transcripts/$SLUG --json
+</code></pre>
+<p>Do not pass <code>--gist</code> — that uploads to a public Gist, which is a separate
+publishing decision the user has to make explicitly.</p>
+<p>Then confirm the redaction survived rendering:</p>
+<pre><code class="language-bash">python3 $S/scan_secrets.py transcripts/$SLUG/*
+</code></pre>
+<h2>Step 7 — Update the session map</h2>
+<p>Add a row to the table in <code>transcripts/README.md</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Session</th>
+<th>Covers</th>
+<th>Share link</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td><a href="001-transcript-skill/">001-transcript-skill</a></td>
+<td>Built the transcript publishing skill</td>
+<td><a href="https://cebert.github.io/cache-ttl-analyzer/001-transcript-skill/">open</a></td>
+<td>3 emails redacted</td>
+</tr>
+</tbody>
+</table>
+<p>Keep rows in date order. Put a short, honest note about what was redacted in the
+Notes column — that is the reader's signal that gaps are deliberate.</p>
+<p>The share link is the GitHub Pages copy —
+<code>https://cebert.github.io/cache-ttl-analyzer/&lt;slug&gt;/</code>, live once the commit
+reaches <code>main</code>. This table is also the source for that site's landing page, so
+a missing or misspelled row fails the <code>Transcripts site</code> workflow rather than
+publishing a broken index. Check the table still matches the folders with:</p>
+<pre><code class="language-bash">npm run build:transcripts
+</code></pre>
+<p><strong>Ask the user what the session covers — don't just write it yourself.</strong> Propose
+a one-line summary drawn from reading the transcript, and ask them to confirm or
+replace it. They know why the session mattered; the transcript only shows what
+happened in it.</p>
+<p>Aim the summary at <em>why the work was done</em>, not the mechanics of what was
+typed. Where a session advanced a stated goal of the project, say so — that
+connection is the reason the transcript is worth keeping, and it is exactly the
+part a reader cannot reconstruct from the log.</p>
+<ul>
+<li>Weak: "Created four Python scripts and a SKILL.md"</li>
+<li>Better: "Built the transcript publishing skill, so build sessions can be
+  published without leaking secrets or PII — a stated goal of the project"</li>
+</ul>
+<p>Use the same confirmed summary for the commit subject in step 8, so the map row
+and the git history agree.</p>
+<h2>Step 8 — Commit</h2>
+<p>This repo uses <a href="https://www.conventionalcommits.org/">Conventional Commits</a>.
+Transcript publishing is a <code>docs</code> change:</p>
+<pre><code class="language-bash">git add transcripts/
+git commit -m &quot;docs(transcripts): add session log for &lt;topic&gt;&quot;
+</code></pre>
+<p>Guidance:</p>
+<ul>
+<li>Subject in imperative mood, no trailing period, under ~72 characters.</li>
+<li>If anything was redacted, note it in the body — e.g.
+  <code>Redacted 2 API keys and 3 third-party email addresses before publishing.</code></li>
+<li>Commit only under <code>transcripts/</code>; leave unrelated working-tree changes alone.</li>
+<li>Do not push unless the user asks. Publishing to a remote is their call, and it
+  is the point of no return for anything that slipped through redaction.</li>
+</ul>
+<p>ARGUMENTS: the current session (WP-06 fixtures and golden data, PR #17)</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
