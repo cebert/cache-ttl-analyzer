@@ -38,7 +38,7 @@ export const en = {
   },
 
   upload: {
-    headline: 'Should your sessions cache for five minutes, or an hour?',
+    headline: 'Should your Claude Code sessions cache for five minutes, or an hour?',
     subhead:
       'Drop in a session log and find out. You will see what it would have cost either way, and what made the difference. Nothing leaves this page.',
     dropTitle: 'Drop a session log here',
