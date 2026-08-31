@@ -256,6 +256,26 @@ on day one); several `usage` subfields are optional.
 them end-to-end through a stub worker; the pre-freeze log inspection findings
 are recorded in the contract's comments.
 
+**Post-freeze amendment (2026-08-30, WP-08 build):** the results view states
+figures the contract could not supply, so `BucketAnalysis` and `SessionShape`
+each gained purely additive fields. No existing field changed meaning, and no
+golden value moved — the goldens' diff is the new fields alone.
+
+- `BucketAnalysis.actualUsage` (`TokenTotals`: uncached input, cache reads,
+  cache writes, output) and `warmReadRequestCount`. Five of the six headline
+  metrics are token counts, and a dollar total cannot be run backwards into
+  one because it blends per-model rates. Unlike every dollar figure these
+  **include** unpriced models: a token count is observed fact and needs no
+  rate, so excluding them would understate work the user really did.
+- `SessionShape.gapsUnder5m` and `gapsOver1h`, so the three counts partition
+  every same-thread gap in the bucket. The verdict's one sentence of
+  reasoning is "N of M gaps fell in the band", which needs M. The band
+  boundaries match `replayThread`'s expiry test exactly, so the histogram
+  cannot disagree with the simulation it explains.
+
+Both are mirrored in `tools/refsim/refsim.py`, so the cross-validation still
+compares two independent implementations rather than one plus a copy.
+
 ### WP-03 — Parser ✅ complete (PR #15, 2026-08-30)
 **Depends on:** WP-02. **Parallel with:** WP-04, WP-06, WP-09.
 Streaming JSONL parser implementing the correctness rules table (dedup,
@@ -534,6 +554,31 @@ already yields an empty subagent bucket / `isSidechain` per request to
 derive this from).
 *Acceptance:* renders correctly for each WP-06 sample, including the
 no-sidechain and unknown-model cases.
+
+**Delivered (PR #26, 2026-08-30):** built against `Main.dc.html` as
+`src/app/results/`, one sheet per bucket — verdict band (both scenarios on a
+shared scale, plus the interpolated gap-band sentence), the six headline
+figures (the error column drops out entirely when nothing failed rather than
+reading a green 0%), the identification card with CHANGED badges, the cache
+timeline, and the limits panel carrying the no-sidechain disclosure. The
+derivations live in `results/derive.ts` and are asserted directly rather than
+through rendered markup.
+Two departures from the artboard, both because the data does not support what
+it drew: the timeline plots **columns** rather than one mark per request, so a
+9-request sample and a 4,000-request session both render readably and the DOM
+stays bounded; and it carries no "failed" series, because synthetic rows are
+excluded by the parser and never reach an event — the error rate is stated in
+the metric row instead, where it is real.
+The timeline's expiries are the **five-minute** scenario's, and the caption
+says so: the shorter TTL's lapses are a superset of the hour-long one's, so
+that run shows every point where the choice can bite.
+Shipped in the same PR: the results view's engine amendment (see WP-02), the
+navigation fixes (the wordmark and an explicit control both return home,
+since selecting a session pushes no history entry), the per-platform
+rebuild of the find-your-logs page, and the removal of that page's duplicate
+on the landing screen.
+*Not built here:* the "clear analysis history" dialog WP-D designed, whose
+reducer action (`remove`) still has no UI.
 
 ### WP-09 — CI/CD ✅ complete (PR #13, 2026-08-30)
 **Depends on:** WP-01. **Parallel with:** WP-03, WP-04, WP-06.
