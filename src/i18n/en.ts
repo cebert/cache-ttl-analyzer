@@ -337,8 +337,13 @@ export const en = {
     memoryBody:
       'Analyses you run live in this tab’s memory and are gone when you reload or close it. There is no account, no database, and no cookie. The one thing this app writes to browser storage is an optional debug flag you set yourself.',
     analyticsTitle: 'No analytics, no tracking',
+    // Deliberately a claim about what can RUN, not only about what we ship.
+    // Cloudflare's Web Analytics injects a beacon into browser responses at
+    // the edge, after our build — so a bare "there is no analytics script"
+    // was not true for a real visitor even though the CSP stopped it dead.
+    // Stating the enforcement is both accurate and the stronger claim.
     analyticsBody:
-      'There is no analytics script, no tag manager, no error-reporting service and no third-party embed of any kind. Logs go to your own browser console and nowhere else.',
+      'We ship no analytics script, no tag manager, no error-reporting service and no third-party embed. Nor could one run if it were added: the Content-Security-Policy above permits scripts from this origin only, so anything injected downstream — by a CDN or anyone else — is refused by the browser before it executes. Logs go to your own browser console and nowhere else.',
     futureTitle: 'If that ever changes',
     futureBody:
       'A richer analysis using the Anthropic API is a possible future feature. If it ships, it will be opt-in, off by default, and will state exactly which fields would be sent before you turn it on. Nothing will start leaving your browser silently.',
