@@ -50,6 +50,13 @@
         "outputUsd": 0.003,
         "totalUsd": 0.08302
       },
+      "actualUsage": {
+        "inputTokens": 20,
+        "cacheReadTokens": 91500,
+        "cacheWriteTokens": 39500,
+        "outputTokens": 600
+      },
+      "warmReadRequestCount": 3,
       "observedWriteSplit": {
         "fiveMinuteWriteTokens": 0,
         "oneHourWriteTokens": 39500
@@ -250,7 +257,9 @@
         "requestCount": 5,
         "spanMs": 93000,
         "largestGapMs": 30000,
-        "gapsIn5mTo1hBand": 0
+        "gapsIn5mTo1hBand": 0,
+        "gapsUnder5m": 4,
+        "gapsOver1h": 0
       },
       "suppressionReason": "unknown-model-share-exceeded"
     }

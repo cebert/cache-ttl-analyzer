@@ -244,6 +244,25 @@ export interface TtlTokenSplit {
   oneHourWriteTokens: number
 }
 
+/**
+ * Observed token totals for a bucket — what the session actually consumed,
+ * before any counterfactual. Costs alone cannot recover these (a dollar
+ * figure blends per-model rates), and WP-08's headline metrics — cache hit
+ * rate, reads, writes, input, output — are all token figures.
+ *
+ * Unlike the dollar totals, unpriced models are INCLUDED: a token count is
+ * observed fact and needs no rate, so excluding them would understate work
+ * the user really did.
+ */
+export interface TokenTotals {
+  /** Uncached input tokens. */
+  inputTokens: number
+  cacheReadTokens: number
+  /** 5m + 1h writes; the split is in `observedWriteSplit`. */
+  cacheWriteTokens: number
+  outputTokens: number
+}
+
 export interface CostBreakdown {
   baseInputUsd: number
   cacheReadUsd: number
@@ -270,6 +289,13 @@ export interface SessionShape {
   largestGapMs: number
   /** Gaps where the 5m-vs-1h choice can matter at all (feasibility §7). */
   gapsIn5mTo1hBand: number
+  /**
+   * The other two bands, so the three counts partition every same-thread gap
+   * in the bucket. WP-08 shows the whole histogram: "11 of 49 gaps fell in
+   * the band" is only meaningful next to what the other 38 did.
+   */
+  gapsUnder5m: number
+  gapsOver1h: number
 }
 
 export interface BucketAnalysis {
@@ -279,6 +305,10 @@ export interface BucketAnalysis {
   requestCount: number
   /** Exact cost of what actually happened, at published API rates. */
   actualCost: CostBreakdown
+  /** Observed token totals, unpriced models included (see `TokenTotals`). */
+  actualUsage: TokenTotals
+  /** Requests whose usage carried a cache read — the cache-hit numerator. */
+  warmReadRequestCount: number
   /** Observed write-TTL mix, the basis for TTL inference (feasibility §2). */
   observedWriteSplit: TtlTokenSplit
   /**

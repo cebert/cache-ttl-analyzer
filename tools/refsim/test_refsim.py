@@ -345,7 +345,17 @@ class VerdictTests(unittest.TestCase):
     def test_empty_bucket_has_no_verdict(self):
         bucket = refsim.analyze_bucket("main", [], PRICING)
         self.assertEqual(bucket["recommendation"], "no-verdict")
-        self.assertEqual(bucket["shape"], {"requestCount": 0, "spanMs": 0, "largestGapMs": 0, "gapsIn5mTo1hBand": 0})
+        self.assertEqual(
+            bucket["shape"],
+            {
+                "requestCount": 0,
+                "spanMs": 0,
+                "largestGapMs": 0,
+                "gapsIn5mTo1hBand": 0,
+                "gapsUnder5m": 0,
+                "gapsOver1h": 0,
+            },
+        )
 
     def test_config_explicitness_table(self):
         self.assertEqual(refsim.config_explicitness("1h", "1h"), "provably-explicit")

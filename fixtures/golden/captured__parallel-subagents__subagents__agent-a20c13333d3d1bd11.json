@@ -42,6 +42,13 @@
         "outputUsd": 0.0,
         "totalUsd": 0.0
       },
+      "actualUsage": {
+        "inputTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0,
+        "outputTokens": 0
+      },
+      "warmReadRequestCount": 0,
       "observedWriteSplit": {
         "fiveMinuteWriteTokens": 0,
         "oneHourWriteTokens": 0
@@ -90,7 +97,9 @@
         "requestCount": 0,
         "spanMs": 0,
         "largestGapMs": 0,
-        "gapsIn5mTo1hBand": 0
+        "gapsIn5mTo1hBand": 0,
+        "gapsUnder5m": 0,
+        "gapsOver1h": 0
       }
     },
     {
@@ -105,6 +114,13 @@
         "outputUsd": 0.0024999999999999996,
         "totalUsd": 2.0659395000000003
       },
+      "actualUsage": {
+        "inputTokens": 3111,
+        "cacheReadTokens": 965117,
+        "cacheWriteTokens": 85377,
+        "outputTokens": 50
+      },
+      "warmReadRequestCount": 14,
       "observedWriteSplit": {
         "fiveMinuteWriteTokens": 85377,
         "oneHourWriteTokens": 0
@@ -615,7 +631,9 @@
         "requestCount": 14,
         "spanMs": 260483,
         "largestGapMs": 52399,
-        "gapsIn5mTo1hBand": 0
+        "gapsIn5mTo1hBand": 0,
+        "gapsUnder5m": 13,
+        "gapsOver1h": 0
       }
     }
   ],

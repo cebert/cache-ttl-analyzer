@@ -61,6 +61,7 @@ import {
   type RequestRecord,
   type ScenarioCost,
   type SessionShape,
+  type TokenTotals,
   type TtlTokenSplit,
 } from './contract'
 import {
@@ -397,12 +398,18 @@ export function sessionShape(
     lastEnd = Math.max(lastEnd, Date.parse(request.timestamp))
   }
   let largestGapMs = 0
+  let gapsUnder5m = 0
   let gapsIn5mTo1hBand = 0
+  let gapsOver1h = 0
   for (const thread of threads.values()) {
     for (let i = 1; i < thread.length; i++) {
       const gap = gapMs(thread[i - 1], thread[i])
       largestGapMs = Math.max(largestGapMs, gap)
-      if (gap > CACHE_TTL_5M_MS && gap <= CACHE_TTL_1H_MS) gapsIn5mTo1hBand++
+      // The band boundaries match `replayThread`'s expiry test exactly, so
+      // the histogram cannot disagree with the simulation it explains.
+      if (gap <= CACHE_TTL_5M_MS) gapsUnder5m++
+      else if (gap <= CACHE_TTL_1H_MS) gapsIn5mTo1hBand++
+      else gapsOver1h++
     }
   }
   return {
@@ -410,6 +417,8 @@ export function sessionShape(
     spanMs: requests.length === 0 ? 0 : Math.max(0, lastEnd - firstStart),
     largestGapMs,
     gapsIn5mTo1hBand,
+    gapsUnder5m,
+    gapsOver1h,
   }
 }
 
@@ -429,8 +438,23 @@ export function analyzeBucket(
   const actualCosts: CostBreakdown[] = []
   let bucketTokens = 0
   let unpricedTokens = 0
+  // Token totals count every request, priced or not (see `TokenTotals`).
+  const actualUsage: TokenTotals = {
+    inputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    outputTokens: 0,
+  }
+  let warmReadRequestCount = 0
   for (const request of requests) {
-    const tokens = totalTokens(request.usage)
+    const { usage } = request
+    actualUsage.inputTokens += usage.inputTokens
+    actualUsage.cacheReadTokens += usage.cacheReadInputTokens
+    actualUsage.cacheWriteTokens += usage.cacheCreationInputTokens
+    actualUsage.outputTokens += usage.outputTokens
+    if (usage.cacheReadInputTokens > 0) warmReadRequestCount++
+
+    const tokens = totalTokens(usage)
     bucketTokens += tokens
     const cost = priceRequest(request, pricing)
     if (cost) actualCosts.push(cost)
@@ -463,6 +487,8 @@ export function analyzeBucket(
     threadCount: threads.size,
     requestCount: requests.length,
     actualCost,
+    actualUsage,
+    warmReadRequestCount,
     observedWriteSplit,
     observedTtl,
     scenarios: { fiveMinute, oneHour },
