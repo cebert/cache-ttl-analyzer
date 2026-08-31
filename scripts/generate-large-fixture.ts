@@ -20,6 +20,7 @@ import {
   mkdirSync,
   openSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
   writeSync,
@@ -27,11 +28,26 @@ import {
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { MAX_FILE_SIZE_BYTES } from '../src/engine/contract.ts'
+
 export const LARGE_FIXTURE_PATH = 'fixtures/generated/large-session.jsonl'
-export const LARGE_FIXTURE_TARGET_BYTES = 100 * 1024 * 1024
+
+/**
+ * The loop below emits a whole turn at a time, so it overshoots its target by
+ * up to one turn. Targeting the cap exactly therefore produced a fixture a few
+ * kilobytes OVER `MAX_FILE_SIZE_BYTES` — which the parser is happy to stream,
+ * but which the app rejects pre-flight (`src/state/file-validation.ts`), so the
+ * fixture could never be used to test the browser it was written for.
+ *
+ * Backing off by one turn's worth makes it the largest file the app will
+ * actually accept, which is the interesting case for both the parser and the
+ * perf check. `ensureLargeFixture` asserts it stayed under.
+ */
+const TURN_MARGIN_BYTES = 64 * 1024
+export const LARGE_FIXTURE_TARGET_BYTES = MAX_FILE_SIZE_BYTES - TURN_MARGIN_BYTES
 
 /** Bump when the generated shape changes so stale fixtures regenerate. */
-const GENERATOR_VERSION = 1
+const GENERATOR_VERSION = 2
 const SESSION_ID = 'ffffffff-0000-4000-8000-00000000f1x7'
 const VERSION = '2.1.251'
 const MODEL = 'claude-fable-5'
@@ -67,7 +83,12 @@ export function ensureLargeFixture(
       if (
         manifest.generatorVersion === GENERATOR_VERSION &&
         manifest.targetBytes === targetBytes &&
-        statSync(path).size === manifest.bytes
+        statSync(path).size === manifest.bytes &&
+        // Checked on the reuse path too, not just after generating: an
+        // oversized run throws but leaves its artifacts behind, and without
+        // this the next call would hand them back unexamined — returning
+        // exactly the file the guard exists to prevent.
+        manifest.bytes <= MAX_FILE_SIZE_BYTES
       ) {
         return manifest
       }
@@ -75,7 +96,20 @@ export function ensureLargeFixture(
       // fall through and regenerate
     }
   }
-  return generateLargeFixture(path, targetBytes)
+  const manifest = generateLargeFixture(path, targetBytes)
+  // The whole point of the margin above: a fixture over the cap is one the app
+  // would refuse, so it could not exercise the browser path it exists for.
+  if (manifest.bytes > MAX_FILE_SIZE_BYTES) {
+    // Leave nothing reusable behind, so a later run regenerates rather than
+    // finding a stale oversized fixture.
+    rmSync(path, { force: true })
+    rmSync(manifestPath, { force: true })
+    throw new Error(
+      `large fixture is ${manifest.bytes} bytes, over MAX_FILE_SIZE_BYTES ` +
+        `(${MAX_FILE_SIZE_BYTES}) — raise TURN_MARGIN_BYTES`,
+    )
+  }
+  return manifest
 }
 
 const iso = (ms: number) => new Date(ms).toISOString()

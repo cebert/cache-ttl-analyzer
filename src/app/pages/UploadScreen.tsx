@@ -25,7 +25,7 @@ export function UploadScreen({ onWhereAreLogs }: { onWhereAreLogs: () => void })
         <h1 className="text-[28px] leading-[1.12] font-semibold tracking-[-0.03em] text-balance sm:text-[38px] sm:leading-[1.1] sm:tracking-[-0.032em]">
           {t('upload.headline')}
         </h1>
-        <p className="text-[14.5px] leading-[1.55] text-ink-2 sm:text-[15px]">
+        <p className="text-[15.5px] leading-[1.55] text-ink-2 sm:text-[16px]">
           {t('upload.subhead')}
         </p>
       </div>

@@ -7,7 +7,8 @@
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { ExternalLink, REPO_URL } from '../../ui/ExternalLink'
+import { ExternalLink } from '../../ui/ExternalLink'
+import { REPO_URL } from '../../ui/links'
 import { ShieldCheckIcon } from '../../ui/Icon'
 import { Micro, SectionTitle } from '../../ui/Sheet'
 import { ROUTES } from '../routes'
@@ -25,7 +26,7 @@ export function PrivacyPanel() {
         <Micro>{t('privacy.metadataOnly')}</Micro>
         <Micro>{t('privacy.csp')}</Micro>
       </div>
-      <div className="flex flex-wrap items-center gap-x-[18px] gap-y-1 text-[12px]">
+      <div className="flex flex-wrap items-center gap-x-[18px] gap-y-1 text-[13px]">
         <Link to={ROUTES.dataPolicy} className="text-primary hover:underline">
           {t('nav.dataPolicy')}
         </Link>

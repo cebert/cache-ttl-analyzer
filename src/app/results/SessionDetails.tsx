@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { AnalysisResult, BucketAnalysis } from '../../engine/contract'
 import { NON_BILLING_RECORD_TYPES } from '../../engine/parser'
+import { useCounted } from '../../i18n/counted'
 import { useFormatters, type Formatters } from '../../i18n/formatters'
 import { subagentBucket, writesAreUniform } from './results-model'
 
@@ -26,6 +27,7 @@ export function SessionDetails({
 }) {
   const { t } = useTranslation()
   const fmt = useFormatters()
+  const counted = useCounted()
   const { metadata, parseStats } = result
   const subagents = subagentBucket(result)
   const observedTtl = useObservedTtlLabel(bucket)
@@ -72,8 +74,8 @@ export function SessionDetails({
         value={
           subagents
             ? t('results.subagentThreads', {
-                count: subagents.threadCount,
-                requests: fmt.integer(subagents.requestCount),
+                threads: counted('threads', subagents.threadCount),
+                requests: counted('requests', subagents.requestCount),
               })
             : t('results.detailNone')
         }
@@ -95,11 +97,11 @@ function Field({
   return (
     <div className="flex min-w-0 flex-col gap-1">
       <span className="flex items-center gap-1.5">
-        <span className="font-mono text-[10px] font-medium tracking-[0.07em] text-slate-400 uppercase">
+        <span className="font-mono text-[11px] font-medium tracking-[0.07em] text-slate-400 uppercase">
           {label}
         </span>
         {changed && (
-          <span className="inline-flex h-3.5 items-center rounded-[3px] bg-indigo-tint px-1 font-mono text-[8.5px] font-semibold text-indigo-600">
+          <span className="inline-flex h-3.5 items-center rounded-[3px] bg-indigo-tint px-1 font-mono text-[9.5px] font-semibold text-indigo-600">
             {t('results.detailChanged')}
           </span>
         )}
@@ -114,7 +116,7 @@ function Value({ children }: { children: ReactNode }) {
   const empty = children === undefined || children === null || children === ''
   return (
     <span
-      className={`font-mono text-[12.5px] leading-[1.45] break-words ${empty ? 'text-slate-400' : 'text-ink'}`}
+      className={`font-mono text-[13.5px] leading-[1.45] break-words ${empty ? 'text-slate-400' : 'text-ink'}`}
     >
       {empty ? t('results.detailUnknown') : children}
     </span>

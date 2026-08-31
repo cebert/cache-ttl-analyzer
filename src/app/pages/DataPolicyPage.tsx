@@ -11,7 +11,8 @@
 
 import { useTranslation } from 'react-i18next'
 
-import { ExternalLink, REPO_URL } from '../../ui/ExternalLink'
+import { ExternalLink } from '../../ui/ExternalLink'
+import { REPO_URL } from '../../ui/links'
 import { ContentPage, Prose } from './ContentPage'
 
 export function DataPolicyPage() {

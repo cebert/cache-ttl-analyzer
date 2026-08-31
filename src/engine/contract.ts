@@ -235,18 +235,38 @@ export type Recommendation = CacheTtl | 'no-verdict'
 export type BucketId = 'main' | 'subagent'
 
 /**
- * MIXED-TTL WRITE HANDLING IN COUNTERFACTUALS (frozen): server tools insert
- * their own 5m writes regardless of the user's setting, so counterfactuals
- * reprice only the user-controllable share. User-controlled writes take the
- * scenario TTL (write price and expiry window); server-tool 5m writes stay
- * 5m in both scenarios as their own expiry class ("server-tool-5m"). Per
- * request, the user-controllable share is the bucket's dominant-TTL write
- * tokens; the residual split tokens are the server-tool share. Pinned edge
- * cases: no writes at all (`observedTtl: null`) → nothing to reprice; an
- * exact 5m/1h tie → dominant TTL is "1h" (server tools only add 5m writes,
- * so nonzero 1h tokens are user-controlled). The reconciliation check
- * (PLAN §5) replays each request with its observed per-request split and
- * must reproduce actual cost within the stated approximation.
+ * MIXED-TTL WRITE HANDLING IN COUNTERFACTUALS (frozen; wording amended
+ * 2026-08-30, WP-10 — see below): server tools insert their own 5m writes
+ * regardless of the user's setting, so counterfactuals reprice only the
+ * user-controllable share. User-controlled writes take the scenario TTL
+ * (write price and expiry window); server-tool 5m writes stay 5m in both
+ * scenarios as their own expiry class ("server-tool-5m").
+ *
+ * Per request, the user-controllable share is the bucket's dominant-TTL
+ * write tokens. The residual split tokens are the server-tool share ONLY in
+ * a 1h-dominant bucket, where server tools are the only thing that writes at
+ * 5m. In a 5m-dominant bucket a 1h residual cannot be server-tool traffic —
+ * server tools never write at 1h — so it is a mid-session config flip, and
+ * every write in that bucket is user-controlled and repriced per scenario.
+ *
+ * The warm entry's observed TTL is the bucket's dominant TTL, not the
+ * previous request's own split: a request whose only write was a server-tool
+ * 5m write must not shorten the user's live 1h entry.
+ *
+ * Pinned edge cases: no writes at all (`observedTtl: null`) → nothing to
+ * reprice; an exact 5m/1h tie → dominant TTL is "1h" (server tools only add
+ * 5m writes, so nonzero 1h tokens are user-controlled). The reconciliation
+ * check (PLAN §5) replays each request with its observed per-request split
+ * and must reproduce actual cost within the stated approximation — exactly,
+ * except in the 5m-dominant-with-1h-writes case above, where the "5m"
+ * scenario reprices the flipped writes by design.
+ *
+ * AMENDMENT NOTE (WP-10): this paragraph previously called the residual the
+ * server-tool share unconditionally, and two lines later said nonzero 1h
+ * tokens are user-controlled. Those contradict for a 5m-dominant bucket
+ * carrying a 1h residual. The simulator has always followed the rationale,
+ * not the unconditional sentence; this is a wording fix with no behavior
+ * change, and no golden moved.
  */
 export interface TtlTokenSplit {
   fiveMinuteWriteTokens: number

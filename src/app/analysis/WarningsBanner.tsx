@@ -22,7 +22,7 @@ export function WarningsBanner({ warnings }: { warnings: readonly ParseWarning[]
   if (sentences.length === 0) return null
 
   return (
-    <div className="flex flex-col gap-1.5 rounded-[7px] border border-[#F0DFC2] bg-amber-tint px-[13px] py-2 text-[12px] text-amber-ink">
+    <div className="flex flex-col gap-1.5 rounded-[7px] border border-[#F0DFC2] bg-amber-tint px-[13px] py-2 text-[13px] text-amber-ink">
       <div className="flex items-center gap-2.5">
         <AlertCircleIcon size={14} className="shrink-0 text-amber" />
         <span className="min-w-0 flex-1">{sentences[0]}</span>
@@ -31,7 +31,7 @@ export function WarningsBanner({ warnings }: { warnings: readonly ParseWarning[]
             type="button"
             onClick={() => setExpanded((open) => !open)}
             aria-expanded={expanded}
-            className="shrink-0 text-[12px] text-[#B4830E] hover:underline"
+            className="shrink-0 text-[13px] text-[#B4830E] hover:underline"
           >
             {expanded ? t('warnings.hide') : t('warnings.details')}
           </button>

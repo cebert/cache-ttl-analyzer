@@ -38,10 +38,10 @@ export function RejectionPanel({ entry }: { entry: SessionEntry }) {
         <div className="flex flex-col gap-3 p-5 sm:px-[26px] sm:pt-6">
           <div className="flex items-center gap-2.5">
             <AlertCircleIcon size={18} className="shrink-0 text-red" />
-            <h2 className="text-[17px] font-semibold tracking-[-0.015em]">{t('rejected.title')}</h2>
+            <h2 className="text-[18px] font-semibold tracking-[-0.015em]">{t('rejected.title')}</h2>
           </div>
-          <p className="text-[13.5px] leading-[1.55] text-ink-2">{explanation}</p>
-          <Micro className="font-mono text-[11px]">
+          <p className="text-[14.5px] leading-[1.55] text-ink-2">{explanation}</p>
+          <Micro className="font-mono text-[12px]">
             {t('rejected.linesScanned', {
               lines: fmt.integer(stats.nonEmptyLines),
             })}
@@ -54,7 +54,7 @@ export function RejectionPanel({ entry }: { entry: SessionEntry }) {
           <Button variant="primary" size="sm" onClick={() => select(null)}>
             {t('rejected.tryAnother')}
           </Button>
-          <Link to={ROUTES.findLogs} className="text-[12px] text-primary hover:underline">
+          <Link to={ROUTES.findLogs} className="text-[13px] text-primary hover:underline">
             {t('rejected.whereAreLogs')}
           </Link>
         </div>

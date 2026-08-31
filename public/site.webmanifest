@@ -1,0 +1,14 @@
+{
+  "name": "Cache TTL Analyzer",
+  "short_name": "cacheanalyzer",
+  "description": "Find out whether a Claude Code session would have cost less with a five-minute or a one-hour prompt cache.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F9FC",
+  "theme_color": "#2563EB",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

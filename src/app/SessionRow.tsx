@@ -43,13 +43,13 @@ export function SessionRow({
       >
         <span className="flex items-baseline justify-between gap-2">
           <span
-            className={`truncate font-mono text-[12.5px] ${
+            className={`truncate font-mono text-[13.5px] ${
               active ? 'font-medium text-primary' : 'text-ink'
             }`}
           >
             {shortSessionId(entry)}
           </span>
-          <span className="shrink-0 font-mono text-[10.5px] font-semibold">
+          <span className="shrink-0 font-mono text-[11.5px] font-semibold">
             {analyzing ? (
               <span className={active ? 'text-primary' : 'text-slate-500'}>
                 {ratio === null ? '' : fmt.percent(ratio)}
@@ -79,7 +79,7 @@ export function SessionRow({
         ) : (
           <span className="flex items-baseline justify-between gap-2">
             <span
-              className={`truncate font-mono text-[10.5px] ${
+              className={`truncate font-mono text-[11.5px] ${
                 active ? 'text-[#6B87B8]' : 'text-slate-400'
               }`}
             >
@@ -87,7 +87,7 @@ export function SessionRow({
             </span>
             {verdict && (
               <span
-                className={`shrink-0 font-mono text-[10.5px] ${
+                className={`shrink-0 font-mono text-[11.5px] ${
                   active ? 'text-primary' : 'text-slate-500'
                 }`}
               >

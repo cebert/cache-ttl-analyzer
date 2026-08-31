@@ -1,8 +1,14 @@
 /**
- * The persistent 236px sidebar: brand, the add-session action, the session
- * list, and the standing links pinned to the bottom above the memory-only
- * notice (WP-D). Below `md` it is rendered inside a drawer instead of beside
- * the content; the markup is the same either way.
+ * The persistent 236px sidebar: brand, the add-session action, the standing
+ * links, then the session list, with the memory-only notice pinned to the
+ * bottom. Below `md` it is rendered inside a drawer instead of beside the
+ * content; the markup is the same either way.
+ *
+ * WP-D pinned the three standing links to the bottom. Moved up in WP-10:
+ * "Find your logs" is a task link — you need it before you can upload
+ * anything — and filing it with two meta links in the footer read as an
+ * afterthought. The session list keeps the flexible space below them, so it
+ * still gets the room it needs as it grows.
  */
 
 import { NavLink, useNavigate } from 'react-router'
@@ -34,7 +40,7 @@ export function SidebarBrand({ onNavigate }: { onNavigate?: () => void } = {}) {
       className="flex min-w-0 items-center gap-[9px] rounded-[6px] py-1 transition-opacity hover:opacity-70"
     >
       <ClockIcon size={18} className="shrink-0 text-primary" />
-      <span className="truncate text-[14px] font-semibold tracking-[-0.02em]">{t('app.name')}</span>
+      <span className="truncate text-[15px] font-semibold tracking-[-0.02em]">{t('app.name')}</span>
       <span className="sr-only">{t('nav.home')}</span>
     </button>
   )
@@ -70,14 +76,32 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </Button>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col px-3">
-        <div className="flex items-center justify-between px-[10px] pt-1.5 pb-2">
+      {/* Labelled here rather than by the container, because `Sidebar` renders
+          both in the desktop column and inside the mobile drawer — labelling
+          it outside gave the drawer copy no landmark at all. */}
+      <nav className="flex flex-col gap-0.5 px-3 pb-1" aria-label={t('nav.guides')}>
+        <NavItem to={ROUTES.findLogs} onNavigate={onNavigate}>
+          {t('nav.findLogs')}
+        </NavItem>
+        <NavItem to={ROUTES.dataPolicy} onNavigate={onNavigate}>
+          {t('nav.dataPolicy')}
+        </NavItem>
+        <NavItem to={ROUTES.about} onNavigate={onNavigate}>
+          {t('nav.about')}
+        </NavItem>
+      </nav>
+
+      <nav
+        aria-label={t('nav.sessionList')}
+        className="mt-2 flex min-h-0 flex-1 flex-col border-t border-line-soft px-3"
+      >
+        <div className="flex items-center justify-between px-[10px] pt-3 pb-2">
           <Eyebrow>{t('nav.sessions')}</Eyebrow>
-          <span className="font-mono text-[10.5px] text-slate-400">{state.sessions.length}</span>
+          <span className="font-mono text-[11.5px] text-slate-400">{state.sessions.length}</span>
         </div>
 
         {state.sessions.length === 0 ? (
-          <p className="rounded-[6px] border border-dashed border-[#E1E8F0] px-[10px] py-4 text-center text-[11px] leading-[1.5] text-slate-500">
+          <p className="rounded-[6px] border border-dashed border-[#E1E8F0] px-[10px] py-4 text-center text-[12px] leading-[1.5] text-slate-500">
             {t('nav.sessionsEmpty')}
           </p>
         ) : (
@@ -95,22 +119,13 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             ))}
           </ul>
         )}
-      </div>
+      </nav>
 
-      <div className="mt-auto flex flex-col gap-0.5 border-t border-line-soft p-3">
-        <p className="flex items-center gap-[7px] px-[10px] pb-2 text-[11px] leading-[1.5] text-slate-500">
+      <div className="mt-auto border-t border-line-soft p-3">
+        <p className="flex items-center gap-[7px] px-[10px] text-[12px] leading-[1.5] text-slate-500">
           <ShieldCheckIcon size={13} className="shrink-0 text-green" />
           {t('nav.memoryOnly')}
         </p>
-        <NavItem to={ROUTES.findLogs} onNavigate={onNavigate}>
-          {t('nav.findLogs')}
-        </NavItem>
-        <NavItem to={ROUTES.dataPolicy} onNavigate={onNavigate}>
-          {t('nav.dataPolicy')}
-        </NavItem>
-        <NavItem to={ROUTES.about} onNavigate={onNavigate}>
-          {t('nav.about')}
-        </NavItem>
       </div>
     </div>
   )
@@ -130,7 +145,7 @@ function NavItem({
       to={to}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex h-[30px] items-center rounded-[6px] px-[10px] text-[12.5px] transition-colors ${
+        `flex h-[30px] items-center rounded-[6px] px-[10px] text-[13.5px] transition-colors ${
           isActive ? 'bg-primary-tint font-medium text-primary' : 'text-ink-2 hover:bg-ground'
         }`
       }

@@ -12,6 +12,36 @@
       content="Find out whether a Claude Code session would have cost less with a five-minute or a one-hour prompt cache. Analyzed in your browser; nothing is uploaded."
     />
     <title>Cache TTL Analyzer</title>
+
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <!-- Preview and workers.dev deployments serve the same HTML, so the
+         canonical points at the production host to keep them from competing
+         in search results. `_headers` also sends X-Robots-Tag there. -->
+    <link rel="canonical" href="https://cacheanalyzer.com/" />
+
+    <!-- Link previews. og:image is self-hosted, like every other asset —
+         img-src 'self' is what the CSP allows, and an external card host
+         would weaken the claim the CSP exists to prove. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Cache TTL Analyzer" />
+    <meta property="og:url" content="https://cacheanalyzer.com/" />
+    <meta
+      property="og:title"
+      content="Should your Claude Code sessions cache for five minutes, or an hour?"
+    />
+    <meta
+      property="og:description"
+      content="Drop in a session log and find out what it would have cost either way. Analyzed in your browser; nothing is uploaded."
+    />
+    <meta property="og:image" content="https://cacheanalyzer.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="cacheanalyzer.com — should your Claude Code sessions cache for five minutes, or an hour?"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="root"></div>

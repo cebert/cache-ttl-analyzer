@@ -6,7 +6,8 @@
 
 import { useTranslation } from 'react-i18next'
 
-import { AUTHOR_BLOG_URL, AUTHOR_X_URL, ExternalLink, REPO_URL } from '../../ui/ExternalLink'
+import { ExternalLink } from '../../ui/ExternalLink'
+import { AUTHOR_BLOG_URL, AUTHOR_X_URL, REPO_URL, VENDOR_DOCS } from '../../ui/links'
 import { ContentPage, Prose } from './ContentPage'
 
 export function AboutPage() {
@@ -28,6 +29,29 @@ export function AboutPage() {
       <Prose heading={t('about.monitorTitle')}>
         <p>{t('about.monitorBody')}</p>
       </Prose>
+      <Prose heading={t('about.referencesTitle')}>
+        <p>{t('about.referencesBody')}</p>
+        <ul className="flex flex-col gap-3">
+          <Reference href={VENDOR_DOCS.claudeCodeCaching} label={t('about.refClaudeCode')}>
+            {t('about.refClaudeCodeNote')}
+          </Reference>
+          <Reference href={VENDOR_DOCS.anthropicCaching} label={t('about.refAnthropic')}>
+            {t('about.refAnthropicNote')}
+          </Reference>
+          <Reference href={VENDOR_DOCS.anthropicPricing} label={t('about.refAnthropicPricing')}>
+            {t('about.refAnthropicPricingNote')}
+          </Reference>
+          <Reference href={VENDOR_DOCS.bedrockCaching} label={t('about.refBedrock')}>
+            {t('about.refBedrockNote')}
+          </Reference>
+          <Reference href={VENDOR_DOCS.googleCaching} label={t('about.refGoogle')}>
+            {t('about.refGoogleNote')}
+          </Reference>
+          <Reference href={VENDOR_DOCS.openaiCaching} label={t('about.refOpenai')}>
+            {t('about.refOpenaiNote')}
+          </Reference>
+        </ul>
+      </Prose>
       <Prose heading={t('about.authorTitle')}>
         <p>{t('about.authorBody')}</p>
         <p className="flex flex-wrap items-center gap-x-5 gap-y-1">
@@ -37,5 +61,27 @@ export function AboutPage() {
         </p>
       </Prose>
     </ContentPage>
+  )
+}
+
+/**
+ * One vendor reference: the link, then what that page actually says about TTL.
+ * The note is the useful half — a bare list of links makes the reader go find
+ * out whether the verdict above even applies to their provider.
+ */
+function Reference({
+  href,
+  label,
+  children,
+}: {
+  href: string
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <li className="flex flex-col gap-0.5">
+      <ExternalLink href={href}>{label}</ExternalLink>
+      <span className="text-slate-500">{children}</span>
+    </li>
   )
 }

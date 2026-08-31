@@ -13,7 +13,7 @@ import type { ReactNode } from 'react'
 // text inside each <kbd> tag in the catalog, and so constructs it bare.
 export function Kbd({ children }: { children?: ReactNode }) {
   return (
-    <kbd className="mx-[1px] inline-flex h-[21px] min-w-[21px] items-center justify-center rounded-[5px] border border-line bg-surface px-[5px] align-[-4px] font-mono text-[11px] font-semibold text-ink shadow-[0_1px_0_var(--color-line)]">
+    <kbd className="mx-[1px] inline-flex h-[21px] min-w-[21px] items-center justify-center rounded-[5px] border border-line bg-surface px-[5px] align-[-4px] font-mono text-[12px] font-semibold text-ink shadow-[0_1px_0_var(--color-line)]">
       {children}
     </kbd>
   )

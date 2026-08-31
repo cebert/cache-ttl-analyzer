@@ -57,21 +57,14 @@ export const SAMPLES: readonly SampleSession[] = [
     cacheHitRate: 0.9467,
   },
   {
-    id: 'gap-heavy-1h',
-    file: 'gap-heavy-1h.jsonl',
-    nameKey: 'samples.names.gapHeavy',
-    lesson: 'one-hour-wins',
-    requestCount: 9,
-    spanMs: 1_607_031,
-    cacheHitRate: 0.9335,
-  },
-  {
-    // The same prompts and gaps as `gap-heavy-1h`, recorded with the TTL set
-    // to 5m: three lapses, two of them partial. 1h wins here only because the
-    // simulator restores partially lapsed prefixes.
+    // `gap-heavy-1h` is the same prompts and gaps recorded at 1h. It stays a
+    // fixture and a golden, but only one of the pair is worth a card: this is
+    // the one where the setting was actually costing the user money. Three
+    // lapses, two of them partial, and 1h wins only because the simulator
+    // restores partially lapsed prefixes.
     id: 'gap-heavy-5m',
     file: 'gap-heavy-5m.jsonl',
-    nameKey: 'samples.names.gapHeavy5m',
+    nameKey: 'samples.names.gapHeavy',
     lesson: 'one-hour-wins',
     requestCount: 8,
     spanMs: 1_607_199,

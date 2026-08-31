@@ -13,10 +13,12 @@ import { Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { Sidebar, SidebarBrand } from './Sidebar'
+import { useCanonicalUrl } from './use-canonical-url'
 import { ChevronLeftIcon, CloseIcon, MenuIcon } from '../ui/Icon'
 
 export function Shell() {
   const { t } = useTranslation()
+  useCanonicalUrl()
   // The drawer closes from the interaction that navigates (every control
   // inside it calls `onNavigate`), not from an effect watching the location:
   // setting state in an effect costs an extra render for no benefit here.
@@ -79,12 +81,12 @@ export function Shell() {
         </>
       )}
 
-      <nav
-        aria-label={t('nav.sessionList')}
-        className="hidden w-[236px] shrink-0 border-r border-line md:block"
-      >
+      {/* A plain container: `Sidebar` owns its own landmarks, so that the
+          drawer and this column expose the same structure to a screen reader
+          rather than the drawer having none. */}
+      <div className="hidden w-[236px] shrink-0 border-r border-line md:block">
         <Sidebar />
-      </nav>
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Outlet />
@@ -114,9 +116,9 @@ export function TopBar({
     <div className="hidden h-[52px] shrink-0 items-center justify-between gap-6 border-b border-line bg-surface px-6 md:flex">
       <div className="flex min-w-0 items-center gap-2.5">
         {back && <BackButton {...back} />}
-        <p className="truncate text-[14px] font-semibold tracking-[-0.01em]">{title}</p>
+        <p className="truncate text-[15px] font-semibold tracking-[-0.01em]">{title}</p>
       </div>
-      {meta && <span className="truncate font-mono text-[11px] text-slate-400">{meta}</span>}
+      {meta && <span className="truncate font-mono text-[12px] text-slate-400">{meta}</span>}
     </div>
   )
 }
@@ -143,7 +145,7 @@ export function BackButton({
     <button
       type="button"
       onClick={onClick}
-      className={`-ml-1.5 flex shrink-0 items-center gap-1 rounded-[6px] py-1 pr-2.5 pl-1.5 text-[12.5px] text-ink-2 transition-colors hover:bg-ground hover:text-ink ${className}`}
+      className={`-ml-1.5 flex shrink-0 items-center gap-1 rounded-[6px] py-1 pr-2.5 pl-1.5 text-[13.5px] text-ink-2 transition-colors hover:bg-ground hover:text-ink ${className}`}
     >
       <ChevronLeftIcon size={15} className="shrink-0" />
       {label}

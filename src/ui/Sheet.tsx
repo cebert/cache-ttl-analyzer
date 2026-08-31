@@ -35,18 +35,18 @@ export function SheetRule() {
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="text-[12.5px] font-semibold text-ink">{children}</h2>
+  return <h2 className="text-[13.5px] font-semibold text-ink">{children}</h2>
 }
 
 /** The uppercase mono label used above dense regions. */
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <span className="font-mono text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+    <span className="font-mono text-[11px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
       {children}
     </span>
   )
 }
 
 export function Micro({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <p className={`text-[11.5px] leading-[1.5] text-slate-500 ${className}`}>{children}</p>
+  return <p className={`text-[12.5px] leading-[1.5] text-slate-500 ${className}`}>{children}</p>
 }

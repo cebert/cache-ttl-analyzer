@@ -37,7 +37,7 @@ export function FileIssueNotice() {
   return (
     <div
       role="alert"
-      className={`mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-2 rounded-[7px] border px-[13px] py-2 text-[12px] ${tone}`}
+      className={`mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-2 rounded-[7px] border px-[13px] py-2 text-[13px] ${tone}`}
     >
       <AlertCircleIcon size={14} className="shrink-0" />
       <span className="min-w-0 flex-1">{message}</span>

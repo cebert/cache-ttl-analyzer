@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SAMPLES, SAMPLES_BASE_PATH, type SampleSession } from '../../config/samples'
+import { useCounted } from '../../i18n/counted'
 import { useFormatters } from '../../i18n/formatters'
 import { createLogger } from '../../lib/logger'
 import { useSessions } from '../../state/sessions-context'
@@ -23,6 +24,7 @@ const log = createLogger('samples')
 export function SampleList() {
   const { t } = useTranslation()
   const fmt = useFormatters()
+  const counted = useCounted()
   const { analyze, busy } = useSessions()
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
@@ -66,14 +68,14 @@ export function SampleList() {
                 className="flex w-full flex-col gap-2 rounded-[8px] border border-line-soft bg-[#FAFCFE] p-3 text-left transition-colors hover:border-[#C6D3E3] hover:bg-primary-tint disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line-soft disabled:hover:bg-[#FAFCFE]"
               >
                 <span className="flex items-start justify-between gap-2.5">
-                  <span className="text-[13.5px] leading-snug font-semibold">
+                  <span className="text-[14.5px] leading-snug font-semibold">
                     {t(sample.nameKey)}
                   </span>
                   <LessonBadge sample={sample} />
                 </span>
-                <span className="mt-auto font-mono text-[10.5px] text-slate-400">
+                <span className="mt-auto font-mono text-[11.5px] text-slate-400">
                   {t('samples.meta', {
-                    requests: fmt.integer(sample.requestCount),
+                    requests: counted('requests', sample.requestCount),
                     span: fmt.duration(sample.spanMs),
                     hitRate: fmt.percent(sample.cacheHitRate),
                   })}
@@ -83,7 +85,7 @@ export function SampleList() {
           ))}
         </ul>
         {failed && (
-          <p role="alert" className="text-[12px] text-red-ink">
+          <p role="alert" className="text-[13px] text-red-ink">
             {t('samples.loadFailed')}
           </p>
         )}
@@ -100,11 +102,15 @@ const LESSON_TONES: Record<SampleSession['lesson'], BadgeTone> = {
 
 function LessonBadge({ sample }: { sample: SampleSession }) {
   const { t } = useTranslation()
+  const fmt = useFormatters()
   const label =
     sample.lesson === 'five-minute-wins'
       ? t('samples.badge5m')
       : sample.lesson === 'one-hour-wins'
         ? t('samples.badge1h')
-        : t('samples.badgeResets', { count: sample.hardResets ?? 0 })
+        : t('samples.badgeResets', {
+            count: sample.hardResets ?? 0,
+            formattedCount: fmt.integer(sample.hardResets ?? 0),
+          })
   return <Badge tone={LESSON_TONES[sample.lesson]}>{label}</Badge>
 }

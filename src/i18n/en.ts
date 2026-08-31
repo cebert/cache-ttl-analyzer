@@ -33,6 +33,7 @@ export const en = {
     closeMenu: 'Close navigation',
     skipToContent: 'Skip to main content',
     sessionList: 'Analyzed sessions',
+    guides: 'Guides and policies',
     home: 'Go to the start page',
     backToUpload: 'All sessions',
   },
@@ -40,7 +41,7 @@ export const en = {
   upload: {
     headline: 'Should your Claude Code sessions cache for five minutes, or an hour?',
     subhead:
-      'Drop in a session log and find out. You will see what it would have cost either way, and what made the difference. Nothing leaves this page.',
+      'Drop in a session log and find out. You will see what it would have cost either way, and what made the difference. The file is read in this browser and never uploaded — there is no server to upload it to.',
     dropTitle: 'Drop a session log here',
     dropTitleActive: 'Release to analyze',
     dropHint: 'One .jsonl file, up to {{size}}',
@@ -62,11 +63,15 @@ export const en = {
   },
 
   samples: {
-    title: 'Or try one of these',
-    meta: '{{requests}} requests over {{span}} · {{hitRate}} from cache',
+    title: 'Or try a sample session',
+    // `requests` arrives already pluralized (counts.requests).
+    meta: '{{requests}} over {{span}} · {{hitRate}} from cache',
     badge5m: '5 minutes wins',
     badge1h: '1 hour wins',
-    badgeResets: '{{count}} resets',
+    // `count` picks the form; `formattedCount` is the locale-written number
+    // that actually renders (the house pattern — see results.requestsCountNoSkips).
+    badgeResets_one: '{{formattedCount}} reset',
+    badgeResets_other: '{{formattedCount}} resets',
     loadFailed: 'That one would not load. Reload the page and try again.',
     // Sample names are our copy, not log-derived, so they are translatable
     // strings like everything else. WP-06 captures the sessions these name;
@@ -76,7 +81,6 @@ export const en = {
       realSession: 'A real 85-minute session',
       tightLoop: 'Back-to-back requests',
       gapHeavy: 'Long pauses between requests',
-      gapHeavy5m: 'Long pauses, cached for 5 minutes',
       modelSwitch: 'Switched models partway',
     },
   },
@@ -123,7 +127,7 @@ export const en = {
       step2: 'Paste the path above and press <keys><kbd>Enter</kbd></keys>.',
       note: 'Paste it exactly as written — Explorer fills in %USERPROFILE% for you.',
     },
-    fileNameTitle: 'Which file is which',
+    fileNameTitle: 'Which file is which?',
     fileNameBody:
       'Inside is one folder per project, named for its working directory with every non-alphanumeric character replaced by a dash. Each session is a file named for its id, so sort by date modified to find the one you just ran.',
     retentionNote:
@@ -207,10 +211,12 @@ export const en = {
     noVerdictBody:
       'Too much of this session ran on models with no published rate, so there is no honest cost to compare.',
     noVerdictEmpty: 'This file recorded no billable requests for this cache.',
+    // Pluralized on the in-band count; `total` is the second count and
+    // arrives already pluralized (counts.gaps), so "1 of 1 gap" reads right.
     bandSentence_one:
-      '{{count}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+      '{{formattedCount}} of {{total}} fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
     bandSentence_other:
-      '{{count}} of {{total}} gaps fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
+      '{{formattedCount}} of {{total}} fell between 5 minutes and 1 hour — the only band where the setting changes anything.',
     bandSentenceNone:
       'No gap fell between 5 minutes and 1 hour, the only band where the setting changes anything.',
     notional: 'Notional, at published API rates · {{date}}',
@@ -255,8 +261,11 @@ export const en = {
     // written by the locale's formatter, which is what gets displayed.
     requestsCountNoSkips_one: '{{formattedCount}} request',
     requestsCountNoSkips_other: '{{formattedCount}} requests',
-    subagentThreads_one: '{{count}} thread, {{requests}} requests',
-    subagentThreads_other: '{{count}} threads, {{requests}} requests',
+    // Two independent counts, and i18next can only pluralize on one (`count`)
+    // per key. So each count becomes its own pluralized fragment and the
+    // outer key just joins them — the pattern every multi-count string here
+    // follows. A translator reorders the fragments freely.
+    subagentThreads: '{{threads}}, {{requests}}',
 
     // Cache behaviour.
     timelineTitle: 'Cache timeline',
@@ -270,7 +279,8 @@ export const en = {
     resetModel: 'model',
     resetEffort: 'effort',
     resetVersion: 'version',
-    resetsWaste: '{{tokens}} tokens rewritten — the same under either TTL.',
+    // `tokens` arrives already pluralized (counts.tokens).
+    resetsWaste: '{{tokens}} rewritten — the same under either TTL.',
     resetsNone: 'No model, effort or version change reset this cache.',
     gapsTitle: 'Gaps between requests',
     gapsUnder5m: 'under 5 minutes',
@@ -285,16 +295,27 @@ export const en = {
     // differs: a subagent transcript on its own is fully analyzed (its bucket
     // is the headline), while a legacy log carrying both gets a main-only
     // verdict.
+    // `requests` and `threads` arrive as already-pluralized fragments
+    // (countSidechainRequests / countThreads), because one key cannot
+    // pluralize on two counts.
     limitSubagentsOnly:
-      'This file is a subagent transcript: {{requests}} sidechain requests across {{threads}} threads, analyzed here in full. Its verdict governs subagentPromptCacheTtl, not promptCacheTtl.',
+      'This file is a subagent transcript: {{requests}} across {{threads}}, analyzed here in full. Its verdict governs subagentPromptCacheTtl, not promptCacheTtl.',
     limitSubagentsPresent:
-      'This file also carries {{requests}} sidechain requests across {{threads}} threads. Version 1 reports the main conversation only; analyzing both caches together is on the roadmap.',
+      'This file also carries {{requests}} across {{threads}}. Version 1 reports the main conversation only; analyzing both caches together is on the roadmap.',
     limitObservedOnly:
       'The log records the observed TTL, never whether it was configured or defaulted.',
+    // D21: `inference_geo` is not in the frozen contract, so we cannot detect
+    // it per request and the line is unconditional. Stating the direction and
+    // the size is the honest version of "we do not model this".
+    limitInferenceGeo:
+      'Rates here are the standard published ones. Sessions pinned to US-only inference bill about 10% more, and the log does not record that, so those are understated.',
     limitApproximation:
-      'A cache entry is modelled as expiring whole, or as far as the log shows it lapsed — which overstates the 5-minute cost rather than understating it.',
-    limitUnknownModels:
-      'No published rate for {{models}}, so {{requests}} requests are excluded from every dollar figure.',
+      'Cache entries are modelled as expiring whole, except where the log shows part of a prefix survived. Real caching is finer-grained, and the simplification errs toward making 5 minutes look worse, never better.',
+    // Pluralized on the excluded-request count because the verb has to agree.
+    limitUnknownModels_one:
+      'No published rate for {{models}}, so {{formattedCount}} request is excluded from every dollar figure.',
+    limitUnknownModels_other:
+      'No published rate for {{models}}, so {{formattedCount}} requests are excluded from every dollar figure.',
     footerPrivacy: 'Read in this browser, never uploaded.',
     footerHowTo: 'How to set promptCacheTtl',
     footerSource: 'Source on GitHub',
@@ -302,7 +323,7 @@ export const en = {
 
   dataPolicy: {
     title: 'Data policy',
-    lead: 'This tool has no backend. There is nowhere for your session log to go.',
+    lead: 'This tool has no backend, so there is nowhere for your session log to go. That is not a promise about what we do with your data — it is a statement that we never receive it.',
     localTitle: 'Your file never leaves your browser',
     localBody:
       'You pick a file, the page hands it to a Web Worker running on your own machine, and the worker streams it and computes the answer. The file is never uploaded, never written to storage, and never sent to us or anyone else.',
@@ -343,16 +364,66 @@ export const en = {
       'Every figure is the notional cost at published Anthropic API rates. If you use Claude Code on a subscription you are not billed per token, so treat these as a measure of the work, not an invoice. If you pay by usage — API, Bedrock or credits — this is what the session cost.',
     limitsTitle: 'What it approximates',
     limitsBody:
-      'A cache entry is treated as all-or-nothing: it either survived the gap or it did not. Real caching is finer-grained than that, and the simplification runs conservative toward the five-minute setting. Requests using a model with no published rate are excluded from the totals and disclosed rather than guessed.',
+      'A cache entry is treated as all-or-nothing — it either survived the gap or it did not — except where the log shows a prefix partly survived, which is modelled. Real caching is finer-grained still, and every simplification here errs toward making the five-minute setting look worse rather than better, so a verdict of one hour is the conservative one. Requests on a model with no published rate are excluded from the totals and disclosed rather than guessed, and rates are the standard published ones: a session pinned to US-only inference bills about 10% more than shown, which the log does not record.',
     monitorTitle: 'Watching this going forward',
     monitorBody:
       'Claude Code 2.1.251 and later report live cache statistics with the /usage command, which is the right tool for day-to-day monitoring. This one is for deciding the setting in the first place.',
     sourceLink: 'Source on GitHub',
+
+    // Vendor references. The divergences are the point of this section: this
+    // tool models Anthropic's first-party 5m/1h choice, and the same choice is
+    // not offered identically everywhere, so a reader on Bedrock or Google
+    // Cloud needs to know before acting on a verdict.
+    referencesTitle: 'Where this comes from',
+    referencesBody:
+      'The behaviour modelled here is documented by each vendor. Links checked 30 August 2026.',
+    refClaudeCode: 'Claude Code — how it uses prompt caching',
+    refClaudeCodeNote:
+      'Which TTL you get by default: one hour for the main conversation on a subscription within plan usage, five minutes on credits, an API key or a cloud provider. Subagents and compaction get five minutes unless overridden.',
+    refAnthropic: 'Anthropic API — prompt caching',
+    refAnthropicNote:
+      'The five-minute default, refreshed free on each hit, and the one-hour opt-in.',
+    refAnthropicPricing: 'Anthropic — pricing',
+    refAnthropicPricingNote:
+      'The multipliers this tool prices with: 1.25× to write for five minutes, 2× for an hour, 0.1× to read.',
+    refBedrock: 'Amazon Bedrock — prompt caching',
+    refBedrockNote:
+      'Five minutes by default, one hour available on current Claude models. Older ones — Claude 3.7 Sonnet and 3.5 Sonnet v2 — are five-minute only, so a one-hour verdict is not actionable there.',
+    refGoogle: 'Google Cloud — prompt caching for Claude',
+    refGoogleNote:
+      'The same five-minute default and one-hour opt-in, with the same pricing shape. The one-hour TTL is not supported for Claude 3.7 Sonnet, 3.5 Sonnet v2, 3.5 Sonnet or 3 Opus.',
+    refOpenai: 'OpenAI — prompt caching',
+    refOpenaiNote:
+      'For contrast: no five-minute-or-an-hour choice to make. GPT-5.6 and later cache for thirty minutes, the only value that setting accepts; earlier families use a different retention setting instead.',
+
     authorTitle: 'Who made this',
     authorBody:
       'Chris Ebert, a software engineer in Michigan with over fifteen years of experience building cloud applications. He works on govtech at Tyler Technologies, and has previously built software at Lockheed Martin and GE Healthcare — across space, signals intelligence, manufacturing, finance and public safety. He has a computer science degree from the University of Michigan and an MBA from Wayne State.',
     authorBlog: 'chrisebert.net',
     authorX: '@realchrisebert',
+  },
+
+  /**
+   * Reusable "number + noun" fragments, pluralized on `count` and written by
+   * the locale's formatter through `formattedCount`.
+   *
+   * They exist because i18next selects a plural form from exactly one
+   * variable per key (`count`), so a sentence carrying two independent counts
+   * — "3 threads, 45 requests" — cannot be pluralized as a single string.
+   * Each count becomes a fragment, and the sentence interpolates the finished
+   * fragments. Resolve them with `useCounted` (./counted.ts).
+   */
+  counts: {
+    requests_one: '{{formattedCount}} request',
+    requests_other: '{{formattedCount}} requests',
+    sidechainRequests_one: '{{formattedCount}} sidechain request',
+    sidechainRequests_other: '{{formattedCount}} sidechain requests',
+    threads_one: '{{formattedCount}} thread',
+    threads_other: '{{formattedCount}} threads',
+    gaps_one: '{{formattedCount}} gap',
+    gaps_other: '{{formattedCount}} gaps',
+    tokens_one: '{{formattedCount}} token',
+    tokens_other: '{{formattedCount}} tokens',
   },
 
   common: {
