@@ -24,6 +24,27 @@ describe('createFormatters', () => {
     })
   })
 
+  describe('compact', () => {
+    it('keeps an exact count until the magnitude is the point', () => {
+      expect(en.compact(0)).toBe('0')
+      expect(en.compact(41_070)).toBe('41,070')
+      expect(en.compact(99_999)).toBe('99,999')
+    })
+
+    it('abbreviates larger counts the way the locale does', () => {
+      // en-US writes "2.4M"; de-DE writes millions differently and uses a
+      // comma decimal, which is the whole reason this goes through Intl.
+      expect(en.compact(2_410_000)).toBe('2.4M')
+      expect(en.compact(578_000)).toBe('578K')
+      expect(de.compact(2_410_000)).not.toBe(en.compact(2_410_000))
+      expect(de.compact(2_410_000)).toContain(',')
+    })
+
+    it('renders nothing for a non-finite count', () => {
+      expect(en.compact(Number.NaN)).toBe('')
+    })
+  })
+
   describe('currency', () => {
     it('always shows two decimals, so a column of costs aligns', () => {
       expect(en.currency(2.1)).toBe('$2.10')
@@ -105,6 +126,38 @@ describe('createFormatters', () => {
     it('renders nothing for an unparseable timestamp, since logs are untrusted', () => {
       expect(en.date('not-a-date')).toBe('')
       expect(en.dateTime('')).toBe('')
+    })
+  })
+
+  describe('dateTimeRange', () => {
+    // The tests run in whatever zone the machine is in, so they assert the
+    // shape of the range rather than a wall-clock time.
+    const morning = '2026-08-30T12:00:00.000Z'
+    const later = '2026-08-30T13:20:00.000Z'
+
+    it('states the date once for a span inside one day', () => {
+      const range = en.dateTimeRange(morning, later)
+      expect(range).toContain('·')
+      expect(range).toContain('–')
+      expect(range).toBe(`${en.date(morning)} · ${en.timeOfDay(morning)} – ${en.timeOfDay(later)}`)
+    })
+
+    it('states both dates when the span crosses a day', () => {
+      const nextWeek = '2026-09-06T13:20:00.000Z'
+      expect(en.dateTimeRange(morning, nextWeek)).toBe(
+        `${en.dateTime(morning)} – ${en.dateTime(nextWeek)}`,
+      )
+    })
+
+    it('follows the locale, not a hard-coded order', () => {
+      expect(de.dateTimeRange(morning, later)).toContain(de.date(morning))
+      expect(de.timeOfDay(morning)).not.toBe(en.timeOfDay(morning))
+    })
+
+    it('degrades to what it can parse, since logs are untrusted', () => {
+      expect(en.dateTimeRange('not-a-date', later)).toBe('')
+      expect(en.dateTimeRange(morning, 'not-a-date')).toBe(en.dateTime(morning))
+      expect(en.timeOfDay('not-a-date')).toBe('')
     })
   })
 

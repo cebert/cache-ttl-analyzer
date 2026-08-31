@@ -90,7 +90,15 @@
         "requestCount": 0,
         "spanMs": 0,
         "largestGapMs": 0,
-        "gapsIn5mTo1hBand": 0
+        "gapsIn5mTo1hBand": 0,
+        "gapsUnder5m": 0,
+        "gapsOver1h": 0
+      },
+      "tokenTotals": {
+        "inputTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0,
+        "outputTokens": 0
       }
     },
     {
@@ -551,7 +559,15 @@
         "requestCount": 12,
         "spanMs": 61068,
         "largestGapMs": 10408,
-        "gapsIn5mTo1hBand": 0
+        "gapsIn5mTo1hBand": 0,
+        "gapsUnder5m": 11,
+        "gapsOver1h": 0
+      },
+      "tokenTotals": {
+        "inputTokens": 2729,
+        "cacheReadTokens": 474213,
+        "cacheWriteTokens": 34825,
+        "outputTokens": 1724
       }
     }
   ],

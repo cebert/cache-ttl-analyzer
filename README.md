@@ -15,6 +15,35 @@ Upload a Claude Code JSONL session and this tool will:
 - compares the resulting cost
 - highlights session behaviors that caused expensive cache misses
 
+### Scope of version 1
+
+Version 1 analyzes the **main conversation** only — the cache that
+`promptCacheTtl` governs. Subagents keep their own caches, governed separately
+by `subagentPromptCacheTtl`, and on current Claude Code versions their turns
+live in separate files beside the session log (`<session-id>/subagents/`), so a
+main-session upload contains none of that traffic. The results view says so
+explicitly rather than staying quiet about it: the tool never implies it
+evaluated a cache it did not see. The engine already partitions subagent
+traffic correctly, so uploading a subagent transcript on its own analyzes that
+subagent — what version 1 does not do is roll the two buckets up into one
+verdict.
+
+### Roadmap
+
+Beyond version 1, in rough priority order:
+
+- **Subagent cache analysis.** Read a session and its `subagents/` transcripts
+  together and report both buckets — `promptCacheTtl` and
+  `subagentPromptCacheTtl` — with their own verdicts. Needs multi-file upload
+  and cross-file dedup.
+- **Multi-file and cross-session rollups**, so a week of work answers the
+  question rather than one session.
+- **Deeper API-powered analysis**, opt-in and itemized, if the local analysis
+  proves useful enough to want it.
+- **Provider rate tables** (Bedrock, Vertex) alongside the published Anthropic
+  API rates.
+- **Hybrid-TTL guidance** (a stable 1-hour prefix with a 5-minute tail), which
+  today can only be qualitative — the logs cannot support a computed number.
 
 ## Why
 
