@@ -18,13 +18,19 @@ import { Micro, SectionTitle } from '../ui/Sheet'
 
 const log = createLogger('find-logs')
 
-export function FindLogsPanel({ detailed = false }: { detailed?: boolean }) {
+export function FindLogsPanel({
+  detailed = false,
+  hideTitle = false,
+}: {
+  detailed?: boolean
+  /** Set when the panel *is* the page, whose own heading already names it. */
+  hideTitle?: boolean
+}) {
   const { t } = useTranslation()
 
   return (
     <div className="flex flex-col gap-3">
-      <SectionTitle>{t('findLogs.title')}</SectionTitle>
-      {detailed && <Micro className="text-[12px] text-ink-2">{t('findLogs.intro')}</Micro>}
+      {!hideTitle && <SectionTitle>{t('findLogs.title')}</SectionTitle>}
 
       <div className="flex flex-col gap-2">
         <PathRow label={t('findLogs.macos')} path={t('findLogs.macosPath')} />

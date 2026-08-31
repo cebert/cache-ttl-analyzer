@@ -128,7 +128,21 @@ export function createAnalysisRunner(options: RunnerOptions): AnalysisRunner {
     start(request, nextHandlers) {
       if (worker) throw new Error('an analysis is already running')
       handlers = nextHandlers
-      const port = options.createWorker()
+      // `new Worker()` throws synchronously where workers are unavailable — a
+      // CSP that forbids `worker-src`, or a locked-down embedded browser. The
+      // caller has already recorded the run by this point, so letting the
+      // throw escape would strand it in "analyzing" with cancel inert.
+      let port: AnalysisWorkerPort
+      try {
+        port = options.createWorker()
+      } catch (error) {
+        handlers = null
+        nextHandlers.onError(
+          'internal',
+          error instanceof Error ? error.message : 'worker unavailable',
+        )
+        return
+      }
       worker = port
       port.onmessage = (event) => handleMessage(event.data)
       // A worker that dies before posting any protocol message — a script that

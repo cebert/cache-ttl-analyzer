@@ -198,6 +198,30 @@ describe('createAnalysisRunner', () => {
     expect(runner.isRunning).toBe(false)
   })
 
+  it('reports a worker that cannot be constructed at all, and stays startable', () => {
+    // Where `worker-src` is forbidden or workers are unavailable, `new Worker()`
+    // throws synchronously. The caller has already recorded the run, so a throw
+    // escaping here would strand it in "analyzing" with cancel inert.
+    let fail = true
+    const fake = createFakeWorker(createStubEngine())
+    const runner = createAnalysisRunner({
+      createWorker: () => {
+        if (fail) throw new DOMException('blocked by CSP', 'SecurityError')
+        return fake.port
+      },
+    })
+    const handlers = spyHandlers()
+
+    runner.start(request(), handlers)
+
+    expect(handlers.onError).toHaveBeenCalledWith('internal', 'blocked by CSP')
+    expect(runner.isRunning).toBe(false)
+
+    // The slot was released, so a later attempt still works.
+    fail = false
+    expect(() => runner.start(request(), spyHandlers())).not.toThrow()
+  })
+
   it('refuses a second concurrent run, matching the worker protocol', () => {
     const fake = createFakeWorker(createStubEngine())
     const runner = createAnalysisRunner({ createWorker: () => fake.port })
