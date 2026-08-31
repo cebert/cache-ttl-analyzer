@@ -40,7 +40,7 @@ export const en = {
   upload: {
     headline: 'Should your Claude Code sessions cache for five minutes, or an hour?',
     subhead:
-      'Drop in a session log and find out. You will see what it would have cost either way, and what made the difference. Nothing leaves this page.',
+      'Drop in a session log and find out. You will see what it would have cost either way, and what made the difference. The file is read in this browser and never uploaded — there is no server to upload it to.',
     dropTitle: 'Drop a session log here',
     dropTitleActive: 'Release to analyze',
     dropHint: 'One .jsonl file, up to {{size}}',
@@ -62,7 +62,7 @@ export const en = {
   },
 
   samples: {
-    title: 'Or try one of these',
+    title: 'Or try a sample session',
     // `requests` arrives already pluralized (counts.requests).
     meta: '{{requests}} over {{span}} · {{hitRate}} from cache',
     badge5m: '5 minutes wins',
@@ -80,7 +80,6 @@ export const en = {
       realSession: 'A real 85-minute session',
       tightLoop: 'Back-to-back requests',
       gapHeavy: 'Long pauses between requests',
-      gapHeavy5m: 'Long pauses, cached for 5 minutes',
       modelSwitch: 'Switched models partway',
     },
   },
@@ -304,8 +303,13 @@ export const en = {
       'This file also carries {{requests}} across {{threads}}. Version 1 reports the main conversation only; analyzing both caches together is on the roadmap.',
     limitObservedOnly:
       'The log records the observed TTL, never whether it was configured or defaulted.',
+    // D21: `inference_geo` is not in the frozen contract, so we cannot detect
+    // it per request and the line is unconditional. Stating the direction and
+    // the size is the honest version of "we do not model this".
+    limitInferenceGeo:
+      'Rates here are the standard published ones. Sessions pinned to US-only inference bill about 10% more, and the log does not record that, so those are understated.',
     limitApproximation:
-      'A cache entry is modelled as expiring whole, or as far as the log shows it lapsed — which overstates the 5-minute cost rather than understating it.',
+      'Cache entries are modelled as expiring whole, except where the log shows part of a prefix survived. Real caching is finer-grained, and the simplification errs toward making 5 minutes look worse, never better.',
     // Pluralized on the excluded-request count because the verb has to agree.
     limitUnknownModels_one:
       'No published rate for {{models}}, so {{formattedCount}} request is excluded from every dollar figure.',
@@ -318,7 +322,7 @@ export const en = {
 
   dataPolicy: {
     title: 'Data policy',
-    lead: 'This tool has no backend. There is nowhere for your session log to go.',
+    lead: 'This tool has no backend, so there is nowhere for your session log to go. That is not a promise about what we do with your data — it is a statement that we never receive it.',
     localTitle: 'Your file never leaves your browser',
     localBody:
       'You pick a file, the page hands it to a Web Worker running on your own machine, and the worker streams it and computes the answer. The file is never uploaded, never written to storage, and never sent to us or anyone else.',
@@ -359,7 +363,7 @@ export const en = {
       'Every figure is the notional cost at published Anthropic API rates. If you use Claude Code on a subscription you are not billed per token, so treat these as a measure of the work, not an invoice. If you pay by usage — API, Bedrock or credits — this is what the session cost.',
     limitsTitle: 'What it approximates',
     limitsBody:
-      'A cache entry is treated as all-or-nothing: it either survived the gap or it did not. Real caching is finer-grained than that, and the simplification runs conservative toward the five-minute setting. Requests using a model with no published rate are excluded from the totals and disclosed rather than guessed.',
+      'A cache entry is treated as all-or-nothing — it either survived the gap or it did not — except where the log shows a prefix partly survived, which is modelled. Real caching is finer-grained still, and every simplification here errs toward making the five-minute setting look worse rather than better, so a verdict of one hour is the conservative one. Requests on a model with no published rate are excluded from the totals and disclosed rather than guessed, and rates are the standard published ones: a session pinned to US-only inference bills about 10% more than shown, which the log does not record.',
     monitorTitle: 'Watching this going forward',
     monitorBody:
       'Claude Code 2.1.251 and later report live cache statistics with the /usage command, which is the right tool for day-to-day monitoring. This one is for deciding the setting in the first place.',

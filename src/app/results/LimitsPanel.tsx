@@ -38,6 +38,7 @@ export function LimitsPanel({ result }: { result: AnalysisResult }) {
       </Micro>
       <Micro>{t('results.limitObservedOnly')}</Micro>
       <Micro>{t('results.limitApproximation')}</Micro>
+      <Micro>{t('results.limitInferenceGeo')}</Micro>
       {unknownModels.models.length > 0 && (
         <Micro>
           {t('results.limitUnknownModels', {
