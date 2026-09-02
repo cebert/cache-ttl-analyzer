@@ -87,10 +87,11 @@ export const en = {
 
   privacy: {
     title: 'Nothing is uploaded',
-    inBrowser: 'Your file is read on your own machine. It is never sent anywhere and never stored.',
-    metadataOnly: 'We read token counts and timestamps. We never read what you or Claude said.',
-    csp: 'The browser itself blocks this page from sending anything out. Open devtools and watch.',
-    source: 'Source on GitHub',
+    inBrowser: 'Your file is processed entirely on your device. It is never uploaded or stored.',
+    metadataOnly:
+      'We analyze token counts and timestamps — not the contents of your conversations.',
+    csp: 'A strict Content Security Policy prevents this page from sending your data anywhere. You can verify it in DevTools.',
+    source: 'View source on GitHub',
   },
 
   findLogs: {
@@ -323,82 +324,80 @@ export const en = {
 
   dataPolicy: {
     title: 'Data policy',
-    lead: 'This tool has no backend, so there is nowhere for your session log to go. That is not a promise about what we do with your data — it is a statement that we never receive it.',
-    localTitle: 'Your file never leaves your browser',
+    lead: 'This tool has no backend. Your session log is processed locally in your browser and is never received by us.',
+    localTitle: 'Your file stays on your device',
     localBody:
-      'You pick a file, the page hands it to a Web Worker running on your own machine, and the worker streams it and computes the answer. The file is never uploaded, never written to storage, and never sent to us or anyone else.',
-    cspTitle: 'The platform enforces it, we do not just promise it',
+      'When you choose a file, a Web Worker processes it locally on your machine. The file is never uploaded, sent to a server, or written to storage.',
+    cspTitle: 'Enforced by the browser',
     cspBody:
-      'Every page is served with a strict Content-Security-Policy whose connect-src is limited to this origin. The browser will refuse an outbound request to anywhere else, whatever the code tries. Open devtools, watch the network tab while you analyze a session, and you will see no request carrying your data.',
-    contentTitle: 'What is read, and what is not',
+      'Every page is served with a strict Content Security Policy that restricts network connections to this origin. Combined with the app having no backend, there is nowhere for your session data to be sent. You can verify this yourself in your browser’s Network panel while running an analysis.',
+    contentTitle: 'What the parser reads',
     contentBody:
-      'The parser reads token counts, timestamps, model ids, the Claude Code version, the working directory, the git branch, and the session title. It never reads message content — a test in the repository feeds the parser a session whose message bodies are poison values and asserts they appear nowhere in the output.',
-    memoryTitle: 'Nothing is kept',
+      'The parser reads only the metadata needed for analysis: token counts, timestamps, model IDs, Claude Code version, working directory, git branch, and session title. It does not read message content. A repository test verifies that message-body values never appear in parser output.',
+    memoryTitle: 'Nothing is retained',
     memoryBody:
-      'Analyses you run live in this tab’s memory and are gone when you reload or close it. There is no account, no database, and no cookie. The one thing this app writes to browser storage is an optional debug flag you set yourself.',
-    analyticsTitle: 'No analytics, no tracking',
+      'Analysis results live only in this tab’s memory and disappear when you reload or close it. There is no account, database, or tracking cookie. The only browser storage the app uses is an optional debug flag that you enable yourself.',
+    analyticsTitle: 'No analytics or tracking',
     analyticsBody:
-      'There is no analytics script, no tag manager, no error-reporting service and no third-party embed of any kind. Logs go to your own browser console and nowhere else.',
-    futureTitle: 'If that ever changes',
+      'There are no analytics scripts, tag managers, error-reporting services, or third-party embeds. Diagnostic logs stay in your browser console and are never collected.',
+    futureTitle: 'If this changes',
     futureBody:
-      'A richer analysis using the Anthropic API is a possible future feature. If it ships, it will be opt-in, off by default, and will state exactly which fields would be sent before you turn it on. Nothing will start leaving your browser silently.',
+      'A future version may offer optional AI-powered analysis using the Anthropic API. If added, it will be off by default and will clearly show what data would be sent before you enable it. Nothing will start leaving your browser silently.',
     verifyTitle: 'Verify it yourself',
-    verifyBody: 'The whole app is open source. Read the parser, or run it locally.',
-    verifyLink: 'Source on GitHub',
+    verifyBody:
+      'The entire app is open source. Inspect the parser, review the tests, or run the application locally.',
+    verifyLink: 'View source on GitHub',
     debugTitle: 'Debug logging',
     debugBody:
-      'Add ?debug=1 to the URL, or set cta-debug to 1 in localStorage, to raise console verbosity when you need to troubleshoot. Log output stays in your console; it is never collected.',
+      'Add ?debug=1 to the URL or set cta-debug to 1 in localStorage to enable more detailed console logging. Debug output stays in your browser and is never collected.',
   },
 
   about: {
     title: 'About',
-    lead: 'cacheanalyzer tells you whether a Claude Code session would have cost less with a five-minute or a one-hour prompt cache.',
+    lead: 'cacheanalyzer shows whether a Claude Code session would have cost less with a five-minute or one-hour prompt cache.',
     whyTitle: 'Why this exists',
     whyBody:
-      'Prompt caching is billed at a discount to read and a premium to write, and the premium depends on how long the entry lives. Whether the longer TTL pays for itself depends entirely on the shape of your session — how long the pauses between requests are. That is knowable from a session log, and guessable from nothing else.',
+      'Cache reads are cheap; cache writes cost more. Whether a one-hour TTL saves money depends on the gaps between requests — something your session log can tell us.',
     howTitle: 'How it works',
     howBody:
-      'The session log is parsed into one record per API request, deduplicated by message id. Each request is priced at published Anthropic API rates, then the session is replayed twice — once with a five-minute cache, once with a one-hour cache — expiring entries on the gaps actually observed and resetting the cache whenever the model, effort or version changed.',
+      'The log is reduced to one record per API request and priced at published Anthropic rates. The session is then replayed with five-minute and one-hour cache TTLs using the timing and cache resets observed in the log.',
     costTitle: 'About the dollar figures',
     costBody:
-      'Every figure is the notional cost at published Anthropic API rates. If you use Claude Code on a subscription you are not billed per token, so treat these as a measure of the work, not an invoice. If you pay by usage — API, Bedrock or credits — this is what the session cost.',
+      'Figures use published Anthropic API rates. If you use Claude Code through a subscription, treat them as a comparison rather than an invoice. For usage-based billing, they approximate the session cost.',
     limitsTitle: 'What it approximates',
     limitsBody:
-      'A cache entry is treated as all-or-nothing — it either survived the gap or it did not — except where the log shows a prefix partly survived, which is modelled. Real caching is finer-grained still, and every simplification here errs toward making the five-minute setting look worse rather than better, so a verdict of one hour is the conservative one. Requests on a model with no published rate are excluded from the totals and disclosed rather than guessed, and rates are the standard published ones: a session pinned to US-only inference bills about 10% more than shown, which the log does not record.',
+      'The simulator simplifies some finer-grained cache behavior and intentionally favors the five-minute TTL when uncertain, making a one-hour recommendation conservative. Models without published pricing are excluded rather than guessed. US-only inference may cost about 10% more than shown.',
     monitorTitle: 'Watching this going forward',
     monitorBody:
-      'Claude Code 2.1.251 and later report live cache statistics with the /usage command, which is the right tool for day-to-day monitoring. This one is for deciding the setting in the first place.',
+      'Claude Code 2.1.251 and later report live cache statistics with /usage. Use that for ongoing monitoring; use this tool to choose the cache setting.',
     sourceLink: 'Source on GitHub',
-
     // Vendor references. The divergences are the point of this section: this
     // tool models Anthropic's first-party 5m/1h choice, and the same choice is
     // not offered identically everywhere, so a reader on Bedrock or Google
     // Cloud needs to know before acting on a verdict.
-    referencesTitle: 'Where this comes from',
+    referencesTitle: 'Sources',
     referencesBody:
-      'The behaviour modelled here is documented by each vendor. Links checked 30 August 2026.',
-    refClaudeCode: 'Claude Code — how it uses prompt caching',
+      'Behavior and pricing are based on vendor documentation. Links checked 30 August 2026.',
+    refClaudeCode: 'Claude Code — prompt caching',
     refClaudeCodeNote:
-      'Which TTL you get by default: one hour for the main conversation on a subscription within plan usage, five minutes on credits, an API key or a cloud provider. Subagents and compaction get five minutes unless overridden.',
+      'Which TTL you get by default: one hour on a subscription within plan usage, five minutes on credits, an API key or a cloud provider. Subagents and compaction use five minutes.',
     refAnthropic: 'Anthropic API — prompt caching',
-    refAnthropicNote:
-      'The five-minute default, refreshed free on each hit, and the one-hour opt-in.',
+    refAnthropicNote: 'Documents the five-minute default and one-hour option.',
     refAnthropicPricing: 'Anthropic — pricing',
     refAnthropicPricingNote:
-      'The multipliers this tool prices with: 1.25× to write for five minutes, 2× for an hour, 0.1× to read.',
+      'Pricing used here: 1.25× for five-minute writes, 2× for one-hour writes and 0.1× for reads.',
     refBedrock: 'Amazon Bedrock — prompt caching',
     refBedrockNote:
-      'Five minutes by default, one hour available on current Claude models. Older ones — Claude 3.7 Sonnet and 3.5 Sonnet v2 — are five-minute only, so a one-hour verdict is not actionable there.',
+      'Five-minute default, one-hour on current Claude models. Claude 3.7 Sonnet and 3.5 Sonnet v2 are five-minute only, so a one-hour verdict does not apply there.',
     refGoogle: 'Google Cloud — prompt caching for Claude',
     refGoogleNote:
-      'The same five-minute default and one-hour opt-in, with the same pricing shape. The one-hour TTL is not supported for Claude 3.7 Sonnet, 3.5 Sonnet v2, 3.5 Sonnet or 3 Opus.',
+      'Same five-minute default and one-hour option. One hour is unsupported on Claude 3.7 Sonnet, 3.5 Sonnet v2, 3.5 Sonnet and 3 Opus.',
     refOpenai: 'OpenAI — prompt caching',
-    refOpenaiNote:
-      'For contrast: no five-minute-or-an-hour choice to make. GPT-5.6 and later cache for thirty minutes, the only value that setting accepts; earlier families use a different retention setting instead.',
+    refOpenaiNote: 'Included for comparison with OpenAI prompt-cache retention.',
 
     authorTitle: 'Who made this',
     authorBody:
-      'Chris Ebert, a software engineer in Michigan with over fifteen years of experience building cloud applications. He works on govtech at Tyler Technologies, and has previously built software at Lockheed Martin and GE Healthcare — across space, signals intelligence, manufacturing, finance and public safety. He has a computer science degree from the University of Michigan and an MBA from Wayne State.',
+      'Chris Ebert is a Michigan software engineer with over fifteen years of experience building cloud applications across public safety, healthcare, aerospace and other industries. He currently works at Tyler Technologies and previously worked at Lockheed Martin and GE Healthcare.',
     authorBlog: 'chrisebert.net',
     authorX: '@realchrisebert',
   },
